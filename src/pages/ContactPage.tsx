@@ -6,7 +6,7 @@ import { Footer } from '@/components/landing/Footer'
 import { useToast } from '@/contexts/ToastContext'
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' })
+  const [formData, setFormData] = useState({ name: '', email: '', message: '', honeypot: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
@@ -19,19 +19,29 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
     setIsSubmitting(true)
     
     try {
-      // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      setIsSubmitting(false)
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || 'Failed to send message')
+      }
+
       setSubmitted(true)
-      setFormData({ name: '', email: '', message: '' })
+      setFormData({ name: '', email: '', message: '', honeypot: '' })
       toast.success('Message sent successfully! We\'ll get back to you soon.')
     } catch (err) {
-      setIsSubmitting(false)
+      console.error(err)
       toast.error('Failed to send message. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -39,7 +49,7 @@ export default function ContactPage() {
     { icon: Twitter, label: 'Twitter', href: '#' },
     { icon: Github, label: 'GitHub', href: '#' },
     { icon: MessageSquare, label: 'Discord', href: '#' },
-    { icon: Mail, label: 'Email', href: 'mailto:hello@aiimageprompts.xyz' },
+    { icon: Mail, label: 'Email', href: 'mailto:team@aiimageprompts.xyz' },
   ]
 
   return (
@@ -117,6 +127,18 @@ export default function ContactPage() {
                     onSubmit={handleSubmit}
                     className="space-y-6"
                   >
+                    {/* Honeypot field to deter bots */}
+                    <input
+                      type="text"
+                      name="honeypot"
+                      value={formData.honeypot}
+                      onChange={(e) => setFormData({ ...formData, honeypot: e.target.value })}
+                      className="hidden"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      aria-hidden="true"
+                    />
+
                     <div className="grid sm:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium ml-1 text-neutral-600 dark:text-neutral-400">Name</label>
