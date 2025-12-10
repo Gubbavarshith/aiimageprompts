@@ -64,9 +64,6 @@ const buildChartData = (records: PromptRecord[], days: number) => {
 const countRecordsWithinDays = (records: PromptRecord[], days: number) =>
   records.reduce((count, record) => (isWithinLastDays(record.created_at, days) ? count + 1 : count), 0)
 
-const sumViewsWithinDays = (records: PromptRecord[], days: number) =>
-  records.reduce((sum, record) => (isWithinLastDays(record.created_at, days) ? sum + record.views : sum), 0)
-
 export default function DashboardPage() {
   const navigate = useNavigate()
   const [chartPeriod, setChartPeriod] = useState<'7days' | '30days'>('7days')
