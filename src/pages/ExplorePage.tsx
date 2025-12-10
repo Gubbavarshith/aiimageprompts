@@ -22,6 +22,7 @@ interface PromptCardProps {
 }
 
 const PromptCard = ({ prompt, index, onCopy, copiedId, isSaved, onSaveToggle, isSignedIn }: PromptCardProps) => {
+  console.log('isSignedIn', isSignedIn)
   const isCopied = copiedId === prompt.id;
 
   return (
@@ -466,7 +467,7 @@ export default function ExplorePage() {
                       copiedId={copiedId}
                       isSaved={savedPromptIds.has(prompt.id)}
                       onSaveToggle={handleSaveToggle}
-                      isSignedIn={isSignedIn && isLoaded}
+                      isSignedIn={!!(isSignedIn && isLoaded)}
                     />
                   ))}
                 </AnimatePresence>
