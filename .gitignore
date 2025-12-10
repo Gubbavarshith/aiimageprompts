@@ -13,6 +13,7 @@ dist-ssr
 
 # Environment variables - NEVER COMMIT THESE
 # Use .env.example as a template
+.env
 .env.local
 .env.development
 .env.development.local
