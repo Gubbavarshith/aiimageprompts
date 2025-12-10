@@ -50,7 +50,7 @@ export default async function handler(req: any, res: any) {
       from,
       to,
       subject: `New contact — ${trimmedName}`,
-      reply_to: trimmedEmail,
+      replyTo: trimmedEmail,
       text: `From: ${trimmedName} <${trimmedEmail}>\n\n${trimmedMessage}`,
       html: `<p><strong>From:</strong> ${trimmedName} &lt;${trimmedEmail}&gt;</p><p>${trimmedMessage}</p>`
     })
