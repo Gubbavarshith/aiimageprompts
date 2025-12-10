@@ -1,0 +1,335 @@
+import { useState, useRef, FormEvent, useEffect } from 'react'
+import {
+    XMarkIcon,
+    PhotoIcon,
+    ArrowUpTrayIcon,
+} from '@heroicons/react/24/outline'
+import { supabase } from '@/lib/supabaseClient'
+import {
+    createPrompt,
+    updatePrompt,
+    type PromptRecord,
+    type PromptPayload,
+} from '@/lib/services/prompts'
+import { useToast } from '@/contexts/ToastContext'
+import { sanitizeForStorage } from '@/lib/utils'
+
+const STATUS_OPTIONS = ['Published', 'Draft', 'Review']
+
+const EMPTY_FORM_STATE = {
+    title: '',
+    prompt: '',
+    negative_prompt: '',
+    category: '',
+    tags: '',
+    preview_image_url: '',
+    status: 'Draft',
+    views: '0',
+}
+
+type PromptFormState = typeof EMPTY_FORM_STATE
+
+interface PromptFormModalProps {
+    isOpen: boolean
+    onClose: () => void
+    initialData?: PromptRecord | null
+    onSuccess?: () => void
+}
+
+export default function PromptFormModal({ isOpen, onClose, initialData, onSuccess }: PromptFormModalProps) {
+    const [formValues, setFormValues] = useState<PromptFormState>(EMPTY_FORM_STATE)
+    const [formError, setFormError] = useState<string | null>(null)
+    const [isSaving, setIsSaving] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const toast = useToast()
+
+    const mode = initialData ? 'edit' : 'create'
+
+    useEffect(() => {
+        if (isOpen) {
+            if (initialData) {
+                setFormValues({
+                    title: initialData.title ?? '',
+                    prompt: initialData.prompt ?? '',
+                    negative_prompt: initialData.negative_prompt ?? '',
+                    category: initialData.category ?? '',
+                    tags: initialData.tags?.join(', ') ?? '',
+                    preview_image_url: initialData.preview_image_url ?? '',
+                    status: initialData.status ?? 'Draft',
+                    views: initialData.views?.toString() ?? '0',
+                })
+            } else {
+                setFormValues(EMPTY_FORM_STATE)
+            }
+            setFormError(null)
+        }
+    }, [isOpen, initialData])
+
+    const handleFormInputChange = (field: keyof PromptFormState, value: string) => {
+        setFormValues(prev => ({
+            ...prev,
+            [field]: value,
+        }))
+    }
+
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+
+        setIsUploading(true)
+        try {
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+            const filePath = `${fileName}`
+
+            const { error: uploadError } = await supabase.storage
+                .from('prompt-images')
+                .upload(filePath, file)
+
+            if (uploadError) {
+                throw uploadError
+            }
+
+            const { data } = supabase.storage.from('prompt-images').getPublicUrl(filePath)
+
+            handleFormInputChange('preview_image_url', data.publicUrl)
+            toast.success('Image uploaded successfully')
+        } catch (error) {
+            console.error('Error uploading image:', error)
+            toast.error('Failed to upload image. Please try again.')
+        } finally {
+            setIsUploading(false)
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ''
+            }
+        }
+    }
+
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        setFormError(null)
+
+        const trimmedTitle = formValues.title.trim()
+        const trimmedPrompt = formValues.prompt.trim()
+        const trimmedCategory = formValues.category.trim()
+
+        if (!trimmedTitle || !trimmedPrompt || !trimmedCategory) {
+            setFormError('Title, prompt, and category are required.')
+            return
+        }
+
+        const tagsArray = formValues.tags
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(Boolean)
+
+        const payload: PromptPayload = {
+            title: sanitizeForStorage(trimmedTitle),
+            prompt: sanitizeForStorage(trimmedPrompt),
+            negative_prompt: formValues.negative_prompt.trim() ? sanitizeForStorage(formValues.negative_prompt.trim()) : null,
+            category: sanitizeForStorage(trimmedCategory),
+            tags: tagsArray.length ? tagsArray.map(tag => sanitizeForStorage(tag)) : null,
+            preview_image_url: formValues.preview_image_url.trim() || null, // URL doesn't need sanitization, validation is enough
+            status: formValues.status,
+            views: isNaN(Number(formValues.views)) ? 0 : Number(formValues.views),
+            user_id: null,
+        }
+
+        setIsSaving(true)
+
+        try {
+            if (mode === 'create') {
+                await createPrompt(payload)
+                toast.success('Prompt created successfully!')
+            } else if (initialData) {
+                await updatePrompt(initialData.id, payload)
+                toast.success('Prompt updated successfully!')
+            }
+
+            if (onSuccess) onSuccess()
+            onClose()
+        } catch (err) {
+            console.error(err)
+            setFormError(err instanceof Error ? err.message : 'An unexpected error occurred.')
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    if (!isOpen) return null
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-3xl bg-white dark:bg-[#0c0c0e] rounded-2xl border border-zinc-200 dark:border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-[#0c0c0e] z-10 pb-4 border-b border-zinc-100 dark:border-white/5">
+                        <div>
+                            <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
+                                {mode === 'create' ? 'Create Prompt' : 'Edit Prompt'}
+                            </h2>
+                            <p className="text-sm text-zinc-500">
+                                {mode === 'create'
+                                    ? 'Add a new AI image prompt to your library.'
+                                    : 'Update prompt details and save changes.'}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="p-2 rounded-full bg-zinc-100 dark:bg-white/5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                            aria-label="Close form"
+                        >
+                            <XMarkIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    {formError && (
+                        <div className="p-3 rounded-lg border border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200 text-sm">
+                            {formError}
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Title *</label>
+                            <input
+                                type="text"
+                                value={formValues.title}
+                                onChange={(e) => handleFormInputChange('title', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                                placeholder="Cyberpunk City Streets at Night"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Category *</label>
+                            <input
+                                type="text"
+                                value={formValues.category}
+                                onChange={(e) => handleFormInputChange('category', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                                placeholder="Cinematic"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Status *</label>
+                            <select
+                                value={formValues.status}
+                                onChange={(e) => handleFormInputChange('status', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                            >
+                                {STATUS_OPTIONS.map(status => (
+                                    <option key={status} value={status}>{status}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Tags (comma separated)</label>
+                            <input
+                                type="text"
+                                value={formValues.tags}
+                                onChange={(e) => handleFormInputChange('tags', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                                placeholder="cyberpunk, neon, night"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Preview Image</label>
+                        <div className="flex items-start gap-4">
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-32 h-32 rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center cursor-pointer hover:border-[#FFDE1A] hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors overflow-hidden relative group"
+                            >
+                                {formValues.preview_image_url ? (
+                                    <>
+                                        <img
+                                            src={formValues.preview_image_url}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <PhotoIcon className="w-8 h-8 text-white" />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center text-zinc-400">
+                                        {isUploading ? (
+                                            <div className="w-6 h-6 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                            <>
+                                                <ArrowUpTrayIcon className="w-8 h-8 mb-1" />
+                                                <span className="text-xs font-medium">Upload</span>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                                <input
+                                    type="url"
+                                    value={formValues.preview_image_url}
+                                    onChange={(e) => handleFormInputChange('preview_image_url', e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                                    placeholder="Or paste image URL..."
+                                />
+                                <p className="text-xs text-zinc-500">
+                                    Upload an image or paste a direct URL. Recommended size: 1024x1024px.
+                                </p>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleImageUpload}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Prompt *</label>
+                        <textarea
+                            value={formValues.prompt}
+                            onChange={(e) => handleFormInputChange('prompt', e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50 min-h-[100px]"
+                            placeholder="Describe the full prompt text..."
+                            required
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Negative Prompt</label>
+                        <textarea
+                            value={formValues.negative_prompt}
+                            onChange={(e) => handleFormInputChange('negative_prompt', e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50 min-h-[80px]"
+                            placeholder="Things to avoid..."
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-white/5">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-4 py-2 rounded-xl border border-zinc-200 dark:border-white/10 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors"
+                            disabled={isSaving}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-5 py-2.5 rounded-xl bg-[#FFDE1A] text-black text-sm font-semibold shadow-[0_0_15px_-5px_#FFDE1A] hover:bg-[#ffe64d] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                            disabled={isSaving}
+                        >
+                            {isSaving ? 'Saving...' : mode === 'create' ? 'Create Prompt' : 'Save Changes'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
+}
