@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Copy, Check, ExternalLink, X, SlidersHorizontal, Sparkles, Bookmark } from 'lucide-react'
+import { Search, Copy, Check, ExternalLink, X, SlidersHorizontal, Sparkles, Bookmark, Share2, Share, Link as LinkIcon } from 'lucide-react'
 import { useAuth, useUser } from '@clerk/clerk-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
@@ -18,11 +18,11 @@ interface PromptCardProps {
   copiedId: string | null;
   isSaved: boolean;
   onSaveToggle: (promptId: string) => void;
-  isSignedIn: boolean;
+  onShare: (prompt: PromptRecord) => void;
+  onView: (prompt: PromptRecord) => void;
 }
 
-const PromptCard = ({ prompt, index, onCopy, copiedId, isSaved, onSaveToggle, isSignedIn }: PromptCardProps) => {
-  console.log('isSignedIn', isSignedIn)
+const PromptCard = ({ prompt, index, onCopy, copiedId, isSaved, onSaveToggle, onShare, onView }: PromptCardProps) => {
   const isCopied = copiedId === prompt.id;
 
   return (
@@ -40,7 +40,19 @@ const PromptCard = ({ prompt, index, onCopy, copiedId, isSaved, onSaveToggle, is
       style={{ pointerEvents: 'auto' }}
     >
       {/* Visual Component - The Image */}
-      <div className="relative aspect-[4/3] overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10">
+      <div
+        className="relative aspect-[4/3] overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10 cursor-pointer"
+        onClick={() => prompt.preview_image_url && onView(prompt)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            prompt.preview_image_url && onView(prompt)
+          }
+        }}
+        aria-label={prompt.preview_image_url ? `View full image for ${prompt.title}` : 'No image available'}
+      >
         <img
           src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
           alt={prompt.title}
@@ -67,11 +79,10 @@ const PromptCard = ({ prompt, index, onCopy, copiedId, isSaved, onSaveToggle, is
               e.preventDefault()
               onSaveToggle(prompt.id)
             }}
-            className={`p-2.5 rounded-full border-2 transition-all duration-200 relative z-50 cursor-pointer hover:scale-110 active:scale-95 ${
-              isSaved
-                ? 'bg-[#F8BE00] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                : 'bg-black/80 backdrop-blur-md border-white/40 text-white hover:bg-black'
-            }`}
+            className={`p-2.5 rounded-full border-2 transition-all duration-200 relative z-50 cursor-pointer hover:scale-110 active:scale-95 ${isSaved
+              ? 'bg-[#F8BE00] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+              : 'bg-black/80 backdrop-blur-md border-white/40 text-white hover:bg-black'
+              }`}
             style={{ pointerEvents: 'auto', zIndex: 9999 }}
             aria-label={isSaved ? 'Remove from saved' : 'Save prompt'}
             title={isSaved ? 'Remove from saved' : 'Save prompt'}
@@ -113,11 +124,11 @@ const PromptCard = ({ prompt, index, onCopy, copiedId, isSaved, onSaveToggle, is
         </div>
 
         {/* Action Bar */}
-        <div className="grid grid-cols-[1fr_auto] border-t-2 border-black dark:border-white divide-x-2 divide-black dark:divide-white">
+        <div className="flex border-t-2 border-black dark:border-white divide-x-2 divide-black dark:divide-white">
           <button
             onClick={() => onCopy(prompt)}
             aria-label={`Copy prompt: ${prompt.title}`}
-            className="py-3 px-4 bg-white dark:bg-black text-black dark:text-white hover:bg-[#F8BE00] hover:text-black dark:hover:bg-[#F8BE00] dark:hover:text-black transition-colors flex items-center justify-center gap-2 font-bold uppercase text-sm tracking-widest group/btn"
+            className="flex-grow py-3 px-4 bg-white dark:bg-black text-black dark:text-white hover:bg-[#F8BE00] hover:text-black dark:hover:bg-[#F8BE00] dark:hover:text-black transition-colors flex items-center justify-center gap-2 font-bold uppercase text-sm tracking-widest group/btn"
           >
             {isCopied ? (
               <>
@@ -132,11 +143,18 @@ const PromptCard = ({ prompt, index, onCopy, copiedId, isSaved, onSaveToggle, is
             )}
           </button>
           <button
-            onClick={() => prompt.preview_image_url && window.open(prompt.preview_image_url, '_blank')}
+            onClick={() => onShare(prompt)}
+            aria-label={`Share prompt ${prompt.title}`}
+            className="w-14 flex-none bg-white dark:bg-black text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors flex items-center justify-center"
+          >
+            <Share2 size={18} className="stroke-[2.5px]" />
+          </button>
+          <button
+            onClick={() => onView(prompt)}
             disabled={!prompt.preview_image_url}
-            aria-label={prompt.preview_image_url ? `View full image for ${prompt.title}` : "No image available"}
-            className={`w-14 bg-white dark:bg-black text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors flex items-center justify-center ${!prompt.preview_image_url ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title={prompt.preview_image_url ? "View Full Image" : "No image available"}
+            aria-label={prompt.preview_image_url ? `View full image for ${prompt.title}` : 'No image available'}
+            className={`w-14 flex-none bg-white dark:bg-black text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors flex items-center justify-center ${!prompt.preview_image_url ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title={prompt.preview_image_url ? 'View Full Image' : 'No image available'}
           >
             <ExternalLink size={20} className="stroke-[2.5px]" />
           </button>
@@ -165,6 +183,10 @@ export default function ExplorePage() {
   const [localSearchQuery, setLocalSearchQuery] = useState(searchParams.get('q') || '')
   const categoryFilter = searchParams.get('category') || 'All'
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [selectedPrompt, setSelectedPrompt] = useState<PromptRecord | null>(null)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [sharePrompt, setSharePrompt] = useState<PromptRecord | null>(null)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   useEffect(() => {
     document.title = 'Explore Prompts | AI Image Prompts'
@@ -255,6 +277,39 @@ export default function ExplorePage() {
     }
   }, [])
 
+  // If a deep link is present, open the modal when data is ready
+  const handleCloseModal = useCallback(() => {
+    setIsImageModalOpen(false)
+    setSelectedPrompt(null)
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev)
+      newParams.delete('promptId')
+      return newParams
+    }, { replace: true })
+  }, [setSearchParams])
+
+  useEffect(() => {
+    const targetId = searchParams.get('promptId')
+    if (!targetId || !prompts.length) return
+    const match = prompts.find(p => p.id === targetId)
+    if (match) {
+      setSelectedPrompt(match)
+      setIsImageModalOpen(true)
+    }
+  }, [searchParams, prompts])
+
+  // Close modal on Escape
+  useEffect(() => {
+    if (!isImageModalOpen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCloseModal()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isImageModalOpen, handleCloseModal])
+
   const handleCategoryChange = (category: string) => {
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev)
@@ -282,7 +337,7 @@ export default function ExplorePage() {
   const handleSaveToggle = async (promptId: string) => {
     // Check if user is signed in
     if (!isLoaded) return // Wait for auth to load
-    
+
     if (!isSignedIn || !user?.id) {
       // Show toast and redirect to auth page
       toast.info('Please sign in to save prompts to your collection.')
@@ -314,13 +369,106 @@ export default function ExplorePage() {
       }
     } catch (err) {
       console.error('Failed to toggle save:', err)
-      toast.error(isCurrentlySaved 
-        ? 'Failed to remove prompt from saved.' 
+      toast.error(isCurrentlySaved
+        ? 'Failed to remove prompt from saved.'
         : 'Failed to save prompt.')
     } finally {
       setIsTogglingSave(null)
     }
   }
+
+  const buildShareUrl = (prompt: PromptRecord) => {
+    const url = new URL(window.location.href)
+    url.pathname = '/explore'
+    url.searchParams.set('promptId', prompt.id)
+    return url.toString()
+  }
+
+  const handleSharePrompt = (prompt: PromptRecord) => {
+    setSharePrompt(prompt)
+    setIsShareModalOpen(true)
+  }
+
+  const handleCloseShareModal = () => {
+    setIsShareModalOpen(false)
+    setSharePrompt(null)
+  }
+
+  const handleDirectShare = async () => {
+    if (!sharePrompt) return
+    const shareUrl = buildShareUrl(sharePrompt)
+    const shareData = {
+      title: sharePrompt.title,
+      text: `Check this prompt: ${sharePrompt.title}`,
+      url: shareUrl,
+    }
+
+    try {
+      if (navigator.share && navigator.canShare?.(shareData)) {
+        await navigator.share(shareData)
+        toast.success('Shared from your device.')
+        return
+      }
+    } catch (err) {
+      console.error('Web Share failed, falling back to manual options.', err)
+    }
+
+    // If Web Share is unavailable, nudge users to copy or use icons
+    toast.info('Choose a platform below or copy the link.')
+  }
+
+  const handleSharePlatform = (platform: 'x' | 'facebook' | 'instagram' | 'whatsapp') => {
+    if (!sharePrompt) return
+    const url = encodeURIComponent(buildShareUrl(sharePrompt))
+    const text = encodeURIComponent(`Check this prompt: ${sharePrompt.title}`)
+    let shareLink = ''
+
+    switch (platform) {
+      case 'x':
+        shareLink = `https://twitter.com/intent/tweet?text=${text}&url=${url}`
+        break
+      case 'facebook':
+        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${url}`
+        break
+      case 'instagram':
+        // Instagram has no web share endpoint; guide user
+        handleCopyShareLink()
+        toast.info('Link copied. Open Instagram and paste into your story or DM.')
+        break
+      case 'whatsapp':
+        shareLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${sharePrompt.title}\n${decodeURIComponent(url)}`)}`
+        break
+    }
+
+    if (shareLink) {
+      window.open(shareLink, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  const handleCopyShareLink = async () => {
+    if (!sharePrompt) return
+    const shareUrl = buildShareUrl(sharePrompt)
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success('Link copied.')
+    } catch (err) {
+      console.error('Failed to copy link:', err)
+      toast.error('Unable to copy link.')
+    }
+  }
+
+  const handleOpenImage = (prompt: PromptRecord) => {
+    if (!prompt.preview_image_url) return
+    setSelectedPrompt(prompt)
+    setIsImageModalOpen(true)
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev)
+      newParams.set('promptId', prompt.id)
+      return newParams
+    }, { replace: true })
+  }
+
+
 
   const clearFilters = () => {
     setLocalSearchQuery('')
@@ -467,7 +615,8 @@ export default function ExplorePage() {
                       copiedId={copiedId}
                       isSaved={savedPromptIds.has(prompt.id)}
                       onSaveToggle={handleSaveToggle}
-                      isSignedIn={!!(isSignedIn && isLoaded)}
+                      onShare={handleSharePrompt}
+                      onView={handleOpenImage}
                     />
                   ))}
                 </AnimatePresence>
@@ -476,6 +625,177 @@ export default function ExplorePage() {
           )}
         </div>
       </main>
+
+      <AnimatePresence>
+        {isImageModalOpen && selectedPrompt && (
+          <motion.div
+            className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleCloseModal}
+          >
+            <motion.div
+              layout
+              onClick={(e) => e.stopPropagation()}
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="relative w-full max-w-5xl bg-white dark:bg-zinc-950 border-2 border-black dark:border-white rounded-2xl shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] dark:shadow-[16px_16px_0px_0px_rgba(255,255,255,1)] overflow-hidden"
+            >
+              <button
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black text-white hover:bg-[#F8BE00] hover:text-black transition-colors border-2 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                aria-label="Close image viewer"
+              >
+                <X size={20} className="stroke-[3px]" />
+              </button>
+
+              <div className="grid md:grid-cols-[3fr_2fr] gap-0 md:gap-6">
+                <div className="relative bg-gradient-to-b from-zinc-900 to-black">
+                  <img
+                    src={selectedPrompt.preview_image_url || ''}
+                    alt={selectedPrompt.title}
+                    className="w-full h-full object-contain max-h-[70vh] mx-auto bg-black"
+                    loading="lazy"
+                  />
+                </div>
+
+                <div className="p-6 flex flex-col gap-4 bg-white dark:bg-zinc-950">
+                  <div>
+                    <p className="text-sm uppercase font-black text-gray-500 dark:text-gray-400 tracking-[0.2em]">Prompt</p>
+                    <h3 className="text-2xl font-display font-extrabold text-black dark:text-white leading-tight">{selectedPrompt.title}</h3>
+                    <p className="mt-3 text-sm font-mono text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-900 border border-black/5 dark:border-white/10 rounded-lg p-3 leading-relaxed">
+                      {selectedPrompt.prompt}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {selectedPrompt.tags?.map(tag => (
+                      <span key={tag} className="px-3 py-1 text-xs font-black uppercase bg-black text-white rounded-full tracking-widest">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-auto">
+                    <button
+                      onClick={() => handleSharePrompt(selectedPrompt)}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-black text-white rounded-lg border-2 border-black hover:bg-[#F8BE00] hover:text-black transition-colors font-bold uppercase text-sm"
+                    >
+                      <Share2 size={18} className="stroke-[3px]" />
+                      Share
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isShareModalOpen && sharePrompt && (
+          <motion.div
+            className="fixed inset-0 z-[130] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleCloseShareModal}
+          >
+            <motion.div
+              layout
+              onClick={(e) => e.stopPropagation()}
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="relative w-full max-w-xl bg-white dark:bg-zinc-950 border-2 border-black dark:border-white rounded-2xl shadow-[14px_14px_0px_0px_rgba(0,0,0,1)] dark:shadow-[14px_14px_0px_0px_rgba(255,255,255,1)] overflow-hidden"
+            >
+              <button
+                onClick={handleCloseShareModal}
+                className="absolute top-4 right-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black text-white hover:bg-[#F8BE00] hover:text-black transition-colors border-2 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                aria-label="Close share modal"
+              >
+                <X size={20} className="stroke-[3px]" />
+              </button>
+
+              <div className="p-6">
+                <div className="text-center space-y-2 mb-6">
+                  <p className="text-sm uppercase font-black text-gray-500 tracking-[0.2em]">Share Prompt</p>
+                  <h3 className="text-2xl font-display font-extrabold text-black dark:text-white leading-tight">{sharePrompt.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Share the art link only—no extra text.</p>
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 bg-gradient-to-b from-[#f6f0ff] via-white to-[#f6f0ff] dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900 shadow-inner mb-6">
+                  <div className="aspect-[16/9] bg-black/5 dark:bg-white/5 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={sharePrompt.preview_image_url || 'https://placehold.co/800x450/4b3df6/ffffff?text=Share+this+prompt'}
+                      alt={sharePrompt.title}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+
+                <div className="text-center space-y-2 mb-6">
+                  <h3 className="text-2xl font-display font-extrabold text-black dark:text-white leading-tight">This prompt rocks!</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">Tell your friends, family, and the whole world.</p>
+                </div>
+
+                <div className="flex items-center justify-center gap-4 mb-6">
+                  <button
+                    onClick={() => handleSharePlatform('x')}
+                    className="h-14 w-14 rounded-full bg-white border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-transform"
+                    aria-label="Share on X"
+                  >
+                    <span className="text-lg font-black text-black">X</span>
+                  </button>
+                  <button
+                    onClick={() => handleSharePlatform('facebook')}
+                    className="h-14 w-14 rounded-full bg-[#1877F2] border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-transform"
+                    aria-label="Share on Facebook"
+                  >
+                    <span className="text-lg font-black text-white">f</span>
+                  </button>
+                  <button
+                    onClick={() => handleSharePlatform('instagram')}
+                    className="h-14 w-14 rounded-full bg-gradient-to-br from-[#FF0069] via-[#FF8A00] to-[#FFD600] border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-transform"
+                    aria-label="Share on Instagram"
+                  >
+                    <span className="text-lg font-black text-white">IG</span>
+                  </button>
+                  <button
+                    onClick={() => handleSharePlatform('whatsapp')}
+                    className="h-14 w-14 rounded-full bg-[#25D366] border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-transform"
+                    aria-label="Share on WhatsApp"
+                  >
+                    <span className="text-lg font-black text-white">WA</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleDirectShare}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-black text-white rounded-lg border-2 border-black hover:bg-[#F8BE00] hover:text-black transition-colors font-bold uppercase text-sm"
+                  >
+                    <Share size={18} className="stroke-[3px]" />
+                    Share from device
+                  </button>
+                  <button
+                    onClick={handleCopyShareLink}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-black text-black dark:text-white rounded-lg border-2 border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors font-bold uppercase text-sm"
+                  >
+                    <LinkIcon size={16} className="stroke-[3px]" />
+                    Copy link
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>
