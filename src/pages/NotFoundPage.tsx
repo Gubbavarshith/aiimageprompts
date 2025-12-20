@@ -4,7 +4,7 @@ import { Home, ArrowLeft } from 'lucide-react'
 
 export default function NotFoundPage() {
   useEffect(() => {
-    document.title = '404 - Page Not Found | AI Image Prompts'
+    document.title = 'Page not found – Aiimageprompts'
   }, [])
 
   return (
@@ -14,10 +14,10 @@ export default function NotFoundPage() {
           404
         </h1>
         <h2 className="text-2xl md:text-3xl font-bold mb-4 -mt-4">
-          Page Not Found
+          This page wandered off.
         </h2>
         <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-          The page you're looking for doesn't exist or has been moved.
+          The link you followed doesn’t exist (or no longer does). You can head back home and keep exploring prompts.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -26,14 +26,14 @@ export default function NotFoundPage() {
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#F8BE00] text-black font-bold rounded-full hover:bg-black hover:text-[#F8BE00] border border-black transition-colors"
           >
             <Home size={18} />
-            Go Home
+            Go to homepage
           </Link>
           <button
             onClick={() => window.history.back()}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-black dark:border-white font-bold rounded-full hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
           >
             <ArrowLeft size={18} />
-            Go Back
+            Go back
           </button>
         </div>
       </div>

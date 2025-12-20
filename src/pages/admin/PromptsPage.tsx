@@ -484,11 +484,19 @@ export default function PromptsPage() {
                           <img
                             src={prompt.preview_image_url ?? FALLBACK_IMAGE}
                             alt={prompt.title}
+                            width="48"
+                            height="48"
+                            decoding="async"
                             className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                           />
                         </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-zinc-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-[#FFDE1A] transition-colors line-clamp-1">{prompt.title}</h3>
+                        <div className="space-y-0.5">
+                          <h3 className="text-sm font-medium text-zinc-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-[#FFDE1A] transition-colors line-clamp-1">
+                            {prompt.title}
+                          </h3>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                            ⭐ {typeof prompt.rating_avg === 'number' ? prompt.rating_avg.toFixed(1) : '–'} ({prompt.rating_count ?? 0})
+                          </p>
                         </div>
                       </div>
                     </td>

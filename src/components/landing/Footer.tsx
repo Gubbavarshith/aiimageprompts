@@ -17,7 +17,7 @@ export const Footer = () => {
     e.preventDefault();
     
     if (!email.trim()) {
-      error('Please enter your email address');
+      error('Please enter your email to subscribe.');
       return;
     }
 
@@ -40,10 +40,10 @@ export const Footer = () => {
     setIsSubmitting(false);
 
     if (result.success) {
-      success('Successfully subscribed! Check your inbox for updates.');
+      success('You’re in! Check your inbox for a confirmation.');
       setEmail('');
     } else {
-      error(result.error || 'Failed to subscribe. Please try again.');
+      error(result.error || 'Something went wrong. Please try again in a moment.');
     }
   };
 
@@ -60,77 +60,97 @@ export const Footer = () => {
               <span className="font-bold text-xl tracking-tight">Aiimageprompts</span>
             </Link>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed max-w-xs">
-              The ultimate library for AI image generation prompts. Discover, create, and share the best prompts for Midjourney, DALL-E, and Stable Diffusion.
+              Curated prompts for image models – crafted to help you create sharper, stranger, and more intentional visuals.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-[#FFDE1A] hover:text-black transition-all duration-300">
-                <Twitter size={18} />
+              <a href="#" aria-label="Follow us on Twitter" className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-[#FFDE1A] hover:text-black transition-all duration-300">
+                <Twitter size={18} aria-hidden="true" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-[#FFDE1A] hover:text-black transition-all duration-300">
-                <Instagram size={18} />
+              <a href="#" aria-label="Follow us on Instagram" className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-[#FFDE1A] hover:text-black transition-all duration-300">
+                <Instagram size={18} aria-hidden="true" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-[#FFDE1A] hover:text-black transition-all duration-300">
-                <Github size={18} />
+              <a href="#" aria-label="View our GitHub repository" className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-[#FFDE1A] hover:text-black transition-all duration-300">
+                <Github size={18} aria-hidden="true" />
               </a>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-bold text-lg mb-6">Explore</h4>
+            <h3 className="font-bold text-lg mb-6">Explore</h3>
             <ul className="space-y-4">
               <li>
-                <Link to="/explore" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">Browse Prompts</Link>
+                  <Link to="/explore" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Browse prompts
+                </Link>
               </li>
               <li>
-                <Link to="/explore?category=portraits" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">Portraits</Link>
+                  <Link to="/explore?category=portraits" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Portrait prompts
+                </Link>
               </li>
               <li>
-                <Link to="/explore?category=landscapes" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">Landscapes</Link>
+                  <Link to="/explore?category=landscapes" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Landscape prompts
+                </Link>
               </li>
               <li>
-                <Link to="/explore?category=anime" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">Anime Style</Link>
+                  <Link to="/explore?category=anime" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Anime-style prompts
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Company & Legal */}
           <div>
-            <h4 className="font-bold text-lg mb-6">Company</h4>
+            <h3 className="font-bold text-lg mb-6">Company</h3>
             <ul className="space-y-4">
               <li>
-                <Link to="/about" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">About Us</Link>
+                <Link to="/about" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  About
+                </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">Contact</Link>
+                <Link to="/contact" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Contact
+                </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">Terms of Service</Link>
+                <Link to="/terms" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Terms of use
+                </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">Privacy Policy</Link>
+                <Link to="/privacy" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Privacy policy
+                </Link>
               </li>
               <li>
-                <Link to="/guidelines" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">Guidelines</Link>
+                <Link to="/guidelines" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Community guidelines
+                </Link>
               </li>
               <li>
-                <Link to="/faq" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">FAQ</Link>
+                <Link to="/faq" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  FAQ
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Newsletter */}
           <div>
-            <h4 className="font-bold text-lg mb-6">Stay Updated</h4>
+            <h3 className="font-bold text-lg mb-6">Stay in the loop</h3>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-4">
-              Get the latest prompts and AI art news delivered to your inbox.
+              Fresh prompts, trends, and experiments in your inbox. No spam, just genuinely useful inspiration.
             </p>
             <form className="space-y-3" onSubmit={handleSubmit}>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
                 <Input
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
@@ -143,7 +163,7 @@ export const Footer = () => {
                 disabled={isSubmitting}
                 className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Subscribing...' : 'Subscribe'} <ArrowRight className="ml-2 w-4 h-4" />
+                {isSubmitting ? 'Subscribing…' : 'Subscribe'} <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </form>
           </div>
@@ -154,9 +174,15 @@ export const Footer = () => {
             © {new Date().getFullYear()} Aiimageprompts.xyz. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
-            <Link to="/privacy" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">Privacy</Link>
-            <Link to="/terms" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">Terms</Link>
-            <Link to="/sitemap" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">Sitemap</Link>
+            <Link to="/privacy" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
+              Privacy
+            </Link>
+            <Link to="/terms" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
+              Terms
+            </Link>
+            <Link to="/sitemap" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
+              Sitemap
+            </Link>
           </div>
         </div>
       </div>

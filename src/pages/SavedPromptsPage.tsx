@@ -40,6 +40,9 @@ const SavedPromptCard = ({ savedPrompt, index, onCopy, onRemove, copiedId }: Sav
                     src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
                     alt={prompt.title}
                     loading="lazy"
+                    width="400"
+                    height="300"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
 

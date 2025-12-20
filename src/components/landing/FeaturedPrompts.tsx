@@ -33,6 +33,9 @@ const PromptCard = ({ prompt, index, onCopy, copiedId }: PromptCardProps) => {
           src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
           alt={prompt.title}
           loading="lazy"
+          width="400"
+          height="300"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
         />
 
@@ -71,6 +74,7 @@ const PromptCard = ({ prompt, index, onCopy, copiedId }: PromptCardProps) => {
         <div className="grid grid-cols-[1fr_auto] border-t-2 border-black dark:border-white divide-x-2 divide-black dark:divide-white">
           <button
             onClick={() => onCopy(prompt)}
+            aria-label={isCopied ? 'Copied!' : `Copy prompt: ${prompt.title}`}
             className="py-3 px-4 bg-white dark:bg-black text-black dark:text-white hover:bg-[#F8BE00] hover:text-black dark:hover:bg-[#F8BE00] dark:hover:text-black transition-colors flex items-center justify-center gap-2 font-bold uppercase text-sm tracking-widest group/btn"
           >
             {isCopied ? (
@@ -87,8 +91,8 @@ const PromptCard = ({ prompt, index, onCopy, copiedId }: PromptCardProps) => {
           </button>
           <button
             onClick={() => navigate('/explore')}
+            aria-label={`View details for ${prompt.title}`}
             className="w-14 bg-white dark:bg-black text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors flex items-center justify-center"
-            title="View Details"
           >
             <ExternalLink size={20} className="stroke-[2.5px]" />
           </button>
@@ -157,6 +161,7 @@ export const FeaturedPrompts = () => {
 
           <button
             onClick={handleViewAll}
+            aria-label="View all prompts"
             className="group hidden md:flex items-center gap-2 text-lg font-bold border-b-2 border-black dark:border-white pb-1 hover:text-[#F8BE00] hover:border-[#F8BE00] transition-all"
           >
             <span>View All Prompts</span>
@@ -185,6 +190,7 @@ export const FeaturedPrompts = () => {
             <p className="text-xl text-gray-500 dark:text-gray-400 font-mono">No featured prompts available yet.</p>
             <button
               onClick={() => navigate('/admin/prompts')}
+              aria-label="Go to admin dashboard to add prompts"
               className="mt-4 text-sm text-[#F8BE00] hover:underline"
             >
               Add some in Admin Dashboard
@@ -195,6 +201,7 @@ export const FeaturedPrompts = () => {
         <div className="mt-16 text-center md:hidden">
           <button
             onClick={handleViewAll}
+            aria-label="View all prompts"
             className="inline-flex items-center gap-2 text-lg font-bold border-2 border-black dark:border-white px-6 py-3 rounded-full hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
           >
             View All Prompts

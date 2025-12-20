@@ -6,19 +6,19 @@ import { Footer } from '@/components/landing/Footer'
 
 export default function PrivacyPage() {
   useEffect(() => {
-    document.title = 'Privacy Policy | AI Image Prompts'
+    document.title = 'Privacy Policy – Aiimageprompts'
     window.scrollTo(0, 0)
   }, [])
 
   const sections = [
-    { id: 'collection', title: '1. Information We Collect', icon: Eye },
-    { id: 'usage', title: '2. How We Use Information', icon: UserCheck },
-    { id: 'cookies', title: '3. Cookies', icon: Cookie },
-    { id: 'security', title: '4. Data Security', icon: Lock },
-    { id: 'third-party', title: '5. Third-Party Services', icon: Server },
-    { id: 'rights', title: '6. Your Rights', icon: Shield },
-    { id: 'contact', title: '7. Contact', icon: CircleHelp },
-  ]
+    { id: 'collection', icon: Eye },
+    { id: 'usage', icon: UserCheck },
+    { id: 'cookies', icon: Cookie },
+    { id: 'security', icon: Lock },
+    { id: 'third-party', icon: Server },
+    { id: 'rights', icon: Shield },
+    { id: 'contact', icon: CircleHelp },
+  ] as const
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id)
@@ -34,22 +34,23 @@ export default function PrivacyPage() {
       {/* Header */}
       <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 pt-32 pb-16">
         <div className="container mx-auto px-4 max-w-5xl">
-          <Link
+              <Link
             to="/"
             className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-black dark:hover:text-white mb-8 transition-colors"
           >
             <ArrowLeft size={16} />
-            Back to Home
+            Back to home
           </Link>
           <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-6">
-            Privacy Policy
+            Privacy policy
           </h1>
           <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl">
-            We value your privacy. This policy explains how we collect, use, and protect your personal information when you use our service.
+            How Aiimageprompts collects, uses, and protects information when you browse prompts, submit content, or contact us.
           </p>
           <div className="mt-8 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400">
             <span className="w-2 h-2 rounded-full bg-green-500"></span>
-            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            Last updated:{' '}
+            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </div>
         </div>
       </div>
@@ -59,7 +60,9 @@ export default function PrivacyPage() {
           {/* Sidebar Navigation */}
           <div className="hidden lg:block w-64 shrink-0">
             <div className="sticky top-32 space-y-1">
-              <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4 px-3">Contents</p>
+              <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4 px-3">
+                On this page
+              </p>
               {sections.map((section) => (
                 <button
                   key={section.id}
@@ -67,7 +70,13 @@ export default function PrivacyPage() {
                   className="w-full text-left px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all flex items-center gap-3"
                 >
                   <section.icon size={14} />
-                  {section.title.split('. ')[1]}
+                  {section.id === 'collection' && 'Information we collect'}
+                  {section.id === 'usage' && 'How we use your information'}
+                  {section.id === 'cookies' && 'Cookies & analytics'}
+                  {section.id === 'security' && 'Data security'}
+                  {section.id === 'third-party' && 'Third‑party services'}
+                  {section.id === 'rights' && 'Your choices & rights'}
+                  {section.id === 'contact' && 'Contacting us'}
                 </button>
               ))}
             </div>
@@ -78,19 +87,19 @@ export default function PrivacyPage() {
             <div id="collection" className="mb-16 scroll-mt-32">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm">1</span>
-                Information We Collect
+                Information we collect
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">
-                Aiimageprompts.xyz collects minimal information to provide our service:
+                We collect only the data we need to operate Aiimageprompts, improve the experience, and keep the platform secure.
               </p>
               <ul className="space-y-2 list-none pl-0">
                 <li className="flex items-start gap-3 text-zinc-600 dark:text-zinc-400">
                   <div className="w-1.5 h-1.5 rounded-full bg-black dark:bg-white mt-2 shrink-0" />
-                  <span><strong>Usage Data:</strong> Anonymous analytics about page views and prompt interactions to help us understand what content is popular.</span>
+                  <span>Usage data, such as pages visited, basic device details, and interactions with prompts.</span>
                 </li>
                 <li className="flex items-start gap-3 text-zinc-600 dark:text-zinc-400">
                   <div className="w-1.5 h-1.5 rounded-full bg-black dark:bg-white mt-2 shrink-0" />
-                  <span><strong>Technical Data:</strong> Browser type, device information, and screen resolution to ensure compatibility and optimal performance.</span>
+                  <span>Technical information required to run the site (like IP address for security and rate‑limiting).</span>
                 </li>
               </ul>
             </div>
@@ -98,65 +107,60 @@ export default function PrivacyPage() {
             <div id="usage" className="mb-16 scroll-mt-32">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm">2</span>
-                How We Use Your Information
+                How we use your information
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                We use collected information solely to improve our service, understand usage patterns,
-                and ensure platform stability. We do not sell, rent, or share personal data with third parties for marketing purposes.
+                We use this data to keep the site reliable, understand what people are using most, and improve the content and features over time. We do not sell your personal data.
               </p>
             </div>
 
             <div id="cookies" className="mb-16 scroll-mt-32">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm">3</span>
-                Cookies
+                Cookies & analytics
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                We use essential cookies for basic functionality like remembering your theme preferences (light/dark mode).
-                No tracking cookies are used without your explicit consent. You can control cookie settings through your browser preferences.
+                Aiimageprompts may use cookies and similar technologies to remember your preferences (like dark mode) and to measure anonymous usage trends. You can control or clear cookies in your browser at any time.
               </p>
             </div>
 
             <div id="security" className="mb-16 scroll-mt-32">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm">4</span>
-                Data Security
+                Data security
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                We implement industry-standard security measures to protect any data we collect.
-                Our infrastructure is hosted on secure, encrypted servers, and we regularly review our security practices to ensure your data remains safe.
+                We take reasonable technical and organizational measures to protect your data, but no online service can guarantee absolute security. We continually review our stack and practices as the project evolves.
               </p>
             </div>
 
             <div id="third-party" className="mb-16 scroll-mt-32">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm">5</span>
-                Third-Party Services
+                Third‑party services
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                We use Supabase for our backend infrastructure. Their privacy practices are governed
-                by their own privacy policy. We encourage you to review their policies if you have concerns about how your data is handled on their servers.
+                We may use third‑party providers (for example, hosting, analytics, email delivery, or authentication). These services only receive the data necessary to perform their function and are bound by their own privacy policies.
               </p>
             </div>
 
             <div id="rights" className="mb-16 scroll-mt-32">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm">6</span>
-                Your Rights
+                Your choices & rights
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                You have the right to access, correct, or delete any personal data we may have.
-                Since we collect minimal personal data, this is mostly relevant if you have contacted us directly. Contact us to exercise these rights.
+                You can choose how much information you share with Aiimageprompts. If you ever want to ask about, update, or delete information associated with you, reach out using the contact information below.
               </p>
             </div>
 
             <div id="contact" className="mb-16 scroll-mt-32">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm">7</span>
-                Contact
+                Contacting us
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                For privacy-related inquiries, please contact us at{' '}
+                If you have questions about this policy, data, or privacy on Aiimageprompts, email us at{' '}
                 <a href="mailto:privacy@aiimageprompts.xyz" className="text-black dark:text-white font-bold hover:underline decoration-[#FFDE1A] decoration-2 underline-offset-2">
                   privacy@aiimageprompts.xyz
                 </a>

@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 
 export default function AboutPage() {
     useEffect(() => {
-        document.title = 'About Us | AI Image Prompts'
+        document.title = 'About – Aiimageprompts'
         window.scrollTo(0, 0)
     }, [])
 
@@ -41,7 +41,7 @@ export default function AboutPage() {
                         className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-black dark:hover:text-white mb-8 transition-colors group"
                     >
                         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                        Back to Home
+                        Back to home
                     </Link>
 
                     <motion.div
@@ -51,10 +51,13 @@ export default function AboutPage() {
                         className="max-w-3xl"
                     >
                         <motion.h1 variants={fadeIn} className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-8 leading-[1.1]">
-                            Empowering the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFDE1A] to-yellow-600">Next Generation</span> of Creators
+                            A better way to write prompts
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFDE1A] to-yellow-600">
+                                {' '}for AI image models.
+                            </span>
                         </motion.h1>
                         <motion.p variants={fadeIn} className="text-xl text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                            We are building the world's largest open library of AI image generation prompts. Our mission is to democratize AI art creation and make professional-grade prompting accessible to everyone.
+                            Aiimageprompts is a curated playground for image model prompts—built for people who care about craft, not copy‑pasted boilerplate.
                         </motion.p>
                     </motion.div>
                 </div>
@@ -72,18 +75,20 @@ export default function AboutPage() {
                     >
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFDE1A]/10 text-[#FFDE1A] text-sm font-bold mb-6 border border-[#FFDE1A]/20">
                             <Sparkles size={14} />
-                            <span>Our Story</span>
+                            <span>Built for thoughtful image makers</span>
                         </div>
-                        <h2 className="text-4xl font-bold mb-6">Bridging the Gap Between Imagination and Reality</h2>
+                        <h2 className="text-4xl font-bold mb-6">
+                            Our story
+                        </h2>
                         <div className="space-y-6 text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">
                             <p>
-                                It started with a simple observation: AI art tools are incredibly powerful, but getting exactly what you want out of them is an art form in itself. The "blank canvas" problem has shifted to a "blank prompt" problem.
+                              Aiimageprompts started as a messy personal doc of prompts—notes from late‑night experiments, client work, and visual explorations that didn’t fit into a normal portfolio.
                             </p>
                             <p>
-                                We realized that while millions of people have access to tools like Midjourney, DALL-E, and Stable Diffusion, only a fraction know how to speak their language fluently.
+                              Over time it became clear that most people weren’t struggling with models; they were struggling with language. The same vague, generic prompts produced the same vague, generic images.
                             </p>
                             <p>
-                                Aiimageprompts.xyz was born to solve this. We curate, test, and share high-quality prompts that serve as recipes for your imagination. We believe that technical know-how shouldn't be a barrier to creativity.
+                              This site exists to fix that: an evolving library of prompts that feel intentional, directional, and actually fun to build on.
                             </p>
                         </div>
                     </motion.div>
@@ -100,7 +105,7 @@ export default function AboutPage() {
                             <div className="absolute inset-0 bg-black/40" />
                             <div className="relative text-center p-8">
                                 <p className="text-3xl font-bold text-white mb-2">10,000+</p>
-                                <p className="text-zinc-300">Curated Prompts</p>
+                                <p className="text-zinc-300">curated prompt variations tested across models</p>
                             </div>
                         </div>
                     </motion.div>
@@ -109,55 +114,57 @@ export default function AboutPage() {
                 {/* Core Values */}
                 <section>
                     <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold mb-6">Why We Do What We Do</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                            What we care about
+                        </h2>
                         <p className="text-lg text-zinc-600 dark:text-zinc-400">
-                            Our values guide every decision we make, from the features we build to the prompts we curate.
+                            The library is opinionated on purpose. These are the principles that shape what gets added, edited, or rejected.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
                             {
                                 icon: Users,
                                 color: "text-blue-500",
                                 bg: "bg-blue-500/10",
-                                title: "Community First",
-                                desc: "We believe in the power of sharing. Our platform is built for the community, by the community. Every contribution helps someone else create."
+                                title: "Community over algorithms",
+                                desc: "Real people using real prompts. Feedback from designers, artists, and founders shapes what stays in the library.",
                             },
                             {
                                 icon: Zap,
                                 color: "text-[#FFDE1A]",
                                 bg: "bg-[#FFDE1A]/10",
-                                title: "Quality Over Quantity",
-                                desc: "We don't just dump prompts. Every prompt in our library is tested to ensure it generates high-quality, consistent results across different models."
+                                title: "Quality over volume",
+                                desc: "We’d rather have 100 sharp, reusable prompts than 10,000 noisy ones that all look the same.",
                             },
                             {
                                 icon: Heart,
                                 color: "text-pink-500",
                                 bg: "bg-pink-500/10",
-                                title: "Open & Accessible",
-                                desc: "Creativity should be free. We are committed to keeping our core library open and accessible to everyone, everywhere, forever."
+                                title: "Accessible craft",
+                                desc: "You shouldn’t need a design degree or a PhD in prompt engineering to make great images.",
                             },
                             {
                                 icon: Globe,
                                 color: "text-green-500",
                                 bg: "bg-green-500/10",
-                                title: "Global Inspiration",
-                                desc: "Art transcends borders. We curate styles and cultural influences from around the world to foster a diverse creative ecosystem."
+                                title: "Future‑friendly",
+                                desc: "As models change, we update prompts so they keep working—and keep surprising you.",
                             },
                             {
                                 icon: ShieldCheck,
                                 color: "text-purple-500",
                                 bg: "bg-purple-500/10",
-                                title: "Ethical AI",
-                                desc: "We advocate for responsible AI usage. We actively filter harmful content and promote prompts that respect copyright and ethical guidelines."
+                                title: "Ethical use",
+                                desc: "We don’t promote harmful, hateful, or exploitative content. Creativity shouldn’t come at someone else’s expense.",
                             },
                             {
                                 icon: Lightbulb,
                                 color: "text-orange-500",
                                 bg: "bg-orange-500/10",
-                                title: "Continuous Learning",
-                                desc: "AI is evolving fast, and so are we. We constantly update our library with the latest techniques, models, and prompting strategies."
+                                title: "Continuous experimentation",
+                                desc: "We treat prompts like living documents—iterated, tested, and refined instead of treated as one‑off tricks.",
                             }
                         ].map((item, index) => (
                             <motion.div
@@ -171,7 +178,9 @@ export default function AboutPage() {
                                 <div className={`w-14 h-14 ${item.bg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                                     <item.icon className={`w-7 h-7 ${item.color}`} />
                                 </div>
-                                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                                <h3 className="text-xl font-bold mb-3">
+                                    {item.title}
+                                </h3>
                                 <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
                                     {item.desc}
                                 </p>
@@ -186,14 +195,16 @@ export default function AboutPage() {
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-12 relative z-10">
                         {[
-                            { number: "50K+", label: "Active Users" },
-                            { number: "100K+", label: "Prompts Generated" },
-                            { number: "15+", label: "AI Models Supported" },
-                            { number: "24/7", label: "Community Support" }
+                            { number: "50K+", label: "monthly prompt runs across tools" },
+                            { number: "100K+", label: "images sparked by this library" },
+                            { number: "15+", label: "image models tested and tuned against" },
+                            { number: "24/7", label: "global experimentation from the community" }
                         ].map((stat, index) => (
                             <div key={index} className="text-center">
                                 <div className="text-4xl md:text-6xl font-black mb-2 text-[#FFDE1A] dark:text-black">{stat.number}</div>
-                                <div className="text-zinc-400 dark:text-zinc-600 font-medium">{stat.label}</div>
+                                <div className="text-zinc-400 dark:text-zinc-600 font-medium">
+                                    {stat.label}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -201,29 +212,35 @@ export default function AboutPage() {
 
                 {/* FAQ Section */}
                 <section className="max-w-4xl mx-auto">
-                    <h2 className="text-3xl font-bold mb-12 text-center">Frequently Asked Questions</h2>
+                    <h2 className="text-3xl font-bold mb-12 text-center">
+                        A few more things people ask
+                    </h2>
                     <div className="space-y-6">
                         {[
                             {
-                                q: "Is this platform free to use?",
-                                a: "Yes! Our core prompt library is completely free to browse and use. We believe in open access to creative tools."
+                              question: 'Can I use these prompts for client work?',
+                              answer: 'Yes. You’re free to adapt these prompts for client projects, brand work, and commercial use—just make sure your usage aligns with the terms of the models you’re using.',
                             },
                             {
-                                q: "Can I contribute my own prompts?",
-                                a: "Absolutely. We encourage community contributions. You can submit your best prompts, and once reviewed by our team, they will be added to the library."
+                              question: 'Do you support video or 3D prompts too?',
+                              answer: 'Some prompts lean into cinematic and 3D aesthetics already, and we’re exploring dedicated flows for video/3D tools as they mature.',
                             },
                             {
-                                q: "Which AI models do these prompts work with?",
-                                a: "Our prompts are designed to be versatile, but many are optimized for Midjourney v6, DALL-E 3, and Stable Diffusion XL. We provide specific tags for model-specific optimizations."
+                              question: 'Will prompts become obsolete as models improve?',
+                              answer: 'Models will change, but direction, taste, and language will always matter. We treat prompts as creative scaffolding, not fragile hacks.',
                             },
                             {
-                                q: "Do you offer an API?",
-                                a: "We are currently working on a public API for developers. Join our newsletter to get notified when it launches."
-                            }
-                        ].map((faq, index) => (
+                              question: 'How can I suggest improvements?',
+                              answer: 'If a prompt could be clearer, more flexible, or more powerful, we want to hear it—reach out via the Contact page and share your edits.',
+                            },
+                        ].map((item, index) => (
                             <div key={index} className="border-b border-zinc-200 dark:border-zinc-800 pb-6">
-                                <h3 className="text-lg font-bold mb-2">{faq.q}</h3>
-                                <p className="text-zinc-600 dark:text-zinc-400">{faq.a}</p>
+                                <h3 className="text-lg font-bold mb-2">
+                                    {item.question}
+                                </h3>
+                                <p className="text-zinc-600 dark:text-zinc-400">
+                                    {item.answer}
+                                </p>
                             </div>
                         ))}
                     </div>
@@ -231,19 +248,21 @@ export default function AboutPage() {
 
                 {/* CTA Section */}
                 <section className="text-center py-20">
-                    <h2 className="text-3xl md:text-4xl md:text-5xl font-black mb-6">Ready to Start Creating?</h2>
+                    <h2 className="text-3xl md:text-4xl md:text-5xl font-black mb-6">
+                        Ready to make your images less generic?
+                    </h2>
                     <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-10 max-w-2xl mx-auto">
-                        Join thousands of creators who are already using our library to bring their ideas to life.
+                        Explore the library, remix prompts, and build a visual language that actually feels like you.
                     </p>
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4">
                         <Link to="/explore">
                             <button className="px-8 py-4 bg-[#FFDE1A] hover:bg-[#ffe64d] text-black font-bold rounded-full text-lg transition-all hover:scale-105 shadow-[0_0_30px_-10px_#FFDE1A] flex items-center gap-2">
-                                Explore Prompts <ArrowRight size={20} />
+                                Explore prompts <ArrowRight size={20} />
                             </button>
                         </Link>
                         <Link to="/auth">
                             <button className="px-8 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-black dark:text-white font-bold rounded-full text-lg transition-all hover:scale-105">
-                                Create Account
+                                Create an account
                             </button>
                         </Link>
                     </div>

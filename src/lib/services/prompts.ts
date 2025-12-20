@@ -17,6 +17,8 @@ export type PromptRecord = {
   user_id: string | null
   created_at: string
   updated_at: string
+  rating_avg?: number | null
+  rating_count?: number
 }
 
 export type PromptPayload = Omit<PromptRecord, 'id' | 'created_at' | 'updated_at'>

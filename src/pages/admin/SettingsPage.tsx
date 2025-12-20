@@ -4,6 +4,7 @@ import { LockClosedIcon, GlobeAltIcon, UserCircleIcon } from '@heroicons/react/2
 import { cn } from '../../lib/utils'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabaseClient'
+import { getRatingSettings, setRatingSettings } from '@/lib/services/ratings'
 
 const TABS = [
   { id: 'general', label: 'General', icon: GlobeAltIcon },
@@ -48,6 +49,9 @@ export default function SettingsPage() {
   const [maintenanceHeadline, setMaintenanceHeadline] = useState('Under Maintenance')
   const [maintenanceMessage, setMaintenanceMessage] = useState("We're currently improving our website to serve you better. We'll be back shortly!")
 
+  // Rating settings
+  const [requireLoginForRatings, setRequireLoginForRatings] = useState(true)
+
   // Load user info from Supabase
   useEffect(() => {
     const getUser = async () => {
@@ -74,6 +78,17 @@ export default function SettingsPage() {
         subscription.unsubscribe()
       }
     }
+  }, [])
+
+  // Load rating settings
+  useEffect(() => {
+    getRatingSettings()
+      .then(settings => {
+        setRequireLoginForRatings(settings.requireLoginForRatings)
+      })
+      .catch(err => {
+        console.error('Error loading rating settings:', err)
+      })
   }, [])
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,6 +160,19 @@ export default function SettingsPage() {
         setIsSaving(false)
       }
     }
+
+    if (activeTab === 'general') {
+      try {
+        await setRatingSettings(requireLoginForRatings)
+        toast.success('General settings updated!')
+      } catch (err) {
+        console.error('Failed to save general settings:', err)
+        toast.error('Failed to save general settings.')
+      } finally {
+        setIsSaving(false)
+      }
+      return
+    }
   }
 
   return (
@@ -210,14 +238,44 @@ export default function SettingsPage() {
                         }
                       }}
                       className={cn(
-                        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFDE1A] focus:ring-offset-2",
-                        maintenanceMode ? "bg-[#FFDE1A]" : "bg-zinc-200 dark:bg-zinc-700"
+                        "relative inline-flex h-7 w-14 items-center rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFDE1A]",
+                        maintenanceMode
+                          ? "bg-[#FFDE1A] border-[#FFDE1A]"
+                          : "bg-zinc-200 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600"
                       )}
                     >
                       <span
                         className={cn(
-                          "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-                          maintenanceMode ? "translate-x-6" : "translate-x-1"
+                          "inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform",
+                          maintenanceMode ? "translate-x-8" : "translate-x-1"
+                        )}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-4">Prompt Ratings</h2>
+                  <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-white/10 rounded-xl">
+                    <div>
+                      <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Require login to rate prompts</h3>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                        When enabled, only signed-in users can rate prompts. When disabled, anyone can rate, but we limit ratings per browser.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setRequireLoginForRatings(prev => !prev)}
+                      className={cn(
+                        "relative inline-flex h-7 w-14 items-center rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFDE1A]",
+                        requireLoginForRatings
+                          ? "bg-[#FFDE1A] border-[#FFDE1A]"
+                          : "bg-zinc-200 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform",
+                          requireLoginForRatings ? "translate-x-8" : "translate-x-1"
                         )}
                       />
                     </button>
@@ -466,7 +524,7 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-6 mb-8">
                     <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-900 border-2 border-zinc-200 dark:border-white/10 flex items-center justify-center overflow-hidden">
                       {avatarUrl ? (
-                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        <img src={avatarUrl} alt="Avatar" width="80" height="80" decoding="async" className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-2xl font-bold text-zinc-700 dark:text-white">
                           {displayName.substring(0, 2).toUpperCase()}

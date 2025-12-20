@@ -1,13 +1,18 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import AuthLayout from './layouts/AuthLayout'
-import AdminLayout from './layouts/AdminLayout'
-import ProtectedRoute from './components/ProtectedRoute'
-import MaintenanceGuard from './components/MaintenanceGuard'
-import { AdminProvider } from './contexts/AdminContext'
 
-// Lazy load pages for code splitting
-const LandingPage = lazy(() => import('./pages/LandingPage'))
+// Import LandingPage directly (critical for LCP)
+import LandingPage from './pages/LandingPage'
+
+// Lazy load non-critical components (not needed for landing page)
+const MaintenanceGuard = lazy(() => import('./components/MaintenanceGuard'))
+const AuthLayout = lazy(() => import('./layouts/AuthLayout'))
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'))
+const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'))
+const AdminProvider = lazy(() => import('./contexts/AdminContext').then(m => ({ default: m.AdminProvider })))
+const BuyMeACoffee = lazy(() => import('./components/BuyMeACoffee'))
+
+// Lazy load other pages for code splitting
 const ExplorePage = lazy(() => import('./pages/ExplorePage'))
 const SubmitPromptPage = lazy(() => import('./pages/SubmitPromptPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
@@ -18,12 +23,16 @@ const AboutPage = lazy(() => import('./pages/AboutPage'))
 const FAQPage = lazy(() => import('./pages/FAQPage'))
 const GuidelinesPage = lazy(() => import('./pages/GuidelinesPage'))
 const AuthPage = lazy(() => import('./pages/AuthPage'))
+const BlogPage = lazy(() => import('./pages/BlogPage'))
+const BlogPostPage = lazy(() => import('./pages/BlogPostPage'))
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
 const PromptsPage = lazy(() => import('./pages/admin/PromptsPage'))
 const ReviewPromptsPage = lazy(() => import('./pages/admin/ReviewPromptsPage'))
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'))
 const SubscriptionsPage = lazy(() => import('./pages/admin/SubscriptionsPage'))
+const AdminBlogListPage = lazy(() => import('./pages/admin/AdminBlogListPage'))
+const AdminBlogEditorPage = lazy(() => import('./pages/admin/AdminBlogEditorPage'))
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const SavedPromptsPage = lazy(() => import('./pages/SavedPromptsPage'))
@@ -39,8 +48,16 @@ const PageLoader = () => (
 )
 
 function App() {
-  return (
-    <MaintenanceGuard>
+  const [showMaintenanceGuard, setShowMaintenanceGuard] = useState(false)
+  
+  // Defer maintenance guard check until after first paint
+  useEffect(() => {
+    const timer = requestAnimationFrame(() => setShowMaintenanceGuard(true))
+    return () => cancelAnimationFrame(timer)
+  }, [])
+
+  const content = (
+    <>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* 
@@ -70,6 +87,8 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/guidelines" element={<GuidelinesPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
 
           {/* Unified Auth Route - wildcard to catch Clerk sub-routes like /auth/verify-email-address */}
           <Route path="/auth/*" element={<AuthPage />} />
@@ -94,14 +113,27 @@ function App() {
             <Route path="/admin/review" element={<ReviewPromptsPage />} />
             <Route path="/admin/subscriptions" element={<SubscriptionsPage />} />
             <Route path="/admin/settings" element={<SettingsPage />} />
+            <Route path="/admin/blogs" element={<AdminBlogListPage />} />
+            <Route path="/admin/blogs/new" element={<AdminBlogEditorPage />} />
+            <Route path="/admin/blogs/:id" element={<AdminBlogEditorPage />} />
           </Route>
 
           {/* 404 Catch-all Route */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
-    </MaintenanceGuard>
+      <Suspense fallback={null}>
+        <BuyMeACoffee />
+      </Suspense>
+    </>
   )
+
+  // Show content immediately, wrap with MaintenanceGuard after first paint
+  return showMaintenanceGuard ? (
+    <Suspense fallback={content}>
+      <MaintenanceGuard>{content}</MaintenanceGuard>
+    </Suspense>
+  ) : content
 }
 
 export default App

@@ -13,7 +13,7 @@ export default function ContactPage() {
   const toast = useToast()
 
   useEffect(() => {
-    document.title = 'Contact Us | AI Image Prompts'
+    document.title = 'Contact – Aiimageprompts'
     window.scrollTo(0, 0)
   }, [])
 
@@ -36,10 +36,10 @@ export default function ContactPage() {
 
       setSubmitted(true)
       setFormData({ name: '', email: '', message: '', honeypot: '' })
-      toast.success('Message sent successfully! We\'ll get back to you soon.')
+      toast.success('Message sent. We’ll get back to you soon.')
     } catch (err) {
       console.error(err)
-      toast.error('Failed to send message. Please try again.')
+      toast.error('Something went wrong while sending your message. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -73,8 +73,8 @@ export default function ContactPage() {
               transition={{ duration: 0.6 }}
               className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6"
             >
-              Let's build something <br />
-              <span className="text-[#F8BE00]">extraordinary.</span>
+              Let’s talk about your next image. <br />
+              <span className="text-[#F8BE00]">Or your entire visual system.</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -82,7 +82,7 @@ export default function ContactPage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-lg md:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto"
             >
-              Whether you have a question, feedback, or just want to say hello, we're always excited to connect with our community.
+              Whether you’re exploring prompts for the first time or building a serious visual workflow, we’d love to hear what you’re making.
             </motion.p>
           </div>
 
@@ -107,9 +107,9 @@ export default function ContactPage() {
                     <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-6">
                       <CircleCheck size={40} />
                     </div>
-                    <h3 className="text-2xl font-bold mb-2">Message Sent Successfully!</h3>
+                    <h3 className="text-2xl font-bold mb-2">Message sent</h3>
                     <p className="text-neutral-500 dark:text-neutral-400 max-w-sm mb-8">
-                      Thank you for reaching out. We'll get back to you as soon as possible.
+                      We’ve received your message and will get back to you as soon as we can.
                     </p>
                     <button
                       onClick={() => setSubmitted(false)}
@@ -151,7 +151,7 @@ export default function ContactPage() {
                             onFocus={() => setFocusedField('name')}
                             onBlur={() => setFocusedField(null)}
                             className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#F8BE00] focus:ring-1 focus:ring-[#F8BE00] outline-none transition-all"
-                            placeholder="John Doe"
+                            placeholder="Your name"
                           />
                         </div>
                       </div>
@@ -166,7 +166,7 @@ export default function ContactPage() {
                             onFocus={() => setFocusedField('email')}
                             onBlur={() => setFocusedField(null)}
                             className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#F8BE00] focus:ring-1 focus:ring-[#F8BE00] outline-none transition-all"
-                            placeholder="john@example.com"
+                            placeholder="you@example.com"
                           />
                         </div>
                       </div>
@@ -183,7 +183,7 @@ export default function ContactPage() {
                           onFocus={() => setFocusedField('message')}
                           onBlur={() => setFocusedField(null)}
                           className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#F8BE00] focus:ring-1 focus:ring-[#F8BE00] outline-none transition-all resize-none"
-                          placeholder="How can we help you?"
+                          placeholder="Tell us what you’re working on, what you need, or what’s not working."
                         />
                       </div>
                     </div>
@@ -199,7 +199,7 @@ export default function ContactPage() {
                         <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                       ) : (
                         <>
-                          Send Message
+                          Send message
                           <Send size={20} />
                         </>
                       )}
@@ -218,9 +218,9 @@ export default function ContactPage() {
             >
               {/* Info Card */}
               <div className="bg-neutral-100 dark:bg-neutral-900/50 rounded-3xl p-8 border border-neutral-200 dark:border-neutral-800">
-                <h3 className="text-xl font-bold mb-4">Connect with us</h3>
+                <h3 className="text-xl font-bold mb-4">Other ways to connect</h3>
                 <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
-                  Join our growing community of creators and developers. Follow us for updates, tips, and inspiration.
+                  Prefer social? Reach out on any of these channels and share what you’re building, testing, or imagining.
                 </p>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -240,10 +240,10 @@ export default function ContactPage() {
               {/* FAQ Mini Section */}
               <div className="bg-[#F8BE00] rounded-3xl p-8 text-black relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 transition-transform group-hover:scale-150 duration-700" />
-                <h3 className="text-xl font-bold mb-2 relative z-10">Need quick help?</h3>
-                <p className="opacity-80 mb-4 relative z-10">Check out our documentation for guides and tutorials.</p>
+                <h3 className="text-xl font-bold mb-2 relative z-10">Need something quick?</h3>
+                <p className="opacity-80 mb-4 relative z-10">Ask a short, specific question and we’ll do our best to unblock you fast.</p>
                 <button className="px-4 py-2 bg-black text-white rounded-full text-sm font-bold hover:bg-black/80 transition-colors relative z-10">
-                  View Docs
+                  Open contact form
                 </button>
               </div>
             </motion.div>

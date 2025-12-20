@@ -147,6 +147,7 @@ export const FloatingNavbar = () => {
     const baseItems = [
       { to: '/', label: 'Home' },
       { to: '/explore', label: 'Explore' },
+      { to: '/blog', label: 'Blog' },
     ];
 
     // Only show Submit and Saved for signed-in users
@@ -157,25 +158,22 @@ export const FloatingNavbar = () => {
       );
     }
 
-    baseItems.push({ to: '/contact', label: 'Contact' });
-    
     return baseItems;
   }, [isSignedIn, isLoaded]);
 
   // Responsive dimensions
-  const expandedWidth = 850;
   const collapsedWidth = 60;
 
   // Calculate dynamic width and height
   const currentWidth = isOpen
-    ? (isMobile ? "calc(100vw - 32px)" : expandedWidth)
+    ? (isMobile ? "calc(100vw - 32px)" : "min(850px, 92vw)")
     : collapsedWidth;
 
   const currentHeight = showMobileMenu ? "auto" : 60;
   const currentRadius = showMobileMenu ? 24 : (isOpen ? 32 : 30);
 
   return (
-    <div className="fixed top-6 left-0 right-0 z-50 flex justify-center items-start pointer-events-none">
+    <div className="fixed top-5 left-0 right-0 z-50 flex justify-center items-start pointer-events-none">
       <motion.header
         layout
         initial={false}
@@ -186,22 +184,22 @@ export const FloatingNavbar = () => {
         }}
         transition={smoothSpring}
         className={cn(
-          "pointer-events-auto relative flex flex-col items-center overflow-hidden", // Added flex-col and overflow-hidden
+          "pointer-events-auto relative flex flex-col items-center overflow-visible",
           "bg-white/85 dark:bg-black/85 backdrop-blur-xl",
           "border border-black/8 dark:border-white/10",
-          "shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+          "shadow-[0_8px_32px_rgba(248,190,0,0.06)] dark:shadow-[0_8px_32px_rgba(248,190,0,0.1)]"
         )}
       >
         {/* Ambient glow - synced with container */}
         <motion.div
           className="absolute inset-0 pointer-events-none rounded-[inherit]"
           animate={{
-            opacity: isOpen ? 0.06 : 0,
+            opacity: isOpen ? 0.08 : 0,
             scale: isOpen ? 1 : 0.9,
           }}
           transition={gentleSpring}
           style={{
-            background: 'radial-gradient(ellipse at 50% 50%, rgba(248,190,0,0.25) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse at 50% 50%, rgba(248,190,0,0.15) 0%, transparent 70%)',
           }}
         />
 
@@ -214,7 +212,7 @@ export const FloatingNavbar = () => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-full flex flex-col" // Changed to flex-col to support mobile drop
+              className="w-full flex flex-col"
             >
               {/* Top Bar Section */}
               <div className="w-full h-[60px] flex items-center justify-between px-5">
@@ -224,7 +222,7 @@ export const FloatingNavbar = () => {
                   className="flex items-center gap-2.5 flex-shrink-0"
                 >
                   {/* Favicon */}
-                  <svg width="30" height="30" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                  <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
                     <rect width="64" height="64" rx="32" fill="#FFDE1A" />
                     <path d="M32 12L36.5 27.5L52 32L36.5 36.5L32 52L27.5 36.5L12 32L27.5 27.5L32 12Z" fill="white" />
                     <path d="M32 12L36.5 27.5L52 32L36.5 36.5L32 52L27.5 36.5L12 32L27.5 27.5L32 12Z" stroke="white" strokeWidth="2" strokeLinejoin="round" />
@@ -234,7 +232,7 @@ export const FloatingNavbar = () => {
                   <Link
                     to="/"
                     style={{ fontFamily: "'Kaushan Script', cursive" }}
-                    className="text-2xl tracking-normal text-black dark:text-white hidden sm:block pt-1"
+                    className="text-2xl tracking-normal text-black dark:text-white hidden sm:block"
                     aria-label="Go to homepage"
                   >
                     AI Image Prompts
@@ -244,7 +242,7 @@ export const FloatingNavbar = () => {
                 {/* CENTER: Navigation Links */}
                 <motion.nav
                   variants={itemVariants}
-                  className="hidden md:flex items-center gap-5"
+                  className="hidden md:flex items-center gap-6"
                   aria-label="Main navigation"
                 >
                   {navItems.map((item, index) => (
@@ -262,7 +260,7 @@ export const FloatingNavbar = () => {
                     >
                       <Link
                         to={item.to}
-                        className="text-sm font-medium text-black/65 dark:text-white/65 hover:text-black dark:hover:text-white transition-colors duration-200 whitespace-nowrap"
+                        className="text-sm font-semibold text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors duration-200 whitespace-nowrap"
                       >
                         {item.label}
                       </Link>
@@ -279,7 +277,7 @@ export const FloatingNavbar = () => {
                   <motion.button
                     onClick={toggleTheme}
                     aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                    className="w-9 h-9 rounded-full border border-black/8 dark:border-white/10 flex items-center justify-center relative overflow-hidden flex-shrink-0"
+                    className="w-10 h-10 rounded-full border border-black/8 dark:border-white/10 flex items-center justify-center relative overflow-hidden flex-shrink-0"
                     whileHover={{ scale: 1.08 }}
                     whileTap={{ scale: 0.92 }}
                     transition={snappySpring}
@@ -301,7 +299,7 @@ export const FloatingNavbar = () => {
                           exit={{ rotate: 45, opacity: 0, scale: 0.5 }}
                           transition={snappySpring}
                         >
-                          <Sun size={16} className="text-white relative z-10" />
+                          <Sun size={18} className="text-white relative z-10" />
                         </motion.div>
                       ) : (
                         <motion.div
@@ -311,7 +309,7 @@ export const FloatingNavbar = () => {
                           exit={{ rotate: -45, opacity: 0, scale: 0.5 }}
                           transition={snappySpring}
                         >
-                          <Moon size={16} className="text-black relative z-10" />
+                          <Moon size={18} className="text-black relative z-10" />
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -321,9 +319,9 @@ export const FloatingNavbar = () => {
                   <SignedOut>
                     <Link to="/auth" className="relative group">
                       <motion.button
-                        className="relative px-5 py-2.5 rounded-full font-bold text-sm whitespace-nowrap overflow-hidden
+                        className="relative px-6 h-10 rounded-full font-bold text-sm whitespace-nowrap overflow-hidden
                                  bg-gradient-to-br from-[#F8BE00] via-[#FFD700] to-[#F8BE00]
-                                 text-black
+                                 text-black flex items-center justify-center
                                  shadow-[0_4px_16px_rgba(248,190,0,0.3)] dark:shadow-[0_4px_20px_rgba(248,190,0,0.4)]
                                  border border-[#FFD700]/20"
                         whileHover={{
@@ -359,8 +357,8 @@ export const FloatingNavbar = () => {
 
                         {/* Button text - responsive */}
                         <span className="relative z-10 flex items-center gap-1.5">
-                          <span className="hidden sm:inline">Sign In / Sign Up</span>
-                          <span className="sm:hidden">Sign In</span>
+                          <span className="hidden sm:inline">Sign in / Sign up</span>
+                          <span className="sm:hidden">Sign in</span>
                         </span>
                       </motion.button>
 
@@ -383,7 +381,7 @@ export const FloatingNavbar = () => {
                       <UserButton
                         appearance={{
                           elements: {
-                            avatarBox: 'w-11 h-11 border-2 border-black/10 dark:border-white/10 flex-shrink-0 rounded-full',
+                            avatarBox: 'w-10 h-10 border-2 border-black/10 dark:border-white/10 flex-shrink-0 rounded-full',
                             userButtonPopoverCard: 'bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-black/10 dark:border-white/10',
                             userButtonPopoverActionButton: 'hover:bg-black/5 dark:hover:bg-white/5',
                             userButtonTrigger: 'flex items-center justify-center',
@@ -399,11 +397,12 @@ export const FloatingNavbar = () => {
                       key="mobile-menu-trigger"
                       variants={itemVariants}
                       onClick={() => setIsMobileMenuOpen(true)}
-                      className="ml-2 w-9 h-9 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 rounded-full text-black dark:text-white"
+                      aria-label="Open mobile navigation menu"
+                      className="ml-2 w-10 h-10 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 rounded-full text-black dark:text-white"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Menu size={20} />
+                      <Menu size={22} />
                     </motion.button>
                   )}
 

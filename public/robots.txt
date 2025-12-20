@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /saved
+Disallow: /submit
+
+# Sitemap
+Sitemap: https://aiimageprompts.xyz/sitemap.xml
+

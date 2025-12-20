@@ -23,7 +23,7 @@ export const CTASection = () => {
           transition={{ duration: 0.7 }}
           className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-8 tracking-tighter"
         >
-          Start Creating Today.
+          Turn ideas into unmistakable images.
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 30 }}
@@ -32,7 +32,7 @@ export const CTASection = () => {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="text-xl md:text-2xl text-white mb-12 max-w-2xl mx-auto"
         >
-          Join thousands of creators using our prompts to build the future of digital art.
+          Browse hand-crafted prompts or submit your own to help other artists, designers, and makers push their visuals further.
         </motion.p>
 
         <motion.div
@@ -44,19 +44,21 @@ export const CTASection = () => {
         >
           <motion.button
             onClick={handleGetStarted}
+            aria-label="Explore prompts"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-[#F8BE00] text-black text-lg md:text-2xl font-bold py-4 px-8 md:py-6 md:px-12 rounded-full inline-flex items-center gap-4 hover:bg-white transition-colors"
           >
-            Explore Prompts <ArrowRight size={24} className="md:w-7 md:h-7" />
+            Explore prompts <ArrowRight size={24} className="md:w-7 md:h-7" />
           </motion.button>
           <motion.button
             onClick={handleSubmitPrompt}
+            aria-label="Submit a prompt"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-transparent border-2 border-[#F8BE00] text-[#F8BE00] text-lg md:text-2xl font-bold py-4 px-8 md:py-6 md:px-12 rounded-full inline-flex items-center gap-4 hover:bg-[#F8BE00] hover:text-black transition-colors"
           >
-            Submit Your Prompt <Sparkles size={24} className="md:w-7 md:h-7" />
+            Submit a prompt <Sparkles size={24} className="md:w-7 md:h-7" />
           </motion.button>
         </motion.div>
       </div>

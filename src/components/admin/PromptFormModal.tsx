@@ -249,6 +249,9 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                                         <img
                                             src={formValues.preview_image_url}
                                             alt="Preview"
+                                            width="128"
+                                            height="128"
+                                            decoding="async"
                                             className="w-full h-full object-cover"
                                         />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

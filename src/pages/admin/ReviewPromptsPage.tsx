@@ -368,6 +368,9 @@ export default function ReviewPromptsPage() {
                     <img
                       src={prompt.preview_image_url ?? FALLBACK_IMAGE}
                       alt={prompt.title}
+                      width="128"
+                      height="128"
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -575,6 +578,9 @@ export default function ReviewPromptsPage() {
                       <img
                         src={selectedPrompt.preview_image_url}
                         alt={selectedPrompt.title}
+                        width="800"
+                        height="256"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                     </div>
