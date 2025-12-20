@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Copy, Check, ExternalLink, X, SlidersHorizontal, Sparkles, Bookmark, Share2, Share, Link as LinkIcon, Heart } from 'lucide-react'
+import { Search, Copy, Check, ExternalLink, X, SlidersHorizontal, Bookmark, Share2, Share, Link as LinkIcon, Heart } from 'lucide-react'
 import { useAuth, useUser } from '@clerk/clerk-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
