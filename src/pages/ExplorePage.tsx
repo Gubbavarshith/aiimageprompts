@@ -10,18 +10,8 @@ import { fetchPromptsByStatus, type PromptRecord } from '@/lib/services/prompts'
 import { savePrompt, unsavePrompt, getSavedPromptIds } from '@/lib/services/savedPrompts'
 import { useToast } from '@/contexts/ToastContext'
 import { getRatingSettings, upsertPromptRating, removePromptRating } from '@/lib/services/ratings'
-
-const CATEGORIES = [
-  { id: 'All' },
-  { id: 'Portraits' },
-  { id: 'Anime' },
-  { id: 'Logos' },
-  { id: 'UI/UX' },
-  { id: 'Cinematic' },
-  { id: '3D Art' },
-  { id: 'Photography' },
-  { id: 'Illustrations' },
-] as const
+import { updateCanonical } from '@/lib/seo'
+import { fetchUniqueCategories, fetchPopularTags } from '@/lib/services/categories'
 
 // Social Media Icon Components
 const XIcon = ({ className }: { className?: string }) => (
@@ -278,6 +268,11 @@ export default function ExplorePage() {
   const navigate = useNavigate()
   const [prompts, setPrompts] = useState<PromptRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [categories, setCategories] = useState<string[]>([])
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+  const [popularTags, setPopularTags] = useState<Array<{ tag: string; count: number }>>([])
+  const [isLoadingTags, setIsLoadingTags] = useState(false)
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [savedPromptIds, setSavedPromptIds] = useState<Set<string>>(new Set())
@@ -291,6 +286,7 @@ export default function ExplorePage() {
   // Local state for immediate UI feedback
   const [localSearchQuery, setLocalSearchQuery] = useState(searchParams.get('q') || '')
   const categoryFilter = searchParams.get('category') || 'All'
+  const tagFilter = searchParams.get('tag') || null
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const [selectedPrompt, setSelectedPrompt] = useState<PromptRecord | null>(null)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
@@ -299,9 +295,16 @@ export default function ExplorePage() {
   const [requireLoginForRatings, setRequireLoginForRatings] = useState(true)
   const [ratingSubmittingId, setRatingSubmittingId] = useState<string | null>(null)
   const anonIdRef = useRef<string | null>(null)
+  const [showUnsaveConfirm, setShowUnsaveConfirm] = useState<{ promptId: string; title: string } | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const [displayedCount, setDisplayedCount] = useState(20) // Number of prompts to display initially
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const ITEMS_PER_PAGE = 20
 
   useEffect(() => {
-    document.title = 'Explore prompts – Aiimageprompts'
+    document.title = 'Explore AI Image Prompts – Browse Free Prompt Library'
+    updateCanonical('/explore')
 
     const loadPrompts = async () => {
       try {
@@ -310,13 +313,52 @@ export default function ExplorePage() {
         setPrompts(data)
       } catch (err) {
         console.error('Failed to load prompts:', err)
+        toast.error('Failed to load prompts. Please refresh the page and try again.')
       } finally {
         setIsLoading(false)
       }
     }
 
+    const loadCategories = async () => {
+      try {
+        setIsLoadingCategories(true)
+        const fetchedCategories = await fetchUniqueCategories()
+        setCategories(fetchedCategories)
+      } catch (err) {
+        console.error('Failed to load categories:', err)
+        // Fallback to empty array, will show "All" only
+        setCategories([])
+      } finally {
+        setIsLoadingCategories(false)
+      }
+    }
+
+    const loadTags = async () => {
+      try {
+        setIsLoadingTags(true)
+        const tags = await fetchPopularTags(20) // Get top 20 tags
+        setPopularTags(tags)
+      } catch (err) {
+        console.error('Failed to load tags:', err)
+        setPopularTags([])
+      } finally {
+        setIsLoadingTags(false)
+      }
+    }
+
     loadPrompts()
-  }, [])
+    loadCategories()
+    loadTags()
+  }, [toast])
+
+  // Sync selectedTag with URL params
+  useEffect(() => {
+    if (tagFilter) {
+      setSelectedTag(tagFilter)
+    } else {
+      setSelectedTag(null)
+    }
+  }, [tagFilter])
 
   // Load rating settings & anonymous rating id
   useEffect(() => {
@@ -354,14 +396,14 @@ export default function ExplorePage() {
     loadSavedPrompts()
   }, [isLoaded, isSignedIn, user?.id])
 
-  // Initialize localSearchQuery from URL on mount
+  // Sync localSearchQuery with URL params (for URL sharing support)
   useEffect(() => {
     const urlQuery = searchParams.get('q') || ''
     if (urlQuery !== localSearchQuery) {
       setLocalSearchQuery(urlQuery)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Only run on mount
+  }, [searchParams]) // Sync when URL params change (e.g., from shared link)
 
   const filteredPrompts = useMemo(() => {
     return prompts.filter(prompt => {
@@ -373,9 +415,59 @@ export default function ExplorePage() {
       const matchesCategory = categoryFilter === 'All' ||
         prompt.category.toLowerCase() === categoryFilter.toLowerCase()
 
-      return matchesSearch && matchesCategory
+      const matchesTag = !selectedTag || !tagFilter ||
+        prompt.tags?.some(tag => tag.trim().toLowerCase() === selectedTag.toLowerCase())
+
+      return matchesSearch && matchesCategory && matchesTag
     })
-  }, [prompts, localSearchQuery, categoryFilter])
+  }, [prompts, localSearchQuery, categoryFilter, selectedTag, tagFilter])
+
+  // Reset displayed count when filters change
+  useEffect(() => {
+    setDisplayedCount(ITEMS_PER_PAGE)
+  }, [localSearchQuery, categoryFilter])
+
+  // Displayed prompts (for infinite scroll)
+  const displayedPrompts = useMemo(() => {
+    return filteredPrompts.slice(0, displayedCount)
+  }, [filteredPrompts, displayedCount])
+
+  const hasMore = displayedCount < filteredPrompts.length
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (!hasMore || isLoadingMore) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+        if (entry.isIntersecting && !isLoadingMore) {
+          setIsLoadingMore(true)
+          // Simulate slight delay for smooth UX
+          setTimeout(() => {
+            setDisplayedCount(prev => Math.min(prev + ITEMS_PER_PAGE, filteredPrompts.length))
+            setIsLoadingMore(false)
+          }, 300)
+        }
+      },
+      {
+        root: null,
+        rootMargin: '200px', // Start loading 200px before reaching the bottom
+        threshold: 0.1,
+      }
+    )
+
+    const currentRef = loadMoreRef.current
+    if (currentRef) {
+      observer.observe(currentRef)
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef)
+      }
+    }
+  }, [hasMore, isLoadingMore, filteredPrompts.length])
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value
@@ -432,15 +524,40 @@ export default function ExplorePage() {
 
   // Close modal on Escape
   useEffect(() => {
-    if (!isImageModalOpen) return
+    if (!isImageModalOpen && !isShareModalOpen && !showUnsaveConfirm) return
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        handleCloseModal()
+        if (isImageModalOpen) {
+          handleCloseModal()
+        } else if (isShareModalOpen) {
+          handleCloseShareModal()
+        } else if (showUnsaveConfirm) {
+          setShowUnsaveConfirm(null)
+        }
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [isImageModalOpen, handleCloseModal])
+  }, [isImageModalOpen, isShareModalOpen, showUnsaveConfirm, handleCloseModal])
+
+  // Keyboard shortcut: Ctrl/Cmd+K to focus search
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Check if user is typing in an input, textarea, or contenteditable
+      const target = e.target as HTMLElement
+      const isInputFocused = target.tagName === 'INPUT' || 
+                             target.tagName === 'TEXTAREA' || 
+                             target.isContentEditable
+
+      // Ctrl/Cmd+K to focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && !isInputFocused) {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   const handleCategoryChange = (category: string) => {
     setSearchParams(prev => {
@@ -450,8 +567,26 @@ export default function ExplorePage() {
       } else {
         newParams.set('category', category)
       }
+      // Clear tag filter when changing category
+      newParams.delete('tag')
+      setSelectedTag(null)
       return newParams
-    })
+    }, { replace: true })
+  }
+
+  const handleTagClick = (tag: string) => {
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev)
+      if (selectedTag === tag) {
+        // Deselect if clicking the same tag
+        newParams.delete('tag')
+        setSelectedTag(null)
+      } else {
+        newParams.set('tag', tag)
+        setSelectedTag(tag)
+      }
+      return newParams
+    }, { replace: true })
   }
 
   const handleCopy = async (prompt: PromptRecord) => {
@@ -480,30 +615,53 @@ export default function ExplorePage() {
       return
     }
 
-    if (isTogglingSave === promptId) return // Prevent double clicks
-
-    setIsTogglingSave(promptId)
     const isCurrentlySaved = savedPromptIds.has(promptId)
 
-    try {
-      if (isCurrentlySaved) {
-        await unsavePrompt(user.id, promptId)
-        setSavedPromptIds(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(promptId)
-          return newSet
-        })
-        toast.success('Removed from saved prompts.')
-      } else {
-        await savePrompt(user.id, promptId)
-        setSavedPromptIds(prev => new Set(prev).add(promptId))
-        toast.success('Prompt saved.')
+    // Show confirmation dialog if unsaving
+    if (isCurrentlySaved) {
+      const prompt = prompts.find(p => p.id === promptId)
+      if (prompt) {
+        setShowUnsaveConfirm({ promptId, title: prompt.title })
       }
+      return
+    }
+
+    // Save immediately without confirmation
+    if (isTogglingSave === promptId) return // Prevent double clicks
+    setIsTogglingSave(promptId)
+
+    try {
+      await savePrompt(user.id, promptId)
+      setSavedPromptIds(prev => new Set(prev).add(promptId))
+      toast.success('Prompt saved.')
     } catch (err) {
-      console.error('Failed to toggle save:', err)
-      toast.error(isCurrentlySaved
-        ? 'We couldn’t remove this prompt from your saved list.'
-        : 'We couldn’t save this prompt. Please try again.')
+      console.error('Failed to save prompt:', err)
+      toast.error("We couldn't save this prompt. Please try again.")
+    } finally {
+      setIsTogglingSave(null)
+    }
+  }
+
+  const handleUnsaveConfirm = async () => {
+    if (!showUnsaveConfirm || !user?.id) return
+
+    const { promptId } = showUnsaveConfirm
+    setShowUnsaveConfirm(null)
+
+    if (isTogglingSave === promptId) return // Prevent double clicks
+    setIsTogglingSave(promptId)
+
+    try {
+      await unsavePrompt(user.id, promptId)
+      setSavedPromptIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(promptId)
+        return newSet
+      })
+      toast.success('Removed from saved prompts.')
+    } catch (err) {
+      console.error('Failed to unsave prompt:', err)
+      toast.error("We couldn't remove this prompt from your saved list.")
     } finally {
       setIsTogglingSave(null)
     }
@@ -729,6 +887,7 @@ export default function ExplorePage() {
 
   const clearFilters = () => {
     setLocalSearchQuery('')
+    setSelectedTag(null)
     setSearchParams({})
   }
 
@@ -761,6 +920,7 @@ export default function ExplorePage() {
                     <Search size={22} strokeWidth={2.5} />
                   </div>
                   <input
+                    ref={searchInputRef}
                     type="text"
                     value={localSearchQuery}
                     onChange={handleSearchChange}
@@ -800,32 +960,95 @@ export default function ExplorePage() {
                     <SlidersHorizontal size={14} />
                     <span>Filter by category</span>
                   </div>
-                  {CATEGORIES.map((cat) => {
-                    const isActive = (cat.id === 'All' && !categoryFilter) || categoryFilter === cat.id
-                    return (
-                      <motion.button
-                        key={cat.id}
-                        onClick={() => handleCategoryChange(cat.id)}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`relative px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 isolate ${isActive
-                          ? 'text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]'
-                          : 'bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
-                          }`}
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeFilter"
-                            className="absolute inset-0 bg-[#F8BE00] rounded-xl -z-10 border-2 border-black"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                          />
-                        )}
-                        <span className="relative z-10">{cat.id}</span>
-                      </motion.button>
-                    )
-                  })}
+                  {/* Always show "All" first */}
+                  <motion.button
+                    key="All"
+                    onClick={() => handleCategoryChange('All')}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`relative px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 isolate ${(categoryFilter === 'All' || !categoryFilter)
+                      ? 'text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]'
+                      : 'bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
+                      }`}
+                  >
+                    {(categoryFilter === 'All' || !categoryFilter) && (
+                      <motion.div
+                        layoutId="activeFilter"
+                        className="absolute inset-0 bg-[#F8BE00] rounded-xl -z-10 border-2 border-black"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <span className="relative z-10">All</span>
+                  </motion.button>
+                  {/* Dynamic categories */}
+                  {isLoadingCategories ? (
+                    <div className="px-5 py-2.5 text-sm text-gray-400">Loading categories...</div>
+                  ) : (
+                    categories.map((cat) => {
+                      const isActive = categoryFilter === cat
+                      return (
+                        <motion.button
+                          key={cat}
+                          onClick={() => handleCategoryChange(cat)}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                          className={`relative px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 isolate ${isActive
+                            ? 'text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]'
+                            : 'bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
+                            }`}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="activeFilter"
+                              className="absolute inset-0 bg-[#F8BE00] rounded-xl -z-10 border-2 border-black"
+                              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                          )}
+                          <span className="relative z-10">{cat}</span>
+                        </motion.button>
+                      )
+                    })
+                  )}
                 </div>
               </div>
+
+              {/* Row 3: Popular Tags */}
+              {popularTags.length > 0 && (
+                <div className="w-full overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 mt-4">
+                  <div className="flex gap-2 items-center justify-start md:justify-center min-w-max mx-auto px-2 py-2">
+                    <div className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 mr-2 bg-gray-100 dark:bg-zinc-900 px-3 py-1.5 rounded-lg select-none">
+                      <span>Popular tags</span>
+                    </div>
+                    {isLoadingTags ? (
+                      <div className="px-3 py-1 text-xs text-gray-400">Loading tags...</div>
+                    ) : (
+                      popularTags.slice(0, 15).map((tagItem) => {
+                        const isActive = selectedTag === tagItem.tag
+                        return (
+                          <motion.button
+                            key={tagItem.tag}
+                            onClick={() => handleTagClick(tagItem.tag)}
+                            whileHover={{ scale: 1.05, y: -1 }}
+                            whileTap={{ scale: 0.95 }}
+                            className={`relative px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${
+                              isActive
+                                ? 'bg-[#F8BE00] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                                : 'bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-zinc-800 hover:border-[#F8BE00] hover:text-black dark:hover:text-white'
+                            }`}
+                          >
+                            <span className="relative z-10">
+                              {tagItem.tag}
+                              {tagItem.count > 1 && (
+                                <span className="ml-1.5 text-[10px] opacity-70">({tagItem.count})</span>
+                              )}
+                            </span>
+                          </motion.button>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
 
             </div>
           </motion.div>
@@ -858,8 +1081,9 @@ export default function ExplorePage() {
               <div className="flex items-center justify-between mb-8 px-2 max-w-7xl mx-auto">
                 <p className="text-gray-500 dark:text-gray-400 font-mono text-sm uppercase tracking-widest">
                   Showing{' '}
-                  <span className="font-black text-black dark:text-white">{filteredPrompts.length}</span>{' '}
-                  curated prompts
+                  <span className="font-black text-black dark:text-white">{displayedPrompts.length}</span>
+                  {hasMore && ` of ${filteredPrompts.length}`}{' '}
+                  curated prompt{displayedPrompts.length === 1 ? '' : 's'}
                 </p>
               </div>
 
@@ -868,7 +1092,7 @@ export default function ExplorePage() {
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20 max-w-7xl mx-auto"
               >
                 <AnimatePresence mode='popLayout'>
-                  {filteredPrompts.map((prompt, index) => (
+                  {displayedPrompts.map((prompt, index) => (
                     <PromptCard
                       key={prompt.id}
                       prompt={prompt}
@@ -887,6 +1111,18 @@ export default function ExplorePage() {
                   ))}
                 </AnimatePresence>
               </motion.div>
+
+              {/* Infinite scroll trigger */}
+              {hasMore && (
+                <div ref={loadMoreRef} className="flex justify-center items-center py-8">
+                  {isLoadingMore && (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 border-4 border-black dark:border-white border-t-[#F8BE00] rounded-full animate-spin" />
+                      <p className="text-sm font-mono text-gray-500 dark:text-gray-400">Loading more prompts...</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
@@ -1079,6 +1315,51 @@ export default function ExplorePage() {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Unsave Confirmation Modal */}
+      <AnimatePresence>
+        {showUnsaveConfirm && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowUnsaveConfirm(null)}
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[140]"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-[140] flex items-center justify-center p-4"
+            >
+              <div className="w-full max-w-md bg-white dark:bg-zinc-950 border-2 border-black dark:border-white rounded-2xl shadow-[14px_14px_0px_0px_rgba(0,0,0,1)] dark:shadow-[14px_14px_0px_0px_rgba(255,255,255,1)] p-6">
+                <h2 className="text-xl font-bold text-black dark:text-white mb-2">Remove from Saved?</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Are you sure you want to remove "{showUnsaveConfirm.title}" from your saved prompts?
+                </p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleUnsaveConfirm}
+                    disabled={isTogglingSave === showUnsaveConfirm.promptId}
+                    className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isTogglingSave === showUnsaveConfirm.promptId ? 'Removing...' : 'Remove'}
+                  </button>
+                  <button
+                    onClick={() => setShowUnsaveConfirm(null)}
+                    disabled={isTogglingSave === showUnsaveConfirm.promptId}
+                    className="px-4 py-2.5 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

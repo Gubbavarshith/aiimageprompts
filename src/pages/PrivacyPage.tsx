@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Eye, Lock, Cookie, Shield, Server, UserCheck, CircleHelp } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
+import { updateCanonical } from '@/lib/seo'
 
 export default function PrivacyPage() {
   useEffect(() => {
-    document.title = 'Privacy Policy – Aiimageprompts'
+    document.title = 'Privacy Policy – AI Image Prompts'
+    updateCanonical('/privacy')
     window.scrollTo(0, 0)
   }, [])
 

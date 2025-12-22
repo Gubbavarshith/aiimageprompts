@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, FileText, Shield, Scale, CircleHelp } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
+import { updateCanonical } from '@/lib/seo'
 
 export default function TermsPage() {
   useEffect(() => {
-    document.title = 'Terms of Use – Aiimageprompts'
+    document.title = 'Terms of Use – AI Image Prompts'
+    updateCanonical('/terms')
     window.scrollTo(0, 0)
   }, [])
 

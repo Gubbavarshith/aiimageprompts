@@ -143,6 +143,8 @@ export default function SavedPromptsPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [copiedId, setCopiedId] = useState<string | null>(null)
     const [isSearchFocused, setIsSearchFocused] = useState(false)
+    const [showUnsaveConfirm, setShowUnsaveConfirm] = useState<{ promptId: string; title: string } | null>(null)
+    const [isRemoving, setIsRemoving] = useState<string | null>(null)
 
     // Clerk auth
     const { isSignedIn, isLoaded } = useAuth()
@@ -227,8 +229,19 @@ export default function SavedPromptsPage() {
         }
     }
 
-    const handleRemove = async (promptId: string) => {
-        if (!user?.id) return
+    const handleRemove = (promptId: string) => {
+        const savedPrompt = savedPrompts.find(sp => sp.prompts.id === promptId)
+        if (savedPrompt) {
+            setShowUnsaveConfirm({ promptId, title: savedPrompt.prompts.title })
+        }
+    }
+
+    const handleUnsaveConfirm = async () => {
+        if (!showUnsaveConfirm || !user?.id) return
+
+        const { promptId } = showUnsaveConfirm
+        setShowUnsaveConfirm(null)
+        setIsRemoving(promptId)
 
         try {
             await unsavePrompt(user.id, promptId)
@@ -237,6 +250,8 @@ export default function SavedPromptsPage() {
         } catch (err) {
             console.error('Failed to remove prompt:', err)
             toast.error('Failed to remove prompt from saved. Please try again.')
+        } finally {
+            setIsRemoving(null)
         }
     }
 
@@ -345,6 +360,51 @@ export default function SavedPromptsPage() {
 
                 </div>
             </main>
+
+            {/* Unsave Confirmation Modal */}
+            <AnimatePresence>
+                {showUnsaveConfirm && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowUnsaveConfirm(null)}
+                            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[140]"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="fixed inset-0 z-[140] flex items-center justify-center p-4"
+                        >
+                            <div className="w-full max-w-md bg-white dark:bg-zinc-950 border-2 border-black dark:border-white rounded-2xl shadow-[14px_14px_0px_0px_rgba(0,0,0,1)] dark:shadow-[14px_14px_0px_0px_rgba(255,255,255,1)] p-6">
+                                <h2 className="text-xl font-bold text-black dark:text-white mb-2">Remove from Saved?</h2>
+                                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                    Are you sure you want to remove "{showUnsaveConfirm.title}" from your saved prompts?
+                                </p>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={handleUnsaveConfirm}
+                                        disabled={isRemoving === showUnsaveConfirm.promptId}
+                                        className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isRemoving === showUnsaveConfirm.promptId ? 'Removing...' : 'Remove'}
+                                    </button>
+                                    <button
+                                        onClick={() => setShowUnsaveConfirm(null)}
+                                        disabled={isRemoving === showUnsaveConfirm.promptId}
+                                        className="px-4 py-2.5 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
 
             <Footer />
         </div>

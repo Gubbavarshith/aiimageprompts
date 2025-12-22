@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Calendar, Clock, ArrowLeft, Share2, Loader2, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, AlertCircle, Copy, Check, Twitter } from 'lucide-react'
 import { FloatingNavbar } from '../components/landing/FloatingNavbar'
 import { Footer } from '../components/landing/Footer'
-import { Button } from '../components/ui/button'
 import { fetchBlogPostBySlug, formatDate, type BlogPost } from '../lib/services/blogs'
 import { useToast } from '../contexts/ToastContext'
 
@@ -16,6 +14,7 @@ export default function BlogPostPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [imageError, setImageError] = useState(false)
+    const [hasCopied, setHasCopied] = useState(false)
 
     useEffect(() => {
         const loadPost = async () => {
@@ -29,7 +28,7 @@ export default function BlogPostPage() {
                 setIsLoading(true)
                 setError(null)
                 const data = await fetchBlogPostBySlug(slug)
-                
+
                 if (!data) {
                     setError('Blog post not found')
                     return
@@ -49,31 +48,14 @@ export default function BlogPostPage() {
         loadPost()
     }, [slug, toast])
 
-    const handleShare = async () => {
-        if (!post) return
-
-        const shareUrl = window.location.href
-        const shareText = `Check out this article: ${post.title}`
-
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: post.title,
-                    text: shareText,
-                    url: shareUrl,
-                })
-            } catch (err) {
-                // User cancelled or error occurred
-                console.log('Share cancelled or failed')
-            }
-        } else {
-            // Fallback: copy to clipboard
-            try {
-                await navigator.clipboard.writeText(shareUrl)
-                toast.success('Link copied to clipboard!')
-            } catch (err) {
-                toast.error('Failed to copy link')
-            }
+    const handleCopyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href)
+            setHasCopied(true)
+            toast.success('Link copied to clipboard')
+            setTimeout(() => setHasCopied(false), 2000)
+        } catch (err) {
+            toast.error('Failed to copy link')
         }
     }
 
@@ -81,33 +63,26 @@ export default function BlogPostPage() {
     const formatContent = (content: string): string => {
         // Check if content contains HTML tags
         const hasHtmlTags = /<[^>]+>/.test(content)
-        
+
         if (hasHtmlTags) {
             // Content is already HTML, just return it with styling classes
             return content
         } else {
             // Content is markdown, convert to HTML (for backward compatibility)
+            // Simplified for now - in a real app better to use a library like marked or remark
             let html = content
-                // Headers
-                .replace(/^### (.*$)/gim, '<h3 class="text-2xl font-bold mt-8 mb-4">$1</h3>')
-                .replace(/^## (.*$)/gim, '<h2 class="text-3xl font-bold mt-10 mb-6">$1</h2>')
-                // Bold
-                .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold">$1</strong>')
-                // Italic
+                .replace(/^### (.*$)/gim, '<h3 class="text-2xl font-bold mt-8 mb-4 tracking-tight">$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2 class="text-3xl font-bold mt-12 mb-6 tracking-tight border-l-4 border-[#FFDE1A] pl-4">$1</h2>')
+                .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-zinc-900 dark:text-white">$1</strong>')
                 .replace(/\*(.*?)\*/gim, '<em class="italic">$1</em>')
-                // Code
-                .replace(/`(.*?)`/gim, '<code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded font-mono text-sm">$1</code>')
-                // Quotes
-                .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-[#F8BE00] pl-4 italic my-4">$1</blockquote>')
-                // Lists
-                .replace(/^- (.*$)/gim, '<li class="ml-4">$1</li>')
-                // Paragraphs
+                .replace(/`(.*?)`/gim, '<code class="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded font-mono text-sm text-red-500 font-medium">$1</code>')
+                .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-zinc-300 dark:border-zinc-700 pl-6 italic my-8 text-xl text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 py-4 pr-4 rounded-r-lg">$1</blockquote>')
+                .replace(/^- (.*$)/gim, '<li class="ml-4 pl-2 border-l-2 border-zinc-200 dark:border-zinc-800 mb-2">$1</li>')
                 .split('\n\n')
-                .map(para => para.trim() ? `<p class="mb-4 leading-relaxed">${para}</p>` : '')
+                .map(para => para.trim() ? `<p class="mb-6 leading-8 text-lg text-zinc-700 dark:text-zinc-300">${para}</p>` : '')
                 .join('')
 
-            // Wrap list items in ul tags
-            html = html.replace(/(<li.*?<\/li>\n?)+/g, '<ul class="list-disc ml-6 mb-4 space-y-2">$&</ul>')
+            html = html.replace(/(<li.*?<\/li>\n?)+/g, '<ul class="list-none ml-0 mb-8 space-y-2">$&</ul>')
 
             return html
         }
@@ -115,12 +90,12 @@ export default function BlogPostPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans">
+            <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#09090b]">
                 <FloatingNavbar />
-                <main className="flex items-center justify-center min-h-[60vh] pt-32">
+                <main className="flex items-center justify-center min-h-[80vh]">
                     <div className="flex flex-col items-center gap-4">
-                        <Loader2 className="w-12 h-12 animate-spin text-[#F8BE00]" />
-                        <p className="text-lg font-medium text-gray-600 dark:text-gray-400">Loading blog post...</p>
+                        <Loader2 className="w-10 h-10 animate-spin text-[#FFDE1A]" />
+                        <p className="text-sm font-medium text-zinc-400">Loading article...</p>
                     </div>
                 </main>
                 <Footer />
@@ -130,30 +105,21 @@ export default function BlogPostPage() {
 
     if (error || !post) {
         return (
-            <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans">
+            <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#09090b]">
                 <FloatingNavbar />
-                <main className="flex items-center justify-center min-h-[60vh] pt-32 px-4">
-                    <div className="max-w-2xl mx-auto text-center">
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 mb-6">
-                            <AlertCircle className="w-10 h-10 text-red-500" />
+                <main className="flex items-center justify-center min-h-[80vh] px-4">
+                    <div className="max-w-md w-full text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 mb-6">
+                            <AlertCircle className="w-8 h-8 text-red-500" />
                         </div>
-                        <h1 className="text-3xl font-bold mb-4">Blog Post Not Found</h1>
-                        <p className="text-gray-600 dark:text-gray-400 mb-8">
-                            {error || 'The blog post you\'re looking for doesn\'t exist or has been removed.'}
+                        <h1 className="text-xl font-bold mb-2 text-zinc-900 dark:text-white">Article not found</h1>
+                        <p className="text-zinc-500 mb-8">
+                            {error || 'The article you looking for doesn\'t exist or has been removed.'}
                         </p>
-                        <div className="flex items-center justify-center gap-4">
-                            <Link to="/blog">
-                                <Button className="bg-[#F8BE00] text-black hover:bg-[#FFD700] font-bold">
-                                    <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to Blog
-                                </Button>
-                            </Link>
-                            <Link to="/">
-                                <Button variant="outline">
-                                    Go Home
-                                </Button>
-                            </Link>
-                        </div>
+                        <Link to="/blog" className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-black font-semibold hover:opacity-90 transition-opacity">
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back to Journal
+                        </Link>
                     </div>
                 </main>
                 <Footer />
@@ -162,166 +128,117 @@ export default function BlogPostPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans selection:bg-[#F8BE00] selection:text-black">
+        <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 font-sans">
             <FloatingNavbar />
 
-            <main className="pt-32 pb-20">
-                <article className="max-w-4xl mx-auto px-4">
-                    {/* Back Button */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-8"
-                    >
+            {/* Scroll Progress Bar could go here */}
+
+            <main className="pt-32 pb-24">
+                <article className="max-w-3xl mx-auto px-6 lg:px-8">
+
+                    {/* Back Link */}
+                    <div className="mb-12">
                         <Link
                             to="/blog"
-                            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                            className="inline-flex items-center gap-2 text-sm font-bold text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors group"
                         >
-                            <ArrowLeft className="w-4 h-4" />
-                            Back to Blog
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            Back to Journal
                         </Link>
-                    </motion.div>
+                    </div>
 
-                    {/* Header */}
-                    <motion.header
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="mb-12"
-                    >
-                        {/* Category Badge */}
-                        <div className="mb-6">
-                            <span className="inline-block bg-[#F8BE00] border-2 border-black text-black text-xs font-bold px-4 py-2 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    {/* Article Header */}
+                    <header className="mb-12">
+                        <div className="flex items-center gap-3 mb-6">
+                            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FFDE1A] text-black">
                                 {post.category}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                                {formatDate(post.date)}
                             </span>
                         </div>
 
-                        {/* Title */}
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-black leading-tight mb-6">
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white leading-[1.1] mb-8 tracking-tight">
                             {post.title}
                         </h1>
 
-                        {/* Meta Information */}
-                        <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-xs">
-                                    {post.author.charAt(0).toUpperCase()}
+                        <div className="flex items-center justify-between border-y border-zinc-100 dark:border-zinc-800 py-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center font-bold text-zinc-700 dark:text-zinc-300">
+                                    {post.author.charAt(0)}
                                 </div>
-                                <span className="font-bold">{post.author}</span>
+                                <div>
+                                    <p className="text-sm font-bold text-zinc-900 dark:text-white leading-none mb-1">{post.author}</p>
+                                    <p className="text-xs font-medium text-zinc-500">
+                                        {post.readTime} read
+                                    </p>
+                                </div>
                             </div>
+
                             <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                <span>{formatDate(post.date)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4" />
-                                <span>{post.readTime}</span>
+                                <button onClick={handleCopyLink} className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                                    {hasCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                                </button>
+                                <button className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                                    <Twitter className="w-4 h-4" />
+                                </button>
                             </div>
                         </div>
-
-                        {/* Tags */}
-                        {post.tags && post.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-8">
-                                {post.tags.map(tag => (
-                                    <span
-                                        key={tag}
-                                        className="text-xs font-black uppercase bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 px-3 py-1 rounded"
-                                    >
-                                        #{tag}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Share Button */}
-                        <button
-                            onClick={handleShare}
-                            aria-label={`Share article: ${post.title}`}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-[#F8BE00] hover:text-black dark:hover:bg-[#F8BE00] transition-colors font-bold text-sm"
-                        >
-                            <Share2 className="w-4 h-4" />
-                            Share
-                        </button>
-                    </motion.header>
+                    </header>
 
                     {/* Featured Image */}
                     {post.imageUrl && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="mb-12 rounded-xl overflow-hidden border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
-                        >
+                        <div className="mb-16 -mx-6 md:-mx-12 lg:-mx-20 rounded-2xl overflow-hidden shadow-sm bg-zinc-100 dark:bg-zinc-800">
                             {!imageError ? (
                                 <img
                                     src={post.imageUrl}
                                     alt={post.title}
                                     onError={() => setImageError(true)}
-                                    width="1200"
-                                    height="675"
-                                    decoding="async"
-                                    className="w-full h-auto object-cover"
-                                    loading="lazy"
+                                    className="w-full h-auto object-cover max-h-[600px]"
                                 />
                             ) : (
-                                <div className="w-full aspect-video bg-gradient-to-br from-[#F8BE00] to-yellow-600 flex items-center justify-center">
-                                    <p className="text-black font-bold text-lg">Image not available</p>
+                                <div className="w-full aspect-[21/9] flex items-center justify-center text-zinc-400 text-sm font-medium">
+                                    Image not available
                                 </div>
                             )}
-                        </motion.div>
+                        </div>
                     )}
 
-                    {/* Content */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="prose prose-lg dark:prose-invert max-w-none"
-                    >
-                        {/* Excerpt */}
+                    {/* Content Body */}
+                    <div className="article-content max-w-none">
                         {post.excerpt && (
-                            <div className="mb-8 p-6 bg-gray-50 dark:bg-zinc-900 border-l-4 border-[#F8BE00] rounded-r-lg">
-                                <p className="text-xl font-medium text-gray-700 dark:text-gray-300 italic leading-relaxed">
-                                    {post.excerpt}
-                                </p>
-                            </div>
+                            <p className="text-xl md:text-2xl leading-relaxed font-medium text-zinc-900 dark:text-white mb-12 border-l-4 border-[#FFDE1A] pl-6 py-1">
+                                {post.excerpt}
+                            </p>
                         )}
 
-                        {/* Main Content */}
                         <div
-                            className="blog-content text-lg leading-relaxed"
+                            className="text-lg text-zinc-700 dark:text-zinc-300 leading-8 space-y-8"
                             dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
                         />
-                    </motion.div>
+                    </div>
 
-                    {/* Footer Actions */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="mt-16 pt-8 border-t-2 border-black/10 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4"
-                    >
-                        <Link
-                            to="/blog"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-[#F8BE00] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Back to Blog
-                        </Link>
-                        <button
-                            onClick={handleShare}
-                            aria-label={`Share article: ${post.title}`}
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black border-2 border-black dark:border-white font-bold rounded-lg hover:bg-[#F8BE00] hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
-                        >
-                            <Share2 className="w-4 h-4" />
-                            Share Article
-                        </button>
-                    </motion.div>
+                    {/* Tags */}
+                    {post.tags && post.tags.length > 0 && (
+                        <div className="mt-16 pt-8 border-t border-zinc-100 dark:border-zinc-800">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">Related Topics</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {post.tags.map(tag => (
+                                    <span key={tag} className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-sm font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer">
+                                        #{tag}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                 </article>
             </main>
+
+            {/* Read Next Section could go here */}
 
             <Footer />
         </div>
     )
 }
-

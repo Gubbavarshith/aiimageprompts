@@ -15,14 +15,14 @@ export const Footer = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       error('Please enter your email to subscribe.');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     // Try to get user location (non-blocking - will continue even if it fails)
     let locationData;
     try {
@@ -54,9 +54,7 @@ export const Footer = () => {
           {/* Brand Column */}
           <div className="space-y-6">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#FFDE1A] flex items-center justify-center">
-                <span className="font-bold text-black text-xl">A</span>
-              </div>
+              <img src="/favicon.svg" alt="Logo" className="w-8 h-8 rounded-lg" />
               <span className="font-bold text-xl tracking-tight">Aiimageprompts</span>
             </Link>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed max-w-xs">
@@ -80,22 +78,22 @@ export const Footer = () => {
             <h3 className="font-bold text-lg mb-6">Explore</h3>
             <ul className="space-y-4">
               <li>
-                  <Link to="/explore" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                <Link to="/explore" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
                   Browse prompts
                 </Link>
               </li>
               <li>
-                  <Link to="/explore?category=portraits" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                <Link to="/explore?category=portraits" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
                   Portrait prompts
                 </Link>
               </li>
               <li>
-                  <Link to="/explore?category=landscapes" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                <Link to="/explore?category=landscapes" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
                   Landscape prompts
                 </Link>
               </li>
               <li>
-                  <Link to="/explore?category=anime" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                <Link to="/explore?category=anime" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
                   Anime-style prompts
                 </Link>
               </li>
@@ -158,8 +156,8 @@ export const Footer = () => {
                   required
                 />
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isSubmitting}
                 className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >

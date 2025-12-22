@@ -4,7 +4,7 @@ import { Home, ArrowLeft } from 'lucide-react'
 
 export default function NotFoundPage() {
   useEffect(() => {
-    document.title = 'Page not found – Aiimageprompts'
+    document.title = 'Page Not Found – AI Image Prompts'
   }, [])
 
   return (

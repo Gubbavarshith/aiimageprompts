@@ -1,4 +1,4 @@
-import { StrictMode, lazy, Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { ClerkProvider } from '@clerk/clerk-react'
@@ -30,28 +30,26 @@ if (!PUBLISHABLE_KEY) {
 }
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    {PUBLISHABLE_KEY ? (
-      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-        <ThemeProvider defaultTheme="dark" storageKey="ai-prompts-theme">
-          <ToastProvider>
-            <BrowserRouter>
-              <App />
-              <Suspense fallback={null}>
-                <Toaster />
-              </Suspense>
-            </BrowserRouter>
-          </ToastProvider>
-        </ThemeProvider>
-      </ClerkProvider>
-    ) : (
+  PUBLISHABLE_KEY ? (
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <ThemeProvider defaultTheme="dark" storageKey="ai-prompts-theme">
         <ToastProvider>
           <BrowserRouter>
             <App />
+            <Suspense fallback={null}>
+              <Toaster />
+            </Suspense>
           </BrowserRouter>
         </ToastProvider>
       </ThemeProvider>
-    )}
-  </StrictMode>,
+    </ClerkProvider>
+  ) : (
+    <ThemeProvider defaultTheme="dark" storageKey="ai-prompts-theme">
+      <ToastProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ToastProvider>
+    </ThemeProvider>
+  ),
 )

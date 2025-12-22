@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, CircleCheck, CircleX, TriangleAlert } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
+import { updateCanonical } from '@/lib/seo'
 
 export default function GuidelinesPage() {
     useEffect(() => {
         document.title = 'Guidelines | AI Image Prompts'
+        updateCanonical('/guidelines')
         window.scrollTo(0, 0)
     }, [])
 

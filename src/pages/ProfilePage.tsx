@@ -9,6 +9,7 @@ export default function ProfilePage() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    document.title = 'Profile – AI Image Prompts'
     // Redirect to home - profile management is handled by Clerk's UserButton
     navigate('/', { replace: true })
   }, [navigate])

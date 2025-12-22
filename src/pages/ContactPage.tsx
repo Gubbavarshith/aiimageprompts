@@ -4,6 +4,7 @@ import { Mail, Send, MessageSquare, Twitter, Github, CircleCheck } from 'lucide-
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
 import { useToast } from '@/contexts/ToastContext'
+import { updateCanonical } from '@/lib/seo'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '', honeypot: '' })
@@ -13,7 +14,8 @@ export default function ContactPage() {
   const toast = useToast()
 
   useEffect(() => {
-    document.title = 'Contact – Aiimageprompts'
+    document.title = 'Contact – AI Image Prompts'
+    updateCanonical('/contact')
     window.scrollTo(0, 0)
   }, [])
 

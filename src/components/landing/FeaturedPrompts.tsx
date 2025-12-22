@@ -188,13 +188,6 @@ export const FeaturedPrompts = () => {
         ) : (
           <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 rounded-xl border-2 border-dashed border-gray-200 dark:border-zinc-800">
             <p className="text-xl text-gray-500 dark:text-gray-400 font-mono">No featured prompts available yet.</p>
-            <button
-              onClick={() => navigate('/admin/prompts')}
-              aria-label="Go to admin dashboard to add prompts"
-              className="mt-4 text-sm text-[#F8BE00] hover:underline"
-            >
-              Add some in Admin Dashboard
-            </button>
           </div>
         )}
 

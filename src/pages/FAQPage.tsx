@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronDown, ChevronUp, CircleHelp } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
 import { motion, AnimatePresence } from 'framer-motion'
+import { updateCanonical } from '@/lib/seo'
 
 const FAQ_ITEMS = [
   {
@@ -40,7 +41,8 @@ const FAQ_ITEMS = [
 
 export default function FAQPage() {
     useEffect(() => {
-        document.title = 'FAQ – Aiimageprompts'
+        document.title = 'FAQ – AI Image Prompts'
+        updateCanonical('/faq')
         window.scrollTo(0, 0)
     }, [])
 

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowUpRight } from 'lucide-react';
-import { useState, useEffect } from 'react';
-
+import { useEffect, useState } from 'react';
+import { fetchActiveExploreHeroTools, type ExploreHeroTool } from '@/lib/services/exploreHeroTools';
 
 interface AITool {
   id: string;
@@ -10,95 +10,6 @@ interface AITool {
   affiliateLink: string;
   color: string;
 }
-
-const AI_TOOLS: AITool[] = [
-  {
-    id: 'chatgpt',
-    name: 'ChatGPT',
-    logo: '🤖',
-    affiliateLink: 'https://chat.openai.com',
-    color: '#10A37F',
-  },
-  {
-    id: 'gemini',
-    name: 'Gemini',
-    logo: '💎',
-    affiliateLink: 'https://gemini.google.com',
-    color: '#4285F4',
-  },
-  {
-    id: 'midjourney',
-    name: 'Midjourney',
-    logo: '🎨',
-    affiliateLink: 'https://www.midjourney.com',
-    color: '#2D2D2D',
-  },
-  {
-    id: 'dalle',
-    name: 'DALL·E',
-    logo: '🖼️',
-    affiliateLink: 'https://openai.com/dall-e-3',
-    color: '#000000',
-  },
-  {
-    id: 'stable-diffusion',
-    name: 'Stable Diffusion',
-    logo: '⚡',
-    affiliateLink: 'https://stability.ai',
-    color: '#FF6B6B',
-  },
-  {
-    id: 'leonardo',
-    name: 'Leonardo',
-    logo: '🦁',
-    affiliateLink: 'https://leonardo.ai',
-    color: '#FF6B35',
-  },
-  {
-    id: 'runway',
-    name: 'Runway',
-    logo: '🎬',
-    affiliateLink: 'https://runwayml.com',
-    color: '#FF006E',
-  },
-  {
-    id: 'nanobanana',
-    name: 'NanoBanana',
-    logo: '🍌',
-    affiliateLink: 'https://nanobanana.ai',
-    color: '#FFD700',
-  },
-  {
-    id: 'flux',
-    name: 'Flux',
-    logo: '🌊',
-    affiliateLink: 'https://blackforestlabs.ai',
-    color: '#6366F1',
-  },
-  {
-    id: 'ideogram',
-    name: 'Ideogram',
-    logo: '💭',
-    affiliateLink: 'https://ideogram.ai',
-    color: '#8B5CF6',
-  },
-  {
-    id: 'firefly',
-    name: 'Firefly',
-    logo: '🔥',
-    affiliateLink: 'https://firefly.adobe.com',
-    color: '#FF0000',
-  },
-  {
-    id: 'civitai',
-    name: 'Civitai',
-    logo: '🎭',
-    affiliateLink: 'https://civitai.com',
-    color: '#9333EA',
-  },
-];
-
-
 
 // Predefined safe zones to strictly avoid the center text area 
 // We push items to the sides (Left < 25%, Right > 75%) to leave the center largely empty for text.
@@ -162,8 +73,12 @@ const MovingLogo = ({ tool, index, direction, total, side }: { tool: AITool, ind
           <ArrowUpRight size={14} />
         </div>
 
-        <div className="w-10 h-10 mb-1 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300 bg-gray-50 dark:bg-zinc-900">
-          {tool.logo}
+        <div className="w-10 h-10 mb-1 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300 bg-gray-50 dark:bg-zinc-900 overflow-hidden">
+          {tool.logo.startsWith('/') || tool.logo.startsWith('http') ? (
+            <img src={tool.logo} alt={tool.name} className="w-full h-full object-cover" />
+          ) : (
+            tool.logo
+          )}
         </div>
 
         <span className="text-[10px] font-bold text-gray-400 group-hover:text-zinc-900 dark:group-hover:text-white uppercase tracking-wider text-center px-1 truncate w-full transition-colors">
@@ -179,9 +94,44 @@ const FloatingLogos = () => {
   const [shuffledTools, setShuffledTools] = useState<AITool[]>([]);
 
   useEffect(() => {
-    // Randomize tools on mount
-    const shuffled = [...AI_TOOLS].sort(() => Math.random() - 0.5);
-    setShuffledTools(shuffled);
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const activeTools = await fetchActiveExploreHeroTools();
+
+        const mapped: AITool[] = activeTools.map((tool: ExploreHeroTool) => ({
+          id: tool.id,
+          name: tool.name,
+          logo: tool.logo_url,
+          affiliateLink: tool.affiliate_link,
+          color: tool.color || '#000000',
+        }));
+
+        // If there are very few tools, repeat them so both sides of the hero feel alive.
+        const minItems = 4;
+        const padded: AITool[] = [];
+        if (mapped.length > 0) {
+          while (padded.length < Math.max(minItems, mapped.length)) {
+            padded.push(...mapped);
+          }
+        }
+
+        const shuffled = [...(padded.length ? padded : mapped)].slice(0, Math.max(minItems, mapped.length)).sort(() => Math.random() - 0.5);
+
+        if (isMounted) {
+          setShuffledTools(shuffled);
+        }
+      } catch (error) {
+        console.error('Failed to load explore hero tools:', error);
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (shuffledTools.length === 0) return null;
@@ -206,7 +156,6 @@ const FloatingLogos = () => {
 
 
 export const AnimatedAIToolsHero = () => {
-
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#FAFAFA] dark:bg-black pt-20 pb-20">
 
@@ -242,7 +191,7 @@ export const AnimatedAIToolsHero = () => {
             <h1 className="font-display text-7xl sm:text-8xl md:text-9xl font-black tracking-tighter text-black dark:text-white mb-8 leading-[0.9]">
               Explore <br className="md:hidden" />
               <div className="relative inline-block mt-2 sm:mt-0">
-                <span className="relative z-10 text-white dark:text-black mix-blend-difference">
+                <span className="relative z-10 text-white dark:text-black">
                   Image Prompts
                 </span>
                 <span className="absolute -inset-1 sm:-inset-2 bg-black dark:bg-white transform -skew-x-6 -rotate-1 rounded-lg" />

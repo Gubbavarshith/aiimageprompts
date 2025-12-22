@@ -13,6 +13,8 @@ import {
 } from '@/lib/services/prompts'
 import { useToast } from '@/contexts/ToastContext'
 import { sanitizeForStorage } from '@/lib/utils'
+import { fetchUniqueCategories } from '@/lib/services/categories'
+import { motion } from 'framer-motion'
 
 const STATUS_OPTIONS = ['Published', 'Draft', 'Review']
 
@@ -38,6 +40,9 @@ interface PromptFormModalProps {
 
 export default function PromptFormModal({ isOpen, onClose, initialData, onSuccess }: PromptFormModalProps) {
     const [formValues, setFormValues] = useState<PromptFormState>(EMPTY_FORM_STATE)
+    const [customCategory, setCustomCategory] = useState('')
+    const [categories, setCategories] = useState<string[]>([])
+    const [isLoadingCategories, setIsLoadingCategories] = useState(true)
     const [formError, setFormError] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
@@ -46,27 +51,84 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
 
     const mode = initialData ? 'edit' : 'create'
 
+    // Close modal on Escape key
+    useEffect(() => {
+        if (!isOpen) return
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose()
+            }
+        }
+        window.addEventListener('keydown', onKeyDown)
+        return () => window.removeEventListener('keydown', onKeyDown)
+    }, [isOpen, onClose])
+
+    // Load categories when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            const loadCategories = async () => {
+                try {
+                    setIsLoadingCategories(true)
+                    const fetchedCategories = await fetchUniqueCategories()
+                    // Add "Other" as the last option
+                    setCategories([...fetchedCategories, 'Other'])
+                } catch (err) {
+                    console.error('Failed to load categories:', err)
+                    // Fallback to default categories with "Other"
+                    setCategories([
+                        'Portraits',
+                        'Anime',
+                        'Logos',
+                        'UI/UX',
+                        'Cinematic',
+                        '3D Art',
+                        'Photography',
+                        'Illustrations',
+                        'Other',
+                    ])
+                } finally {
+                    setIsLoadingCategories(false)
+                }
+            }
+
+            loadCategories()
+        }
+    }, [isOpen])
+
     useEffect(() => {
         if (isOpen) {
             if (initialData) {
+                // Check if the category exists in the categories list
+                const categoryExists = categories.includes(initialData.category ?? '')
                 setFormValues({
                     title: initialData.title ?? '',
                     prompt: initialData.prompt ?? '',
                     negative_prompt: initialData.negative_prompt ?? '',
-                    category: initialData.category ?? '',
+                    category: categoryExists ? (initialData.category ?? '') : 'Other',
                     tags: initialData.tags?.join(', ') ?? '',
                     preview_image_url: initialData.preview_image_url ?? '',
                     status: initialData.status ?? 'Draft',
                     views: initialData.views?.toString() ?? '0',
                 })
+                // If category doesn't exist in list, set it as custom category
+                if (!categoryExists && initialData.category) {
+                    setCustomCategory(initialData.category)
+                } else {
+                    setCustomCategory('')
+                }
             } else {
                 setFormValues(EMPTY_FORM_STATE)
+                setCustomCategory('')
             }
             setFormError(null)
         }
-    }, [isOpen, initialData])
+    }, [isOpen, initialData, categories])
 
     const handleFormInputChange = (field: keyof PromptFormState, value: string) => {
+        // Clear custom category if user switches away from "Other"
+        if (field === 'category' && value !== 'Other') {
+            setCustomCategory('')
+        }
         setFormValues(prev => ({
             ...prev,
             [field]: value,
@@ -76,6 +138,15 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (!file) return
+
+        const MAX_SIZE_BYTES = 5 * 1024 * 1024
+        if (file.size > MAX_SIZE_BYTES) {
+            toast.error('Image is too large. Max supported size is 5MB.')
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ''
+            }
+            return
+        }
 
         setIsUploading(true)
         try {
@@ -113,9 +184,16 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
         const trimmedTitle = formValues.title.trim()
         const trimmedPrompt = formValues.prompt.trim()
         const trimmedCategory = formValues.category.trim()
+        const trimmedCustomCategory = customCategory.trim()
 
         if (!trimmedTitle || !trimmedPrompt || !trimmedCategory) {
             setFormError('Title, prompt, and category are required.')
+            return
+        }
+
+        // Validate custom category if "Other" is selected
+        if (trimmedCategory === 'Other' && !trimmedCustomCategory) {
+            setFormError('Please enter a custom category name.')
             return
         }
 
@@ -124,11 +202,16 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
             .map(tag => tag.trim())
             .filter(Boolean)
 
+        // Use custom category if "Other" is selected, otherwise use the selected category
+        const finalCategory = trimmedCategory === 'Other' 
+            ? sanitizeForStorage(trimmedCustomCategory)
+            : sanitizeForStorage(trimmedCategory)
+
         const payload: PromptPayload = {
             title: sanitizeForStorage(trimmedTitle),
             prompt: sanitizeForStorage(trimmedPrompt),
             negative_prompt: formValues.negative_prompt.trim() ? sanitizeForStorage(formValues.negative_prompt.trim()) : null,
-            category: sanitizeForStorage(trimmedCategory),
+            category: finalCategory,
             tags: tagsArray.length ? tagsArray.map(tag => sanitizeForStorage(tag)) : null,
             preview_image_url: formValues.preview_image_url.trim() || null, // URL doesn't need sanitization, validation is enough
             status: formValues.status,
@@ -204,15 +287,52 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Category *</label>
-                            <input
-                                type="text"
+                            <select
                                 value={formValues.category}
                                 onChange={(e) => handleFormInputChange('category', e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
-                                placeholder="Cinematic"
+                                disabled={isLoadingCategories}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 required
-                            />
+                            >
+                                <option value="">
+                                    {isLoadingCategories ? 'Loading categories...' : 'Select a category'}
+                                </option>
+                                {categories.map((cat) => (
+                                    <option key={cat} value={cat}>
+                                        {cat}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
+                    </div>
+
+                    {/* Custom Category Field - Shows when "Other" is selected */}
+                    {formValues.category === 'Other' && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="space-y-2"
+                        >
+                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                                Custom Category Name *
+                            </label>
+                            <input
+                                type="text"
+                                value={customCategory}
+                                onChange={(e) => setCustomCategory(e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                                placeholder="e.g., Abstract Art, Nature Photography, etc."
+                                required={formValues.category === 'Other'}
+                            />
+                            <p className="text-xs text-zinc-500">
+                                Enter the name of your custom category. It will be available in future dropdowns once saved.
+                            </p>
+                        </motion.div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Status *</label>
                             <select

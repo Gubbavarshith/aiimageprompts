@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   PlusIcon,
@@ -17,6 +17,7 @@ import {
   type PromptRecord,
   type PromptChangePayload,
 } from '@/lib/services/prompts'
+import { fetchUniqueCategories } from '@/lib/services/categories'
 import { useToast } from '@/contexts/ToastContext'
 import { useAdmin } from '@/contexts/AdminContext'
 
@@ -49,6 +50,7 @@ export default function PromptsPage() {
 
   const { openPromptForm } = useAdmin()
   const toast = useToast()
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const loadPrompts = useCallback(async () => {
     setIsLoading(true)
@@ -69,6 +71,35 @@ export default function PromptsPage() {
     document.title = 'Prompts | AI Image Prompts Admin'
     loadPrompts()
   }, [loadPrompts])
+
+  // Keyboard shortcut: Ctrl/Cmd+K to focus search
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Check if user is typing in an input, textarea, or contenteditable
+      const target = e.target as HTMLElement
+      const isInputFocused = target.tagName === 'INPUT' || 
+                             target.tagName === 'TEXTAREA' || 
+                             target.isContentEditable
+
+      // Ctrl/Cmd+K to focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && !isInputFocused) {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+
+      // Esc to close modals
+      if (e.key === 'Escape') {
+        if (showDeleteConfirm) {
+          setShowDeleteConfirm(null)
+        }
+        if (showBulkDeleteConfirm) {
+          setShowBulkDeleteConfirm(false)
+        }
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [showDeleteConfirm, showBulkDeleteConfirm])
 
   const handleRealtimeChange = useCallback(
     (payload: PromptChangePayload) => {
@@ -120,10 +151,25 @@ export default function PromptsPage() {
     }
   }, [handleRealtimeChange])
 
-  // Get unique categories
+  // Get unique categories - use centralized service for consistency
+  // Admin sees categories from all prompts (not just published), so we extract from loaded prompts
+  // but also fetch published categories as reference
+  const [publishedCategories, setPublishedCategories] = useState<string[]>([])
   const categories = useMemo(() => {
-    return Array.from(new Set(prompts.map(p => p.category))).sort()
-  }, [prompts])
+    const allCategories = Array.from(new Set(prompts.map(p => p.category).filter(Boolean))).sort()
+    // Merge with published categories to ensure we have all categories
+    const merged = new Set([...allCategories, ...publishedCategories])
+    return Array.from(merged).sort()
+  }, [prompts, publishedCategories])
+
+  // Load published categories for reference
+  useEffect(() => {
+    fetchUniqueCategories()
+      .then(setPublishedCategories)
+      .catch(() => {
+        // Silently fail, will use categories from loaded prompts only
+      })
+  }, [])
 
   const statusOptions = useMemo(() => {
     const unique = Array.from(new Set(prompts.map(p => p.status)))
@@ -307,6 +353,7 @@ export default function PromptsPage() {
           <div className="relative flex-1">
             <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 dark:text-zinc-500" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search prompts..."
               value={searchTerm}

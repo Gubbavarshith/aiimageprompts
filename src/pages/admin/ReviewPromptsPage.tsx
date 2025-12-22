@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlassIcon,
@@ -39,6 +39,7 @@ export default function ReviewPromptsPage() {
   const [showBulkApproveConfirm, setShowBulkApproveConfirm] = useState(false)
 
   const toast = useToast()
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const loadPrompts = useCallback(async () => {
     setIsLoading(true)
@@ -290,6 +291,7 @@ export default function ReviewPromptsPage() {
           <input
             type="text"
             placeholder="Search pending prompts..."
+            ref={searchInputRef}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#0c0c0e] border border-zinc-200 dark:border-white/5 rounded-xl text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-[#FFDE1A]/50 transition-colors"

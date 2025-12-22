@@ -111,6 +111,7 @@ export default function AdminLayout() {
     { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon, count: null },
     { name: 'Prompts', href: '/admin/prompts', icon: PhotoIcon, count: null },
     { name: 'Review', href: '/admin/review', icon: ClipboardDocumentCheckIcon, count: reviewCount },
+    { name: 'Explore Hero', href: '/admin/explore-hero', icon: PhotoIcon, count: null },
     { name: 'Blogs', href: '/admin/blogs', icon: DocumentTextIcon, count: null },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: EnvelopeIcon, count: subscriptionsCount },
     { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon, count: null },

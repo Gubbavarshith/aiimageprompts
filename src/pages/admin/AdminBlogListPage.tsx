@@ -193,7 +193,7 @@ export default function AdminBlogListPage() {
             })
 
             await Promise.all(updatePromises)
-            
+
             // Reload posts to get updated data
             const updatedPosts = await fetchAllBlogPosts()
             setPosts(updatedPosts)

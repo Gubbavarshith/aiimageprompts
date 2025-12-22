@@ -1,8 +1,22 @@
 import { supabase } from '@/lib/supabaseClient'
 import { isSupabaseReady } from '@/lib/supabaseClient'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import { invalidateCategoryCache } from './categories'
 
 const TABLE_NAME = 'prompts'
+const PROMPT_IMAGES_BUCKET = 'prompt-images'
+
+function extractStoragePathFromPublicUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  try {
+    const marker = `/storage/v1/object/public/${PROMPT_IMAGES_BUCKET}/`
+    const index = url.indexOf(marker)
+    if (index === -1) return null
+    return url.substring(index + marker.length)
+  } catch {
+    return null
+  }
+}
 
 export type PromptRecord = {
   id: string
@@ -123,6 +137,11 @@ export async function createPrompt(payload: PromptPayload) {
     throw new Error('Failed to create prompt: No data returned')
   }
 
+  // Invalidate category cache when a new prompt is created (especially if published)
+  if (payload.status === 'Published') {
+    invalidateCategoryCache()
+  }
+
   return data as PromptRecord
 }
 
@@ -144,11 +163,28 @@ export async function updatePrompt(id: string, payload: PromptPayload) {
     throw new Error('Failed to update prompt: No data returned')
   }
 
+  // Invalidate category cache when prompt status changes to Published or category/tags change
+  if (payload.status === 'Published' || payload.category || payload.tags) {
+    invalidateCategoryCache()
+  }
+
   return data as PromptRecord
 }
 
 export async function deletePrompt(id: string) {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
+  // Fetch preview_image_url so we can clean up storage
+  const { data: existing, error: fetchError } = await supabase
+    .from(TABLE_NAME)
+    .select('id, preview_image_url')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (fetchError) {
+    console.error('Error loading prompt before delete:', fetchError)
+    throw new Error(`Failed to delete prompt: ${fetchError.message}`)
+  }
+
   const { data, error } = await supabase.from(TABLE_NAME).delete().eq('id', id).select('id').maybeSingle()
   if (error) {
     console.error('Error deleting prompt:', error)
@@ -156,6 +192,21 @@ export async function deletePrompt(id: string) {
   }
   if (!data) {
     throw new Error('Delete failed: prompt not deleted (check permissions).')
+  }
+
+  // Best-effort image cleanup
+  try {
+    const path = extractStoragePathFromPublicUrl(existing?.preview_image_url)
+    if (path) {
+      const { error: removeError } = await supabase.storage
+        .from(PROMPT_IMAGES_BUCKET)
+        .remove([path])
+      if (removeError) {
+        console.warn('Failed to remove prompt image from storage:', removeError)
+      }
+    }
+  } catch (cleanupError) {
+    console.warn('Error during prompt image cleanup:', cleanupError)
   }
 }
 
@@ -165,6 +216,17 @@ export async function deletePrompts(ids: string[]) {
   }
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
 
+  // Load images for all prompts first
+  const { data: existing, error: fetchError } = await supabase
+    .from(TABLE_NAME)
+    .select('id, preview_image_url')
+    .in('id', ids)
+
+  if (fetchError) {
+    console.error('Error loading prompts before bulk delete:', fetchError)
+    throw new Error(`Failed to delete prompts: ${fetchError.message}`)
+  }
+
   const { data, error } = await supabase.from(TABLE_NAME).delete().in('id', ids).select('id')
   if (error) {
     console.error('Error deleting prompts:', error)
@@ -172,6 +234,24 @@ export async function deletePrompts(ids: string[]) {
   }
   if (!data || data.length === 0) {
     throw new Error('Delete failed: no prompts deleted (check permissions).')
+  }
+
+  // Best-effort bulk image cleanup
+  try {
+    const paths = (existing || [])
+      .map(row => extractStoragePathFromPublicUrl(row.preview_image_url as string | null))
+      .filter((p): p is string => !!p)
+
+    if (paths.length > 0) {
+      const { error: removeError } = await supabase.storage
+        .from(PROMPT_IMAGES_BUCKET)
+        .remove(paths)
+      if (removeError) {
+        console.warn('Failed to remove some prompt images from storage:', removeError)
+      }
+    }
+  } catch (cleanupError) {
+    console.warn('Error during bulk prompt image cleanup:', cleanupError)
   }
 }
 
@@ -235,6 +315,9 @@ export async function submitPrompt(payload: SubmitPromptPayload) {
       status: data.status,
     })
   }
+
+  // Note: Don't invalidate cache for user submissions (status: Pending)
+  // Cache will be invalidated when admin publishes the prompt
 
   return data as PromptRecord
 }

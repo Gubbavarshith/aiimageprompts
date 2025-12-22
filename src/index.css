@@ -527,6 +527,7 @@
     opacity: 0.01;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -553,8 +554,56 @@
   animation: none !important;
 }
 
+
 /* 3D Perspective for orbiting cards */
 .perspective-1000 {
   perspective: 1000px;
   perspective-origin: center center;
+}
+
+/* Wave animation for avatars */
+@keyframes wave {
+  0% {
+    transform: translateY(0);
+  }
+
+  25% {
+    transform: translateY(-8px);
+  }
+
+  50% {
+    transform: translateY(0);
+  }
+
+  75% {
+    transform: translateY(3px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+
+.group:hover .animate-wave {
+  animation: wave 1.2s ease-in-out infinite;
+}
+
+/* Shimmer animation for buttons */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-150%) skewX(-15deg);
+  }
+
+  50% {
+    transform: translateX(150%) skewX(-15deg);
+  }
+
+  100% {
+    transform: translateX(150%) skewX(-15deg);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
 }

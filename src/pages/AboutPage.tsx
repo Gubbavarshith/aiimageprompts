@@ -4,10 +4,12 @@ import { ArrowLeft, Sparkles, Users, Zap, Heart, Globe, ShieldCheck, Lightbulb, 
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
 import { motion } from 'framer-motion'
+import { updateCanonical } from '@/lib/seo'
 
 export default function AboutPage() {
     useEffect(() => {
-        document.title = 'About – Aiimageprompts'
+        document.title = 'About – AI Image Prompts'
+        updateCanonical('/about')
         window.scrollTo(0, 0)
     }, [])
 

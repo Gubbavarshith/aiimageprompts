@@ -33,9 +33,11 @@ const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'))
 const SubscriptionsPage = lazy(() => import('./pages/admin/SubscriptionsPage'))
 const AdminBlogListPage = lazy(() => import('./pages/admin/AdminBlogListPage'))
 const AdminBlogEditorPage = lazy(() => import('./pages/admin/AdminBlogEditorPage'))
+const ExploreHeroToolsAdminPage = lazy(() => import('./pages/admin/ExploreHeroToolsAdminPage'))
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const SavedPromptsPage = lazy(() => import('./pages/SavedPromptsPage'))
+import { WelcomeModal } from './components/modals/WelcomeModal'
 
 // Loading fallback component
 const PageLoader = () => (
@@ -49,7 +51,7 @@ const PageLoader = () => (
 
 function App() {
   const [showMaintenanceGuard, setShowMaintenanceGuard] = useState(false)
-  
+
   // Defer maintenance guard check until after first paint
   useEffect(() => {
     const timer = requestAnimationFrame(() => setShowMaintenanceGuard(true))
@@ -116,6 +118,7 @@ function App() {
             <Route path="/admin/blogs" element={<AdminBlogListPage />} />
             <Route path="/admin/blogs/new" element={<AdminBlogEditorPage />} />
             <Route path="/admin/blogs/:id" element={<AdminBlogEditorPage />} />
+            <Route path="/admin/explore-hero" element={<ExploreHeroToolsAdminPage />} />
           </Route>
 
           {/* 404 Catch-all Route */}
@@ -125,6 +128,7 @@ function App() {
       <Suspense fallback={null}>
         <BuyMeACoffee />
       </Suspense>
+      <WelcomeModal />
     </>
   )
 

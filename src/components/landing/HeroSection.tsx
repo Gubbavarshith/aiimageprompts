@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, Star, ArrowRight, Sparkles } from 'lucide-react';
 import { useTheme } from '@/components/use-theme';
+import { fetchUniqueCategories } from '@/lib/services/categories';
 
 // Inline critical text for LCP
 const HERO_TEXT = {
@@ -29,10 +30,10 @@ const DotGridBackground = () => {
   // Defer canvas rendering until after LCP (100ms delay)
   useEffect(() => {
     const hasIdleCallback = 'requestIdleCallback' in window;
-    const timer = hasIdleCallback ? 
+    const timer = hasIdleCallback ?
       window.requestIdleCallback(() => setIsReady(true), { timeout: 200 }) :
       window.setTimeout(() => setIsReady(true), 100);
-    
+
     return () => {
       if (hasIdleCallback) {
         window.cancelIdleCallback(timer as number);
@@ -152,15 +153,39 @@ const DotGridBackground = () => {
 
 export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [topCategories, setTopCategories] = useState<string[]>([]);
   const navigate = useNavigate();
 
-  const heroTags = [
-    { slug: 'Portraits', label: HERO_TEXT.tags.portraits },
-    { slug: 'Anime', label: HERO_TEXT.tags.anime },
-    { slug: 'Logos', label: HERO_TEXT.tags.logos },
-    { slug: 'UI/UX', label: HERO_TEXT.tags.uiux },
-    { slug: 'Cinematic', label: HERO_TEXT.tags.cinematic },
-  ] as const;
+  // Load top categories (limit to 5 most popular)
+  useEffect(() => {
+    const loadTopCategories = async () => {
+      try {
+        const categories = await fetchUniqueCategories();
+        // Take top 5 categories
+        setTopCategories(categories.slice(0, 5));
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+        // Fallback to default categories
+        setTopCategories(['Portraits', 'Anime', 'Logos', 'UI/UX', 'Cinematic']);
+      }
+    };
+
+    loadTopCategories();
+  }, []);
+
+  // Map categories to hero tags format
+  const heroTags = topCategories.length > 0
+    ? topCategories.map((cat) => ({
+        slug: cat,
+        label: cat,
+      }))
+    : [
+        { slug: 'Portraits', label: HERO_TEXT.tags.portraits },
+        { slug: 'Anime', label: HERO_TEXT.tags.anime },
+        { slug: 'Logos', label: HERO_TEXT.tags.logos },
+        { slug: 'UI/UX', label: HERO_TEXT.tags.uiux },
+        { slug: 'Cinematic', label: HERO_TEXT.tags.cinematic },
+      ];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,6 +205,65 @@ export const HeroSection = () => {
       <DotGridBackground />
 
       <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center">
+        {/* Social Proof Pill */}
+        <div className="animate-fade-in mb-8 group relative z-20">
+          <div className="flex items-center gap-3 p-1.5 pr-5 bg-gray-50/80 dark:bg-white/5 backdrop-blur-md border border-gray-200/50 dark:border-white/10 rounded-full shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer">
+            <div className="flex -space-x-2.5">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="w-8 h-8 rounded-full border-2 border-white dark:border-black bg-gray-200 overflow-hidden ring-1 ring-black/5 dark:ring-white/10 animate-wave"
+                  style={{ animationDelay: `${i * 120}ms` }}
+                >
+                  <img
+                    src={`https://api.dicebear.com/9.x/micah/svg?seed=${i + 15}`}
+                    alt={`Community Member ${i}`}
+                    className="w-full h-full object-cover scale-110"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col items-start gap-0.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-900 dark:text-gray-100">
+                <span>Loved by 15,000+ creators</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((_, i) => (
+                    <div key={i} className="relative">
+                      {/* Background Empty/Gray Star */}
+                      <Star size={12} className="text-gray-300 dark:text-gray-600" />
+
+                      {/* Foreground Filled/Yellow Star - Animates Width */}
+                      {/* Specific logic for the 5th star to animate to 90% instead of 100% via inline styles injection for hover state isn't trivial with Tailwind alone, using a nested approach */}
+                      {i === 4 && (
+                        <style>
+                          {`
+                            .group:hover .star-fill-4 {
+                              width: 90% !important;
+                            }
+                          `}
+                        </style>
+                      )}
+                      <div
+                        className={`absolute top-0 left-0 overflow-hidden h-full transition-all duration-700 ease-out w-0 ${i === 4 ? 'star-fill-4' : 'group-hover:w-full'}`}
+                        style={{ transitionDelay: `${i * 100}ms` }}
+                      >
+                        <Star
+                          size={12}
+                          className="text-[#FFDE1A] fill-[#FFDE1A]"
+                          strokeWidth={0}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400">Rated 4.9/5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* LCP ELEMENT - No animation, renders immediately for fast LCP */}
         <h1
           style={{ fontFamily: "'Bebas Neue', Impact, sans-serif" }}
@@ -188,9 +272,36 @@ export const HeroSection = () => {
           {HERO_TEXT.titleLine1} <br />{HERO_TEXT.titleLine2}
         </h1>
 
-        <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-2xl animate-hero-fade-in animation-delay-100">
+        <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl animate-hero-fade-in animation-delay-100">
           {HERO_TEXT.subtitle}
         </p>
+
+        <div className="flex flex-wrap gap-5 mb-12 animate-hero-fade-in animation-delay-150 justify-center items-center">
+          {/* Primary Button - Solid Yellow Brand Color */}
+          <button
+            onClick={() => navigate('/explore')}
+            className="group relative h-12 px-8 rounded-full bg-[#FFDE1A] text-black font-extrabold text-base tracking-wide hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_25px_-5px_#FFDE1A] active:scale-95 active:shadow-none overflow-hidden"
+          >
+            {/* Diagonal shine effect */}
+            <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] group-hover:animate-shimmer" />
+
+            <div className="relative flex items-center gap-2">
+              <span className="uppercase">Start Exploring</span>
+              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" strokeWidth={2.5} />
+            </div>
+          </button>
+
+          {/* Secondary Button - Glassmorphism */}
+          <button
+            onClick={() => navigate('/submit')}
+            className="group relative h-12 px-8 rounded-full bg-transparent hover:bg-gray-100/50 dark:hover:bg-zinc-800/50 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-100 font-bold text-sm tracking-wide transition-all duration-300 active:scale-95 hover:scale-105 hover:border-[#FFDE1A] dark:hover:border-[#FFDE1A] hover:shadow-[0_0_20px_-5px_#FFDE1A] backdrop-blur-sm"
+          >
+            <div className="relative flex items-center gap-2">
+              <span className="uppercase">Submit Prompt</span>
+              <Sparkles className="w-4 h-4 text-zinc-400 group-hover:text-[#FFDE1A] transition-colors duration-300 group-hover:rotate-12" strokeWidth={2.5} />
+            </div>
+          </button>
+        </div>
 
         <div className="w-full max-w-2xl relative animate-hero-fade-in animation-delay-200">
           <form onSubmit={handleSearch} className="relative group">
@@ -199,12 +310,12 @@ export const HeroSection = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={HERO_TEXT.searchPlaceholder}
-              className="w-full h-16 pl-6 pr-16 rounded-full border border-black dark:border-white text-lg focus:outline-none focus:ring-2 focus:ring-[#F8BE00] transition-all bg-white dark:bg-black dark:text-white shadow-sm group-hover:shadow-md dark:shadow-white/10"
+              className="w-full h-16 pl-6 pr-16 rounded-full border border-black dark:border-white text-lg focus:outline-none focus:ring-2 focus:ring-[#FFDE1A] transition-all bg-white dark:bg-black dark:text-white shadow-sm group-hover:shadow-md dark:shadow-white/10"
             />
             <button
               type="submit"
               aria-label="Search prompts"
-              className="absolute right-2 top-2 h-12 w-12 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center hover:bg-[#F8BE00] dark:hover:bg-[#F8BE00] hover:text-black dark:hover:text-black transition-colors"
+              className="absolute right-2 top-2 h-12 w-12 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center hover:bg-[#FFDE1A] dark:hover:bg-[#FFDE1A] hover:text-black dark:hover:text-black transition-colors"
             >
               <Search size={24} />
             </button>
