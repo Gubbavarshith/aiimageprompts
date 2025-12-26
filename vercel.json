@@ -6,6 +6,10 @@
   "devCommand": "npm run dev",
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap.xml"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -30,6 +34,19 @@
         {
           "key": "Content-Type",
           "value": "text/plain"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, stale-while-revalidate=86400"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
         }
       ]
     },
