@@ -183,6 +183,9 @@ export const Footer = () => {
             <Link to="/terms" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
               Terms
             </Link>
+            <Link to="/refund" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
+              Refund
+            </Link>
             <a href="/sitemap.xml" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
               Sitemap
             </a>

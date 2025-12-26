@@ -80,13 +80,14 @@ export default function RefundPolicyPage() {
               </h2>
               <div className="space-y-4 text-zinc-700 dark:text-zinc-300">
                 <p>
-                  AI Image Prompts is a free platform that provides AI image generation prompts and resources. 
-                  This policy outlines our approach to refunds and cancellations for any paid services or 
-                  premium features that may be offered in the future.
+                  AI Image Prompts offers both free and premium subscription plans. This policy outlines 
+                  our approach to refunds, cancellations, and your rights regarding paid subscriptions and 
+                  premium features.
                 </p>
                 <p>
-                  Currently, AI Image Prompts operates as a free service. If we introduce any paid features, 
-                  subscriptions, or premium services, this policy will govern those transactions.
+                  By subscribing to any paid plan or purchasing premium features, you agree to the terms 
+                  outlined in this policy. We are committed to providing fair and transparent refund 
+                  processes for all our users.
                 </p>
               </div>
             </section>
@@ -101,24 +102,36 @@ export default function RefundPolicyPage() {
                 <p>
                   Refunds may be considered under the following circumstances:
                 </p>
-                <ul className="list-disc pl-6 space-y-2">
+                <ul className="list-disc pl-6 space-y-3">
                   <li>
-                    <strong>Service Failure:</strong> If a paid service fails to function as described 
-                    due to technical issues on our end
+                    <strong>Subscription Cancellation Within Grace Period:</strong> If you cancel your 
+                    subscription within 7 days of the initial purchase, you are eligible for a full refund. 
+                    This grace period applies only to first-time subscribers.
+                  </li>
+                  <li>
+                    <strong>Service Failure:</strong> If premium features or services fail to function 
+                    as described due to technical issues on our end, and we are unable to resolve the 
+                    issue within 48 hours of your report.
                   </li>
                   <li>
                     <strong>Duplicate Charges:</strong> If you are charged multiple times for the same 
-                    service or subscription
+                    subscription period or feature purchase.
                   </li>
                   <li>
                     <strong>Unauthorized Charges:</strong> If a charge appears on your account that you 
-                    did not authorize
+                    did not authorize, provided you report it within 30 days.
                   </li>
                   <li>
-                    <strong>Cancellation Within Grace Period:</strong> If you cancel a subscription within 
-                    the specified grace period (typically 7-14 days)
+                    <strong>Billing Errors:</strong> If you are charged an incorrect amount due to a 
+                    system error or pricing mistake on our part.
                   </li>
                 </ul>
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mt-6">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    <strong>Note:</strong> Refund eligibility is determined on a case-by-case basis. 
+                    We reserve the right to request additional information to verify your claim.
+                  </p>
+                </div>
               </div>
             </section>
 
@@ -138,20 +151,37 @@ export default function RefundPolicyPage() {
                     <a href="mailto:team@aiimageprompts.xyz" className="text-[#FFDE1A] hover:underline">
                       team@aiimageprompts.xyz
                     </a>{' '}
-                    with the subject line "Refund Request"
+                    with the subject line "Refund Request" or use our{' '}
+                    <Link to="/contact" className="text-[#FFDE1A] hover:underline">
+                      contact form
+                    </Link>
                   </li>
                   <li>
-                    <strong>Provide Details:</strong> Include your account email, transaction ID, 
-                    date of purchase, and reason for the refund request
+                    <strong>Provide Details:</strong> Include the following information:
+                    <ul className="list-disc pl-6 mt-2 space-y-1">
+                      <li>Your account email address</li>
+                      <li>Transaction ID or receipt number</li>
+                      <li>Date of purchase</li>
+                      <li>Subscription plan or feature purchased</li>
+                      <li>Reason for the refund request</li>
+                    </ul>
                   </li>
                   <li>
-                    <strong>Review Period:</strong> We will review your request within 5-7 business days
+                    <strong>Review Period:</strong> We will review your request within 3-5 business days 
+                    and may contact you for additional information if needed.
                   </li>
                   <li>
                     <strong>Processing:</strong> If approved, refunds will be processed to your original 
-                    payment method within 10-14 business days
+                    payment method within 7-14 business days. You will receive a confirmation email 
+                    once the refund has been processed.
                   </li>
                 </ol>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mt-6">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Tip:</strong> For faster processing, include screenshots of your receipt 
+                    or transaction details when submitting your refund request.
+                  </p>
+                </div>
               </div>
             </section>
 
@@ -159,26 +189,34 @@ export default function RefundPolicyPage() {
             <section id="timeline" className="mb-16 scroll-mt-24">
               <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                 <Clock size={28} />
-                Refund Timeline
+                Refund Timeline & Processing
               </h2>
               <div className="space-y-4 text-zinc-700 dark:text-zinc-300">
                 <p>
-                  Refund processing times vary depending on your payment method:
+                  Once your refund request is approved, processing times vary depending on your payment method:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>
-                    <strong>Credit/Debit Cards:</strong> 5-10 business days after approval
+                    <strong>Credit/Debit Cards:</strong> 7-14 business days after approval
                   </li>
                   <li>
-                    <strong>PayPal:</strong> 3-5 business days after approval
+                    <strong>PayPal:</strong> 3-7 business days after approval
                   </li>
                   <li>
-                    <strong>Bank Transfers:</strong> 10-14 business days after approval
+                    <strong>Stripe:</strong> 5-10 business days after approval
+                  </li>
+                  <li>
+                    <strong>Bank Transfers:</strong> 10-15 business days after approval
                   </li>
                 </ul>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-4">
-                  Note: Processing times may vary based on your financial institution.
-                </p>
+                <div className="bg-zinc-100 dark:bg-zinc-900 rounded-xl p-4 mt-4">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <strong>Important:</strong> Processing times begin after we approve your refund request, 
+                    not from the date you submit it. The actual time it takes for funds to appear in your 
+                    account depends on your financial institution's processing schedule. We will send you 
+                    a confirmation email once the refund has been initiated.
+                  </p>
+                </div>
               </div>
             </section>
 
@@ -186,29 +224,50 @@ export default function RefundPolicyPage() {
             <section id="non-refundable" className="mb-16 scroll-mt-24">
               <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                 <XCircle size={28} />
-                Non-Refundable Items
+                Non-Refundable Items & Exceptions
               </h2>
               <div className="space-y-4 text-zinc-700 dark:text-zinc-300">
                 <p>
-                  The following are generally not eligible for refunds:
+                  The following circumstances are generally not eligible for refunds:
                 </p>
-                <ul className="list-disc pl-6 space-y-2">
+                <ul className="list-disc pl-6 space-y-3">
                   <li>
-                    Services that have been fully consumed or accessed
+                    <strong>Subscription Renewals:</strong> Refunds are not available for subscription 
+                    renewals unless you cancel within the grace period of your first renewal payment. 
+                    Once a subscription period has begun, refunds are prorated based on unused time.
                   </li>
                   <li>
-                    Subscriptions cancelled after the grace period
+                    <strong>Used Services:</strong> If you have actively used premium features or 
+                    accessed premium content during the subscription period, refunds may be prorated 
+                    or denied based on usage.
                   </li>
                   <li>
-                    Charges for services that were used as intended
+                    <strong>Late Cancellation:</strong> Subscriptions cancelled after the 7-day grace 
+                    period are not eligible for full refunds. However, you can cancel at any time to 
+                    prevent future charges.
                   </li>
                   <li>
-                    Refund requests made more than 30 days after the original purchase
+                    <strong>Time Limit:</strong> Refund requests must be submitted within 30 days of 
+                    the original purchase date. Requests made after this period will not be considered.
                   </li>
                   <li>
-                    Charges resulting from violation of our Terms of Service
+                    <strong>Terms of Service Violations:</strong> Accounts that have violated our Terms 
+                    of Service are not eligible for refunds, regardless of the circumstances.
+                  </li>
+                  <li>
+                    <strong>Change of Mind:</strong> Refunds are not available simply because you changed 
+                    your mind about a subscription after the grace period, unless there are extenuating 
+                    circumstances that we determine warrant consideration.
                   </li>
                 </ul>
+                <div className="bg-zinc-100 dark:bg-zinc-900 rounded-xl p-4 mt-6">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <strong>Subscription Cancellation:</strong> You can cancel your subscription at any 
+                    time from your account settings. Cancellation will prevent future charges, but does 
+                    not automatically entitle you to a refund for the current billing period unless 
+                    cancelled within the grace period.
+                  </p>
+                </div>
               </div>
             </section>
 
@@ -220,24 +279,38 @@ export default function RefundPolicyPage() {
               </h2>
               <div className="space-y-4 text-zinc-700 dark:text-zinc-300">
                 <p>
-                  If you have questions about refunds or cancellations, please contact us:
+                  If you have questions about refunds, cancellations, or need assistance with your 
+                  subscription, please contact us through one of the following methods:
                 </p>
-                <div className="bg-zinc-100 dark:bg-zinc-900 rounded-xl p-6 space-y-3">
-                  <p>
-                    <strong>Email:</strong>{' '}
+                <div className="bg-zinc-100 dark:bg-zinc-900 rounded-xl p-6 space-y-4">
+                  <div>
+                    <strong className="block mb-2">Email Support:</strong>
                     <a href="mailto:team@aiimageprompts.xyz" className="text-[#FFDE1A] hover:underline">
                       team@aiimageprompts.xyz
                     </a>
-                  </p>
-                  <p>
-                    <strong>Contact Page:</strong>{' '}
+                  </div>
+                  <div>
+                    <strong className="block mb-2">Contact Form:</strong>
                     <Link to="/contact" className="text-[#FFDE1A] hover:underline">
                       https://aiimageprompts.xyz/contact
                     </Link>
-                  </p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    We aim to respond to all refund requests within 48 hours during business days.
-                  </p>
+                  </div>
+                  <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+                      <strong>Response Times:</strong>
+                    </p>
+                    <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                      <li>• Refund requests: Within 48 hours (business days)</li>
+                      <li>• General inquiries: Within 24 hours (business days)</li>
+                      <li>• Urgent issues: Within 12 hours (business days)</li>
+                    </ul>
+                  </div>
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mt-4">
+                    <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                      <strong>Note:</strong> Business days are Monday through Friday, excluding holidays. 
+                      For faster processing, please include all required information in your initial request.
+                    </p>
+                  </div>
                 </div>
               </div>
             </section>
