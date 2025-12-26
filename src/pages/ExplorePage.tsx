@@ -53,6 +53,7 @@ interface PromptCardProps {
   requireLoginForRatings: boolean;
   isSignedIn: boolean;
   onClearRating: (prompt: PromptRecord) => void;
+  onTagClick: (tag: string) => void;
 }
 
 const PromptCard = ({
@@ -68,6 +69,7 @@ const PromptCard = ({
   requireLoginForRatings,
   isSignedIn,
   onClearRating,
+  onTagClick,
 }: PromptCardProps) => {
   const isCopied = copiedId === prompt.id;
   const avg = typeof prompt.rating_avg === 'number' ? prompt.rating_avg : null;
@@ -170,7 +172,7 @@ const PromptCard = ({
                   key={tag}
                   onClick={(e) => {
                     e.stopPropagation()
-                    handleTagClick(tag.toLowerCase())
+                    onTagClick(tag.toLowerCase())
                   }}
                   className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 hover:text-[#F8BE00] transition-colors cursor-pointer"
                 >
@@ -1080,6 +1082,7 @@ export default function ExplorePage() {
                       requireLoginForRatings={requireLoginForRatings}
                       isSignedIn={!!user?.id}
                       onClearRating={handleClearRating}
+                      onTagClick={handleTagClick}
                     />
                   ))}
                 </AnimatePresence>

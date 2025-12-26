@@ -54,7 +54,7 @@ const RelatedPromptCard = ({ prompt, onNavigate }: RelatedPromptCardProps) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.3 }}
-      onClick={() => onNavigate(slug)}
+      onClick={() => onNavigate(slug, prompt.id)}
       className="group cursor-pointer"
     >
       <div className="relative aspect-[4/3] overflow-hidden border-2 border-black dark:border-white rounded-xl bg-gray-100 dark:bg-zinc-800 mb-3">

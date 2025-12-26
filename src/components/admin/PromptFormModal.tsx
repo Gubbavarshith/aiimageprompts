@@ -14,7 +14,6 @@ import {
 import { useToast } from '@/contexts/ToastContext'
 import { sanitizeForStorage } from '@/lib/utils'
 import { fetchUniqueCategories } from '@/lib/services/categories'
-import { motion } from 'framer-motion'
 
 const STATUS_OPTIONS = ['Published', 'Draft', 'Review']
 

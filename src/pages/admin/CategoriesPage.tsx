@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { fetchCategoriesWithCounts, type CategoryWithCount } from '@/lib/services/categories'
-import { fetchAllCategoryMeta, upsertCategoryMeta, deleteCategoryMeta, type CategoryMeta, type CategoryMetaPayload } from '@/lib/services/categoryMeta'
+import { fetchAllCategoryMeta, upsertCategoryMeta, type CategoryMeta, type CategoryMetaPayload } from '@/lib/services/categoryMeta'
 import { useToast } from '@/contexts/ToastContext'
 
 export default function CategoriesPage() {
@@ -77,20 +77,6 @@ export default function CategoriesPage() {
     }
   }
 
-  const handleDelete = async (categoryName: string) => {
-    if (!confirm(`Are you sure you want to delete meta for "${categoryName}"? This will not delete the category itself.`)) {
-      return
-    }
-
-    try {
-      await deleteCategoryMeta(categoryName)
-      toast.success('Category meta deleted successfully!')
-      await loadData()
-    } catch (err) {
-      console.error(err)
-      toast.error('Failed to delete category meta. Please try again.')
-    }
-  }
 
   if (isLoading) {
     return (
