@@ -6,8 +6,9 @@ import { useAuth, useUser } from '@clerk/clerk-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
 import { AnimatedAIToolsHero } from '@/components/explore/AnimatedAIToolsHero'
-import { fetchPromptsByStatus, type PromptRecord } from '@/lib/services/prompts'
+import { fetchPromptsByStatus, generateSlug, type PromptRecord } from '@/lib/services/prompts'
 import { savePrompt, unsavePrompt, getSavedPromptIds } from '@/lib/services/savedPrompts'
+import { logDiscoveryEvent } from '@/lib/services/discoveryEvents'
 import { useToast } from '@/contexts/ToastContext'
 import { getRatingSettings, upsertPromptRating, removePromptRating } from '@/lib/services/ratings'
 import { updateCanonical } from '@/lib/seo'
@@ -165,9 +166,16 @@ const PromptCard = ({
           {prompt.tags && prompt.tags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1">
               {prompt.tags.slice(0, 2).map(tag => (
-                <span key={tag} className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500">
+                <button
+                  key={tag}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleTagClick(tag.toLowerCase())
+                  }}
+                  className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 hover:text-[#F8BE00] transition-colors cursor-pointer"
+                >
                   #{tag}
-                </span>
+                </button>
               ))}
             </div>
           )}
@@ -288,8 +296,6 @@ export default function ExplorePage() {
   const categoryFilter = searchParams.get('category') || 'All'
   const tagFilter = searchParams.get('tag') || null
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const [selectedPrompt, setSelectedPrompt] = useState<PromptRecord | null>(null)
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [sharePrompt, setSharePrompt] = useState<PromptRecord | null>(null)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [requireLoginForRatings, setRequireLoginForRatings] = useState(true)
@@ -501,35 +507,13 @@ export default function ExplorePage() {
     }
   }, [])
 
-  // If a deep link is present, open the modal when data is ready
-  const handleCloseModal = useCallback(() => {
-    setIsImageModalOpen(false)
-    setSelectedPrompt(null)
-    setSearchParams(prev => {
-      const newParams = new URLSearchParams(prev)
-      newParams.delete('promptId')
-      return newParams
-    }, { replace: true })
-  }, [setSearchParams])
-
-  useEffect(() => {
-    const targetId = searchParams.get('promptId')
-    if (!targetId || !prompts.length) return
-    const match = prompts.find(p => p.id === targetId)
-    if (match) {
-      setSelectedPrompt(match)
-      setIsImageModalOpen(true)
-    }
-  }, [searchParams, prompts])
 
   // Close modal on Escape
   useEffect(() => {
-    if (!isImageModalOpen && !isShareModalOpen && !showUnsaveConfirm) return
+    if (!isShareModalOpen && !showUnsaveConfirm) return
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (isImageModalOpen) {
-          handleCloseModal()
-        } else if (isShareModalOpen) {
+        if (isShareModalOpen) {
           handleCloseShareModal()
         } else if (showUnsaveConfirm) {
           setShowUnsaveConfirm(null)
@@ -538,16 +522,16 @@ export default function ExplorePage() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [isImageModalOpen, isShareModalOpen, showUnsaveConfirm, handleCloseModal])
+  }, [isShareModalOpen, showUnsaveConfirm])
 
   // Keyboard shortcut: Ctrl/Cmd+K to focus search
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       // Check if user is typing in an input, textarea, or contenteditable
       const target = e.target as HTMLElement
-      const isInputFocused = target.tagName === 'INPUT' || 
-                             target.tagName === 'TEXTAREA' || 
-                             target.isContentEditable
+      const isInputFocused = target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
 
       // Ctrl/Cmd+K to focus search
       if ((e.ctrlKey || e.metaKey) && e.key === 'k' && !isInputFocused) {
@@ -574,7 +558,16 @@ export default function ExplorePage() {
     }, { replace: true })
   }
 
-  const handleTagClick = (tag: string) => {
+  const handleTagClick = async (tag: string) => {
+    // Log discovery event (non-blocking)
+    logDiscoveryEvent({
+      promptId: '', // Not applicable for tag filter
+      source: 'tag-chip',
+      tagAtClick: tag.toLowerCase(),
+      userId: user?.id || null,
+      anonId: anonIdRef.current || null,
+    }).catch(err => console.error('Failed to log discovery event:', err))
+    
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev)
       if (selectedTag === tag) {
@@ -668,10 +661,8 @@ export default function ExplorePage() {
   }
 
   const buildShareUrl = (prompt: PromptRecord) => {
-    const url = new URL(window.location.href)
-    url.pathname = '/explore'
-    url.searchParams.set('promptId', prompt.id)
-    return url.toString()
+    const slug = generateSlug(prompt.title)
+    return `${window.location.origin}/prompt/${slug}`
   }
 
   const handleSharePrompt = (prompt: PromptRecord) => {
@@ -763,13 +754,8 @@ export default function ExplorePage() {
 
   const handleOpenImage = (prompt: PromptRecord) => {
     if (!prompt.preview_image_url) return
-    setSelectedPrompt(prompt)
-    setIsImageModalOpen(true)
-    setSearchParams(prev => {
-      const newParams = new URLSearchParams(prev)
-      newParams.set('promptId', prompt.id)
-      return newParams
-    }, { replace: true })
+    const slug = generateSlug(prompt.title)
+    navigate(`/prompt/${slug}`)
   }
 
 
@@ -812,12 +798,6 @@ export default function ExplorePage() {
             ? { ...p, rating_avg: updated.rating_avg, rating_count: updated.rating_count }
             : p,
         ),
-      )
-
-      setSelectedPrompt(prev =>
-        prev && prev.id === prompt.id
-          ? { ...prev, rating_avg: updated.rating_avg, rating_count: updated.rating_count }
-          : prev,
       )
 
       toast.success('Thanks for rating this prompt.')
@@ -869,12 +849,6 @@ export default function ExplorePage() {
         ),
       )
 
-      setSelectedPrompt(prev =>
-        prev && prev.id === prompt.id
-          ? { ...prev, rating_avg: updated.rating_avg, rating_count: updated.rating_count }
-          : prev,
-      )
-
       toast.success('Your rating was removed.')
     } catch (err) {
       console.error('Failed to remove rating:', err)
@@ -906,7 +880,7 @@ export default function ExplorePage() {
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="sticky top-20 z-30 mb-12 -mx-4 px-4 py-6 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-y border-black/5 dark:border-white/5 transition-all shadow-sm"
+            className="relative z-20 mb-8 mx-auto px-4 py-6"
           >
             <div className="max-w-6xl mx-auto flex flex-col gap-6">
 
@@ -954,8 +928,8 @@ export default function ExplorePage() {
               </div>
 
               {/* Row 2: Filters - Animated Chips */}
-              <div className="w-full overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-                <div className="flex gap-3 items-center justify-start md:justify-center min-w-max mx-auto px-2 py-2">
+              <div className="w-full pb-2 px-4 sm:px-0">
+                <div className="flex flex-wrap gap-3 items-center justify-center mx-auto px-2 py-2">
                   <div className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 mr-2 bg-gray-100 dark:bg-zinc-900 px-3 py-1.5 rounded-lg select-none">
                     <SlidersHorizontal size={14} />
                     <span>Filter by category</span>
@@ -1014,8 +988,8 @@ export default function ExplorePage() {
 
               {/* Row 3: Popular Tags */}
               {popularTags.length > 0 && (
-                <div className="w-full overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 mt-4">
-                  <div className="flex gap-2 items-center justify-start md:justify-center min-w-max mx-auto px-2 py-2">
+                <div className="w-full pb-2 px-4 sm:px-0 mt-4">
+                  <div className="flex flex-wrap gap-2 items-center justify-center mx-auto px-2 py-2">
                     <div className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 mr-2 bg-gray-100 dark:bg-zinc-900 px-3 py-1.5 rounded-lg select-none">
                       <span>Popular tags</span>
                     </div>
@@ -1030,11 +1004,10 @@ export default function ExplorePage() {
                             onClick={() => handleTagClick(tagItem.tag)}
                             whileHover={{ scale: 1.05, y: -1 }}
                             whileTap={{ scale: 0.95 }}
-                            className={`relative px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${
-                              isActive
+                            className={`relative px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${isActive
                                 ? 'bg-[#F8BE00] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                                 : 'bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-zinc-800 hover:border-[#F8BE00] hover:text-black dark:hover:text-white'
-                            }`}
+                              }`}
                           >
                             <span className="relative z-10">
                               {tagItem.tag}
@@ -1127,81 +1100,6 @@ export default function ExplorePage() {
           )}
         </div>
       </main>
-
-      <AnimatePresence>
-        {isImageModalOpen && selectedPrompt && (
-          <motion.div
-            className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleCloseModal}
-          >
-            <motion.div
-              layout
-              onClick={(e) => e.stopPropagation()}
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 20, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="relative w-full max-w-5xl bg-white dark:bg-zinc-950 border-2 border-black dark:border-white rounded-2xl shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] dark:shadow-[16px_16px_0px_0px_rgba(255,255,255,1)] overflow-hidden"
-            >
-              <button
-                onClick={handleCloseModal}
-                className="absolute top-4 right-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black text-white hover:bg-[#F8BE00] hover:text-black transition-colors border-2 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                aria-label="Close image viewer"
-              >
-                <X size={20} className="stroke-[3px]" />
-              </button>
-
-              <div className="grid md:grid-cols-[3fr_2fr] gap-0 md:gap-6">
-                <div className="relative bg-gradient-to-b from-zinc-900 to-black">
-                  <img
-                    src={selectedPrompt.preview_image_url || ''}
-                    alt={selectedPrompt.title}
-                    className="w-full h-full object-contain max-h-[70vh] mx-auto bg-black"
-                    loading="lazy"
-                    width="800"
-                    height="600"
-                    decoding="async"
-                  />
-                </div>
-
-                <div className="p-6 flex flex-col gap-4 bg-white dark:bg-zinc-950">
-                  <div>
-                    <p className="text-sm uppercase font-black text-gray-500 dark:text-gray-400 tracking-[0.2em]">
-                      Prompt
-                    </p>
-                    <h3 className="text-2xl font-display font-extrabold text-black dark:text-white leading-tight">{selectedPrompt.title}</h3>
-                    <p className="mt-3 text-sm font-mono text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-900 border border-black/5 dark:border-white/10 rounded-lg p-3 leading-relaxed">
-                      {selectedPrompt.prompt}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {selectedPrompt.tags?.map(tag => (
-                      <span key={tag} className="px-3 py-1 text-xs font-black uppercase bg-black text-white rounded-full tracking-widest">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="mt-auto">
-                    <button
-                      onClick={() => handleSharePrompt(selectedPrompt)}
-                      aria-label={`Share prompt: ${selectedPrompt.title}`}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-black text-white rounded-lg border-2 border-black hover:bg-[#F8BE00] hover:text-black transition-colors font-bold uppercase text-sm"
-                    >
-                      <Share2 size={18} className="stroke-[3px]" />
-                      Share this prompt
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {isShareModalOpen && sharePrompt && (

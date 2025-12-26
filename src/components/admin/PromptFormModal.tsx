@@ -40,12 +40,12 @@ interface PromptFormModalProps {
 
 export default function PromptFormModal({ isOpen, onClose, initialData, onSuccess }: PromptFormModalProps) {
     const [formValues, setFormValues] = useState<PromptFormState>(EMPTY_FORM_STATE)
-    const [customCategory, setCustomCategory] = useState('')
     const [categories, setCategories] = useState<string[]>([])
     const [isLoadingCategories, setIsLoadingCategories] = useState(true)
     const [formError, setFormError] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
+    const [isDragging, setIsDragging] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const toast = useToast()
 
@@ -70,11 +70,10 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                 try {
                     setIsLoadingCategories(true)
                     const fetchedCategories = await fetchUniqueCategories()
-                    // Add "Other" as the last option
-                    setCategories([...fetchedCategories, 'Other'])
+                    setCategories(fetchedCategories)
                 } catch (err) {
                     console.error('Failed to load categories:', err)
-                    // Fallback to default categories with "Other"
+                    // Fallback to default categories
                     setCategories([
                         'Portraits',
                         'Anime',
@@ -84,7 +83,6 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                         '3D Art',
                         'Photography',
                         'Illustrations',
-                        'Other',
                     ])
                 } finally {
                     setIsLoadingCategories(false)
@@ -98,83 +96,139 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
     useEffect(() => {
         if (isOpen) {
             if (initialData) {
-                // Check if the category exists in the categories list
-                const categoryExists = categories.includes(initialData.category ?? '')
                 setFormValues({
                     title: initialData.title ?? '',
                     prompt: initialData.prompt ?? '',
                     negative_prompt: initialData.negative_prompt ?? '',
-                    category: categoryExists ? (initialData.category ?? '') : 'Other',
+                    category: initialData.category ?? '',
                     tags: initialData.tags?.join(', ') ?? '',
                     preview_image_url: initialData.preview_image_url ?? '',
                     status: initialData.status ?? 'Draft',
                     views: initialData.views?.toString() ?? '0',
                 })
-                // If category doesn't exist in list, set it as custom category
-                if (!categoryExists && initialData.category) {
-                    setCustomCategory(initialData.category)
-                } else {
-                    setCustomCategory('')
-                }
             } else {
                 setFormValues(EMPTY_FORM_STATE)
-                setCustomCategory('')
             }
             setFormError(null)
         }
     }, [isOpen, initialData, categories])
 
     const handleFormInputChange = (field: keyof PromptFormState, value: string) => {
-        // Clear custom category if user switches away from "Other"
-        if (field === 'category' && value !== 'Other') {
-            setCustomCategory('')
-        }
         setFormValues(prev => ({
             ...prev,
             [field]: value,
         }))
     }
 
-    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]
-        if (!file) return
+    const processImageFile = async (file: File) => {
+        // Validate file type
+        const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+        if (!validImageTypes.includes(file.type)) {
+            toast.error('Please upload a valid image file (JPEG, PNG, WebP, or GIF)')
+            return
+        }
 
+        // Validate file size
         const MAX_SIZE_BYTES = 5 * 1024 * 1024
         if (file.size > MAX_SIZE_BYTES) {
             toast.error('Image is too large. Max supported size is 5MB.')
-            if (fileInputRef.current) {
-                fileInputRef.current.value = ''
-            }
             return
         }
 
         setIsUploading(true)
-        try {
-            const fileExt = file.name.split('.').pop()
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
-            const filePath = `${fileName}`
+        setFormError(null)
 
-            const { error: uploadError } = await supabase.storage
-                .from('prompt-images')
-                .upload(filePath, file)
+        const uploadWithRetry = async (retries = 2): Promise<void> => {
+            try {
+                const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+                const filePath = `admin-uploads/${fileName}`
 
-            if (uploadError) {
-                throw uploadError
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('prompt-images')
+                    .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: false,
+                        contentType: file.type
+                    })
+
+                if (uploadError) throw uploadError
+                if (!uploadData) throw new Error('Upload failed: No data returned')
+
+                const { data: urlData } = supabase.storage.from('prompt-images').getPublicUrl(filePath)
+                if (!urlData?.publicUrl) throw new Error('Failed to get image URL')
+
+                handleFormInputChange('preview_image_url', urlData.publicUrl)
+                toast.success('Image uploaded successfully')
+            } catch (err: any) {
+                const errorMessage = err?.message || err?.error || 'Unknown error'
+                const isNetworkError =
+                    errorMessage.includes('network') ||
+                    errorMessage.includes('timeout') ||
+                    errorMessage.includes('fetch') ||
+                    errorMessage.includes('Failed to fetch') ||
+                    (err?.status >= 500 && err?.status < 600)
+
+                if (isNetworkError && retries > 0) {
+                    const delay = (3 - retries) * 1000
+                    await new Promise(resolve => setTimeout(resolve, delay))
+                    return uploadWithRetry(retries - 1)
+                }
+                throw err
             }
+        }
 
-            const { data } = supabase.storage.from('prompt-images').getPublicUrl(filePath)
-
-            handleFormInputChange('preview_image_url', data.publicUrl)
-            toast.success('Image uploaded successfully')
-        } catch (error) {
+        try {
+            await uploadWithRetry()
+        } catch (error: any) {
             console.error('Error uploading image:', error)
-            toast.error('Failed to upload image. Please try again.')
+            const errorMessage = error?.message || error?.error || 'Unknown error'
+            
+            // Provide more specific error messages
+            if (errorMessage.includes('duplicate') || errorMessage.includes('already exists')) {
+                toast.error('An image with this name already exists. Please try again.')
+            } else if (errorMessage.includes('permission') || errorMessage.includes('policy')) {
+                toast.error('Permission denied. Please check your storage bucket permissions.')
+            } else if (errorMessage.includes('size') || errorMessage.includes('too large')) {
+                toast.error('Image is too large. Maximum size is 5MB.')
+            } else {
+                toast.error(`Failed to upload image: ${errorMessage}. Please try again or use a direct URL.`)
+            }
         } finally {
             setIsUploading(false)
             if (fileInputRef.current) {
                 fileInputRef.current.value = ''
             }
         }
+    }
+
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+        await processImageFile(file)
+    }
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(true)
+    }
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(false)
+    }
+
+    const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(false)
+
+        const file = e.dataTransfer.files?.[0]
+        if (!file) return
+
+        await processImageFile(file)
     }
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -184,35 +238,26 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
         const trimmedTitle = formValues.title.trim()
         const trimmedPrompt = formValues.prompt.trim()
         const trimmedCategory = formValues.category.trim()
-        const trimmedCustomCategory = customCategory.trim()
 
         if (!trimmedTitle || !trimmedPrompt || !trimmedCategory) {
             setFormError('Title, prompt, and category are required.')
             return
         }
 
-        // Validate custom category if "Other" is selected
-        if (trimmedCategory === 'Other' && !trimmedCustomCategory) {
-            setFormError('Please enter a custom category name.')
-            return
-        }
 
+        // Canonicalize tags: lowercase, trim, remove duplicates
         const tagsArray = formValues.tags
             .split(',')
-            .map(tag => tag.trim())
+            .map(tag => tag.trim().toLowerCase())
             .filter(Boolean)
-
-        // Use custom category if "Other" is selected, otherwise use the selected category
-        const finalCategory = trimmedCategory === 'Other' 
-            ? sanitizeForStorage(trimmedCustomCategory)
-            : sanitizeForStorage(trimmedCategory)
+        const canonicalTags = Array.from(new Set(tagsArray)) // Remove duplicates
 
         const payload: PromptPayload = {
             title: sanitizeForStorage(trimmedTitle),
             prompt: sanitizeForStorage(trimmedPrompt),
             negative_prompt: formValues.negative_prompt.trim() ? sanitizeForStorage(formValues.negative_prompt.trim()) : null,
-            category: finalCategory,
-            tags: tagsArray.length ? tagsArray.map(tag => sanitizeForStorage(tag)) : null,
+            category: sanitizeForStorage(trimmedCategory),
+            tags: canonicalTags.length ? canonicalTags.map(tag => sanitizeForStorage(tag)) : null,
             preview_image_url: formValues.preview_image_url.trim() || null, // URL doesn't need sanitization, validation is enough
             status: formValues.status,
             views: isNaN(Number(formValues.views)) ? 0 : Number(formValues.views),
@@ -306,32 +351,6 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                         </div>
                     </div>
 
-                    {/* Custom Category Field - Shows when "Other" is selected */}
-                    {formValues.category === 'Other' && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="space-y-2"
-                        >
-                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                                Custom Category Name *
-                            </label>
-                            <input
-                                type="text"
-                                value={customCategory}
-                                onChange={(e) => setCustomCategory(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
-                                placeholder="e.g., Abstract Art, Nature Photography, etc."
-                                required={formValues.category === 'Other'}
-                            />
-                            <p className="text-xs text-zinc-500">
-                                Enter the name of your custom category. It will be available in future dropdowns once saved.
-                            </p>
-                        </motion.div>
-                    )}
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Status *</label>
@@ -362,7 +381,14 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                         <div className="flex items-start gap-4">
                             <div
                                 onClick={() => fileInputRef.current?.click()}
-                                className="w-32 h-32 rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center cursor-pointer hover:border-[#FFDE1A] hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors overflow-hidden relative group"
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                className={`w-32 h-32 rounded-lg border-2 border-dashed flex items-center justify-center cursor-pointer transition-all overflow-hidden relative group ${
+                                    isDragging
+                                        ? 'border-[#FFDE1A] bg-[#FFDE1A]/10 dark:bg-[#FFDE1A]/20 scale-105 shadow-lg'
+                                        : 'border-zinc-300 dark:border-zinc-700 hover:border-[#FFDE1A] hover:bg-zinc-50 dark:hover:bg-white/5'
+                                }`}
                             >
                                 {formValues.preview_image_url ? (
                                     <>
@@ -384,8 +410,10 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                                             <div className="w-6 h-6 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
                                         ) : (
                                             <>
-                                                <ArrowUpTrayIcon className="w-8 h-8 mb-1" />
-                                                <span className="text-xs font-medium">Upload</span>
+                                                <ArrowUpTrayIcon className={`w-8 h-8 mb-1 transition-transform ${isDragging ? 'scale-110 text-[#FFDE1A]' : ''}`} />
+                                                <span className={`text-xs font-medium transition-colors ${isDragging ? 'text-[#FFDE1A]' : ''}`}>
+                                                    {isDragging ? 'Drop Image' : 'Upload'}
+                                                </span>
                                             </>
                                         )}
                                     </div>

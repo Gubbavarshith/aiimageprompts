@@ -377,4 +377,99 @@ export function subscribeToPromptChanges(handler: (payload: PromptChangePayload)
   }
 }
 
+/**
+ * Generate slug from title (same logic as blog posts)
+ */
+export function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+}
+
+/**
+ * Fetch a prompt by slug
+ * Since prompts don't have a slug field in the database, we generate slugs on-the-fly
+ * and match against the provided slug. If multiple prompts have the same title,
+ * we return the first match. For better uniqueness, consider adding a slug column.
+ */
+export async function fetchPromptBySlug(slug: string): Promise<PromptRecord | null> {
+  if (!isSupabaseReady()) throw new Error('Supabase not configured')
+  
+  // Fetch all published prompts
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .select('*')
+    .eq('status', 'Published')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching prompts for slug lookup:', error)
+    throw new Error(`Failed to fetch prompt: ${error.message}`)
+  }
+
+  if (!data || data.length === 0) {
+    return null
+  }
+
+  // Generate slugs and find matching prompt
+  for (const prompt of data) {
+    const promptSlug = generateSlug(prompt.title)
+    if (promptSlug === slug) {
+      return prompt as PromptRecord
+    }
+  }
+
+  // If no exact match, try matching with ID appended (for uniqueness handling)
+  // Format: slug-id
+  const slugParts = slug.split('-')
+  if (slugParts.length > 1) {
+    const possibleId = slugParts[slugParts.length - 1]
+    const baseSlug = slugParts.slice(0, -1).join('-')
+    
+    for (const prompt of data) {
+      const promptSlug = generateSlug(prompt.title)
+      if (promptSlug === baseSlug && prompt.id === possibleId) {
+        return prompt as PromptRecord
+      }
+    }
+  }
+
+  return null
+}
+
+/**
+ * Fetch related prompts from the same category
+ * @param category - Category to filter by
+ * @param excludeId - Prompt ID to exclude from results
+ * @param limit - Maximum number of prompts to return (default: 6)
+ */
+export async function fetchRelatedPrompts(
+  category: string,
+  excludeId: string,
+  limit: number = 6
+): Promise<PromptRecord[]> {
+  if (!isSupabaseReady()) throw new Error('Supabase not configured')
+  
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .select('*')
+    .eq('status', 'Published')
+    .eq('category', category)
+    .neq('id', excludeId)
+    .order('views', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    console.error('Error fetching related prompts:', error)
+    throw new Error(`Failed to fetch related prompts: ${error.message}`)
+  }
+
+  return (data || []) as PromptRecord[]
+}
+
 

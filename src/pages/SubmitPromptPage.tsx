@@ -46,7 +46,6 @@ export default function SubmitPromptPage() {
     prompt: '',
     negative_prompt: '',
     category: '',
-    customCategory: '',
     tags: '',
     preview_image_url: '',
   })
@@ -88,11 +87,10 @@ export default function SubmitPromptPage() {
       try {
         setIsLoadingCategories(true)
         const fetchedCategories = await fetchUniqueCategories()
-        // Add "Other" as the last option
-        setCategories([...fetchedCategories, 'Other'])
+        setCategories(fetchedCategories)
       } catch (err) {
         console.error('Failed to load categories:', err)
-        // Fallback to default categories with "Other"
+        // Fallback to default categories
         setCategories([
           'Portraits',
           'Anime',
@@ -102,7 +100,6 @@ export default function SubmitPromptPage() {
           '3D Art',
           'Photography',
           'Illustrations',
-          'Other',
         ])
       } finally {
         setIsLoadingCategories(false)
@@ -132,13 +129,7 @@ export default function SubmitPromptPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target
-
-    // Clear custom category if user switches away from "Other"
-    if (name === 'category' && value !== 'Other') {
-      setFormData((prev) => ({ ...prev, [name]: value, customCategory: '' }))
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }))
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }))
 
     // Validate URL if it's the preview_image_url field
     if (name === 'preview_image_url' && value.trim() && !isValidUrl(value)) {
@@ -236,15 +227,9 @@ export default function SubmitPromptPage() {
     const trimmedTitle = formData.title.trim()
     const trimmedPrompt = formData.prompt.trim()
     const trimmedCategory = formData.category.trim()
-    const trimmedCustomCategory = formData.customCategory.trim()
 
     if (!trimmedTitle || !trimmedPrompt || !trimmedCategory) {
       setError('Title, prompt, and category are required.')
-      return
-    }
-
-    if (trimmedCategory === 'Other' && !trimmedCustomCategory) {
-      setError('Please enter a custom category name.')
       return
     }
 
@@ -253,24 +238,22 @@ export default function SubmitPromptPage() {
       return
     }
 
+    // Canonicalize tags: lowercase, trim, remove duplicates
     const tagsArray = formData.tags
       .split(',')
-      .map((tag) => tag.trim())
+      .map((tag) => tag.trim().toLowerCase())
       .filter(Boolean)
+    const canonicalTags = Array.from(new Set(tagsArray)) // Remove duplicates
 
     setIsSubmitting(true)
 
     try {
-      const finalCategory = trimmedCategory === 'Other'
-        ? sanitizeForStorage(trimmedCustomCategory)
-        : sanitizeForStorage(trimmedCategory)
-
       await submitPrompt({
         title: sanitizeForStorage(trimmedTitle),
         prompt: sanitizeForStorage(trimmedPrompt),
         negative_prompt: formData.negative_prompt.trim() ? sanitizeForStorage(formData.negative_prompt.trim()) : null,
-        category: finalCategory,
-        tags: tagsArray.length ? tagsArray.map(tag => sanitizeForStorage(tag)) : null,
+        category: sanitizeForStorage(trimmedCategory),
+        tags: canonicalTags.length ? canonicalTags.map(tag => sanitizeForStorage(tag)) : null,
         preview_image_url: formData.preview_image_url.trim() || null,
         user_id: user.id,
       })
@@ -286,7 +269,6 @@ export default function SubmitPromptPage() {
           prompt: '',
           negative_prompt: '',
           category: '',
-          customCategory: '',
           tags: '',
           preview_image_url: '',
         })
@@ -469,25 +451,6 @@ export default function SubmitPromptPage() {
                       </div>
                     </div>
                   </div>
-
-                  {formData.category === 'Other' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="space-y-2"
-                    >
-                      <Label htmlFor="customCategory" className="uppercase text-xs font-bold tracking-wider text-zinc-500">Custom Category</Label>
-                      <Input
-                        id="customCategory"
-                        name="customCategory"
-                        value={formData.customCategory}
-                        onChange={handleInputChange}
-                        placeholder="New Category Name"
-                        required={formData.category === 'Other'}
-                        className="bg-transparent border-2 border-zinc-200 dark:border-zinc-800 focus:border-black dark:focus:border-white rounded-lg h-12"
-                      />
-                    </motion.div>
-                  )}
 
                   {/* Main Inputs */}
                   <div className="space-y-2">

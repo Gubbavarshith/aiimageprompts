@@ -25,6 +25,7 @@ const GuidelinesPage = lazy(() => import('./pages/GuidelinesPage'))
 const AuthPage = lazy(() => import('./pages/AuthPage'))
 const BlogPage = lazy(() => import('./pages/BlogPage'))
 const BlogPostPage = lazy(() => import('./pages/BlogPostPage'))
+const PromptPage = lazy(() => import('./pages/PromptPage'))
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
 const PromptsPage = lazy(() => import('./pages/admin/PromptsPage'))
@@ -34,6 +35,8 @@ const SubscriptionsPage = lazy(() => import('./pages/admin/SubscriptionsPage'))
 const AdminBlogListPage = lazy(() => import('./pages/admin/AdminBlogListPage'))
 const AdminBlogEditorPage = lazy(() => import('./pages/admin/AdminBlogEditorPage'))
 const ExploreHeroToolsAdminPage = lazy(() => import('./pages/admin/ExploreHeroToolsAdminPage'))
+const CategoriesPage = lazy(() => import('./pages/admin/CategoriesPage'))
+const TagsPage = lazy(() => import('./pages/admin/TagsPage'))
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const SavedPromptsPage = lazy(() => import('./pages/SavedPromptsPage'))
@@ -91,6 +94,7 @@ function App() {
           <Route path="/guidelines" element={<GuidelinesPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
+          <Route path="/prompt/:slug" element={<PromptPage />} />
 
           {/* Unified Auth Route - wildcard to catch Clerk sub-routes like /auth/verify-email-address */}
           <Route path="/auth/*" element={<AuthPage />} />
@@ -119,6 +123,8 @@ function App() {
             <Route path="/admin/blogs/new" element={<AdminBlogEditorPage />} />
             <Route path="/admin/blogs/:id" element={<AdminBlogEditorPage />} />
             <Route path="/admin/explore-hero" element={<ExploreHeroToolsAdminPage />} />
+            <Route path="/admin/categories" element={<CategoriesPage />} />
+            <Route path="/admin/tags" element={<TagsPage />} />
           </Route>
 
           {/* 404 Catch-all Route */}
