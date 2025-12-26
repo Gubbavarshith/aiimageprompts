@@ -18,6 +18,7 @@ const SubmitPromptPage = lazy(() => import('./pages/SubmitPromptPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
+const RefundPolicyPage = lazy(() => import('./pages/RefundPolicyPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const FAQPage = lazy(() => import('./pages/FAQPage'))
@@ -88,6 +89,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/refund" element={<RefundPolicyPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/faq" element={<FAQPage />} />

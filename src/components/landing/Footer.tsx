@@ -125,6 +125,11 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/refund" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Refund policy
+                </Link>
+              </li>
+              <li>
                 <Link to="/guidelines" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
                   Community guidelines
                 </Link>

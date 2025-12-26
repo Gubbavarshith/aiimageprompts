@@ -77,6 +77,11 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
     priority: '0.4',
     changefreq: 'yearly',
   },
+  {
+    path: '/refund',
+    priority: '0.4',
+    changefreq: 'yearly',
+  },
 ]
 
 /**

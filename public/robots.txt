@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /contact
+Allow: /refund
 Disallow: /admin/
 Disallow: /auth/
 Disallow: /saved
