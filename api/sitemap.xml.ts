@@ -112,7 +112,7 @@ ${urls}
 </urlset>`
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(_req: any, res: any) {
   try {
     // Set proper headers for XML content
     res.setHeader('Content-Type', 'application/xml')
