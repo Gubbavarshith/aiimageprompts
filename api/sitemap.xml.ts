@@ -57,13 +57,11 @@ async function fetchPublishedPrompts() {
   }
 }
 
-// Fetch all published blog posts from Supabase (with fallback to JSON)
+// Fetch all published blog posts from Supabase
 async function fetchPublishedBlogPosts() {
   try {
-    // First, try to fetch from Supabase (for future migration)
     const supabase = getSupabaseClient()
     
-    // Check if blog_posts table exists in Supabase
     const { data: supabasePosts, error: supabaseError } = await supabase
       .from('blog_posts')
       .select('id, title, slug, date, updated_at, status')
@@ -71,38 +69,25 @@ async function fetchPublishedBlogPosts() {
       .order('updated_at', { ascending: false })
       .limit(1000) // Reasonable limit
 
-    // If Supabase query succeeds and returns data, use it
-    if (!supabaseError && supabasePosts && supabasePosts.length > 0) {
-      console.log(`Fetched ${supabasePosts.length} blog posts from Supabase`)
-      return supabasePosts.map((post: any) => ({
-        slug: post.slug,
-        title: post.title,
-        date: post.updated_at || post.date,
-      }))
-    }
-
-    // If Supabase table doesn't exist or is empty, fallback to JSON file
-    console.log('Supabase blog_posts table not available, falling back to JSON file')
-    const blogPostsModule = await import('../src/lib/data/blogPosts.json')
-    const blogPosts = (blogPostsModule as any).default || blogPostsModule
-    
-    if (!Array.isArray(blogPosts)) {
-      console.warn('Blog posts data is not an array')
+    if (supabaseError) {
+      console.error('Error fetching blog posts from Supabase:', supabaseError)
       return []
     }
 
-    // Filter only published posts
-    const publishedPosts = blogPosts.filter((post: any) => post.status === 'Published')
-    console.log(`Fetched ${publishedPosts.length} blog posts from JSON file`)
-    return publishedPosts.map((post: any) => ({
-      slug: post.slug || generateSlug(post.title),
+    if (!supabasePosts || supabasePosts.length === 0) {
+      console.log('No published blog posts found in Supabase')
+      return []
+    }
+
+    console.log(`Fetched ${supabasePosts.length} blog posts from Supabase`)
+    return supabasePosts.map((post: any) => ({
+      slug: post.slug,
       title: post.title,
-      date: post.date,
+      date: post.updated_at || post.date,
     }))
   } catch (error) {
     console.error('Failed to fetch blog posts:', error)
     // Return empty array on error to allow sitemap to still be generated
-    // This ensures the sitemap always works even if blog posts can't be loaded
     return []
   }
 }
@@ -157,7 +142,7 @@ export default async function handler(req: any, res: any) {
       })
     })
 
-    // Fetch published blog posts from Supabase (with JSON fallback)
+    // Fetch published blog posts from Supabase
     // This automatically includes all blog posts created via admin dashboard
     const blogPosts = await fetchPublishedBlogPosts()
     blogPosts.forEach((post: any) => {

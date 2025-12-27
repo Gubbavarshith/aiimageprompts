@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
     ChevronLeft,
-    X, Globe, Save, Eye, Loader2, AlertCircle
+    X, Globe, Save, Eye, Loader2, AlertCircle, Calendar
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -40,6 +40,7 @@ export default function AdminBlogEditorPage() {
     const [newTag, setNewTag] = useState('')
     const [imageUrl, setImageUrl] = useState('')
     const [status, setStatus] = useState<'Draft' | 'Published' | 'Scheduled'>('Draft')
+    const [scheduledAt, setScheduledAt] = useState<string>('')
     const [metaTitle, setMetaTitle] = useState('')
     const [metaDescription, setMetaDescription] = useState('')
     const [slug, setSlug] = useState('')
@@ -81,6 +82,18 @@ export default function AdminBlogEditorPage() {
                 setTags(post.tags || [])
                 setImageUrl(post.imageUrl)
                 setStatus(post.status)
+                // Format scheduledAt for datetime-local input (YYYY-MM-DDTHH:mm)
+                if (post.scheduledAt) {
+                    const scheduledDate = new Date(post.scheduledAt)
+                    const year = scheduledDate.getFullYear()
+                    const month = String(scheduledDate.getMonth() + 1).padStart(2, '0')
+                    const day = String(scheduledDate.getDate()).padStart(2, '0')
+                    const hours = String(scheduledDate.getHours()).padStart(2, '0')
+                    const minutes = String(scheduledDate.getMinutes()).padStart(2, '0')
+                    setScheduledAt(`${year}-${month}-${day}T${hours}:${minutes}`)
+                } else {
+                    setScheduledAt('')
+                }
                 setMetaTitle(post.metaTitle || '')
                 setMetaDescription(post.metaDescription || '')
                 setSlug(post.slug)
@@ -156,6 +169,12 @@ export default function AdminBlogEditorPage() {
         if (!category) return 'Category is required'
         if (!slug.trim()) return 'Slug is required'
         if (imageUrl && !isValidUrl(imageUrl)) return 'Invalid image URL'
+        if (status === 'Scheduled' && !scheduledAt) return 'Scheduled date and time is required'
+        if (status === 'Scheduled' && scheduledAt) {
+            const scheduledDate = new Date(scheduledAt)
+            const now = new Date()
+            if (scheduledDate <= now) return 'Scheduled date must be in the future'
+        }
         return null
     }
 
@@ -166,6 +185,13 @@ export default function AdminBlogEditorPage() {
         } catch {
             return false
         }
+    }
+
+    // Convert datetime-local format to ISO string
+    const formatScheduledDate = (dateTimeLocal: string): string => {
+        if (!dateTimeLocal) return ''
+        // datetime-local format is "YYYY-MM-DDTHH:mm", convert to ISO
+        return new Date(dateTimeLocal).toISOString()
     }
 
     // Save draft
@@ -188,10 +214,11 @@ export default function AdminBlogEditorPage() {
                 category,
                 tags,
                 imageUrl: imageUrl.trim() || '',
-                status: 'Draft',
+                status: status === 'Scheduled' ? 'Scheduled' : 'Draft',
                 slug: slug.trim() || generateSlug(title),
                 metaTitle: metaTitle.trim() || undefined,
                 metaDescription: metaDescription.trim() || undefined,
+                scheduledAt: status === 'Scheduled' && scheduledAt ? formatScheduledDate(scheduledAt) : undefined,
             }
 
             if (isEditing && id) {
@@ -214,7 +241,7 @@ export default function AdminBlogEditorPage() {
         }
     }
 
-    // Publish
+    // Publish or Schedule
     const handlePublish = async () => {
         const validationError = validateForm()
         if (validationError) {
@@ -226,6 +253,7 @@ export default function AdminBlogEditorPage() {
         setError(null)
 
         try {
+            const finalStatus = status === 'Scheduled' ? 'Scheduled' : 'Published'
             const payload: CreateBlogPostPayload | UpdateBlogPostPayload = {
                 title: title.trim(),
                 excerpt: excerpt.trim(),
@@ -234,18 +262,19 @@ export default function AdminBlogEditorPage() {
                 category,
                 tags,
                 imageUrl: imageUrl.trim() || '',
-                status: 'Published',
+                status: finalStatus,
                 slug: slug.trim() || generateSlug(title),
                 metaTitle: metaTitle.trim() || undefined,
                 metaDescription: metaDescription.trim() || undefined,
+                scheduledAt: status === 'Scheduled' && scheduledAt ? formatScheduledDate(scheduledAt) : undefined,
             }
 
             if (isEditing && id) {
                 await updateBlogPost({ ...payload, id })
-                toast.success('Post published successfully!')
+                toast.success(finalStatus === 'Scheduled' ? 'Post scheduled successfully!' : 'Post published successfully!')
             } else {
                 await createBlogPost(payload)
-                toast.success('Post published successfully!')
+                toast.success(finalStatus === 'Scheduled' ? 'Post scheduled successfully!' : 'Post published successfully!')
             }
 
             // Navigate back to blog list
@@ -340,10 +369,10 @@ export default function AdminBlogEditorPage() {
                         {isPublishing ? (
                             <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Publishing...
+                                {status === 'Scheduled' ? 'Scheduling...' : 'Publishing...'}
                             </>
                         ) : (
-                            'Publish'
+                            status === 'Scheduled' ? 'Schedule' : 'Publish'
                         )}
                     </Button>
                 </div>
@@ -410,7 +439,13 @@ export default function AdminBlogEditorPage() {
                                 <Label>Status</Label>
                                 <select
                                     value={status}
-                                    onChange={(e) => setStatus(e.target.value as 'Draft' | 'Published' | 'Scheduled')}
+                                    onChange={(e) => {
+                                        const newStatus = e.target.value as 'Draft' | 'Published' | 'Scheduled'
+                                        setStatus(newStatus)
+                                        if (newStatus !== 'Scheduled') {
+                                            setScheduledAt('')
+                                        }
+                                    }}
                                     className="w-full text-sm bg-transparent border border-zinc-200 dark:border-zinc-800 rounded-md px-3 py-2 focus:ring-[#FFDE1A] focus:outline-none"
                                 >
                                     <option value="Draft">Draft</option>
@@ -418,6 +453,26 @@ export default function AdminBlogEditorPage() {
                                     <option value="Scheduled">Scheduled</option>
                                 </select>
                             </div>
+                            {status === 'Scheduled' && (
+                                <div className="space-y-2">
+                                    <Label className="flex items-center gap-2">
+                                        <Calendar className="w-4 h-4" />
+                                        Schedule Date & Time
+                                    </Label>
+                                    <input
+                                        type="datetime-local"
+                                        value={scheduledAt}
+                                        onChange={(e) => setScheduledAt(e.target.value)}
+                                        min={new Date().toISOString().slice(0, 16)}
+                                        className="w-full text-sm bg-transparent border border-zinc-200 dark:border-zinc-800 rounded-md px-3 py-2 focus:ring-[#FFDE1A] focus:outline-none"
+                                    />
+                                    {scheduledAt && (
+                                        <p className="text-xs text-zinc-500">
+                                            Will publish on {new Date(scheduledAt).toLocaleString()}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                             <div className="flex items-center justify-between text-sm">
                                 <Label className="text-zinc-500">Read Time</Label>
                                 <span className="text-zinc-900 dark:text-white font-medium">

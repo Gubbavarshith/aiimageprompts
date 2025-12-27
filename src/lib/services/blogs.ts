@@ -1,4 +1,4 @@
-import blogPostsData from '../data/blogPosts.json'
+import { supabase } from '../supabaseClient'
 
 export type BlogPost = {
   id: string
@@ -15,47 +15,60 @@ export type BlogPost = {
   slug: string
   metaTitle?: string
   metaDescription?: string
+  scheduledAt?: string
 }
 
-const STORAGE_KEY = 'blog_posts_data'
-const STORAGE_BACKUP_KEY = 'blog_posts_backup'
+// Helper function to map database row to BlogPost type
+const mapRowToBlogPost = (row: any): BlogPost => ({
+  id: row.id,
+  title: row.title,
+  excerpt: row.excerpt,
+  content: row.content,
+  author: row.author,
+  date: row.date,
+  readTime: row.read_time,
+  category: row.category,
+  imageUrl: row.image_url || '',
+  tags: row.tags || [],
+  status: row.status,
+  slug: row.slug,
+  metaTitle: row.meta_title || undefined,
+  metaDescription: row.meta_description || undefined,
+  scheduledAt: row.scheduled_at || undefined,
+})
 
-const readFromStorage = (): BlogPost[] | null => {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_BACKUP_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as BlogPost[]
-    return Array.isArray(parsed) ? parsed : null
-  } catch (err) {
-    console.error('Failed to read blog posts from storage:', err)
-    return null
-  }
-}
-
-const persistPosts = (posts: BlogPost[]) => {
-  if (typeof window === 'undefined') return
-  try {
-    const serialized = JSON.stringify(posts)
-    localStorage.setItem(STORAGE_KEY, serialized)
-    localStorage.setItem(STORAGE_BACKUP_KEY, serialized)
-  } catch (err) {
-    console.error('Failed to persist blog posts:', err)
-  }
-}
-
-// Simulate async JSON reading (acts like a tiny JSON DB in the browser)
-const loadBlogPosts = async (): Promise<BlogPost[]> => {
-  await new Promise(resolve => setTimeout(resolve, 100))
-  const storedPosts = readFromStorage()
-  if (storedPosts) return storedPosts
-  return blogPostsData as BlogPost[]
-}
+// Helper function to map BlogPost to database row
+const mapBlogPostToRow = (post: Partial<BlogPost>): any => ({
+  title: post.title,
+  slug: post.slug,
+  excerpt: post.excerpt,
+  content: post.content,
+  author: post.author,
+  date: post.date,
+  read_time: post.readTime,
+  category: post.category,
+  image_url: post.imageUrl || null,
+  tags: post.tags || [],
+  status: post.status,
+  meta_title: post.metaTitle || null,
+  meta_description: post.metaDescription || null,
+  scheduled_at: post.scheduledAt || null,
+})
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {
   try {
-    const posts = await loadBlogPosts()
-    return posts.filter(post => post.status === 'Published')
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('status', 'Published')
+      .order('date', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching blog posts:', error)
+      throw new Error('Failed to fetch blog posts')
+    }
+
+    return (data || []).map(mapRowToBlogPost)
   } catch (error) {
     console.error('Error fetching blog posts:', error)
     throw new Error('Failed to fetch blog posts')
@@ -64,9 +77,23 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
 
 export async function fetchBlogPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
-    const posts = await loadBlogPosts()
-    const post = posts.find(p => p.slug === slug && p.status === 'Published')
-    return post || null
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'Published')
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null
+      }
+      console.error('Error fetching blog post:', error)
+      throw new Error('Failed to fetch blog post')
+    }
+
+    return data ? mapRowToBlogPost(data) : null
   } catch (error) {
     console.error('Error fetching blog post:', error)
     throw new Error('Failed to fetch blog post')
@@ -75,9 +102,23 @@ export async function fetchBlogPostBySlug(slug: string): Promise<BlogPost | null
 
 export async function fetchBlogPostById(id: string): Promise<BlogPost | null> {
   try {
-    const posts = await loadBlogPosts()
-    const post = posts.find(p => p.id === id && p.status === 'Published')
-    return post || null
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('id', id)
+      .eq('status', 'Published')
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null
+      }
+      console.error('Error fetching blog post:', error)
+      throw new Error('Failed to fetch blog post')
+    }
+
+    return data ? mapRowToBlogPost(data) : null
   } catch (error) {
     console.error('Error fetching blog post:', error)
     throw new Error('Failed to fetch blog post')
@@ -100,7 +141,9 @@ export function formatDate(dateString: string): string {
 
 export function calculateReadTime(content: string): string {
   const wordsPerMinute = 200
-  const wordCount = content.split(/\s+/).length
+  // Strip HTML tags for accurate word count
+  const textContent = content.replace(/<[^>]*>/g, ' ')
+  const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length
   const minutes = Math.ceil(wordCount / wordsPerMinute)
   return `${minutes} min read`
 }
@@ -108,8 +151,17 @@ export function calculateReadTime(content: string): string {
 // Admin functions - fetch all posts including drafts
 export async function fetchAllBlogPosts(): Promise<BlogPost[]> {
   try {
-    const posts = await loadBlogPosts()
-    return posts
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('date', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching all blog posts:', error)
+      throw new Error('Failed to fetch blog posts')
+    }
+
+    return (data || []).map(mapRowToBlogPost)
   } catch (error) {
     console.error('Error fetching all blog posts:', error)
     throw new Error('Failed to fetch blog posts')
@@ -118,9 +170,22 @@ export async function fetchAllBlogPosts(): Promise<BlogPost[]> {
 
 export async function fetchBlogPostByIdForAdmin(id: string): Promise<BlogPost | null> {
   try {
-    const posts = await loadBlogPosts()
-    const post = posts.find(p => p.id === id)
-    return post || null
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null
+      }
+      console.error('Error fetching blog post:', error)
+      throw new Error('Failed to fetch blog post')
+    }
+
+    return data ? mapRowToBlogPost(data) : null
   } catch (error) {
     console.error('Error fetching blog post:', error)
     throw new Error('Failed to fetch blog post')
@@ -138,6 +203,46 @@ export function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
 }
 
+// Check if slug exists (excluding a specific post ID)
+async function slugExists(slug: string, excludeId?: string): Promise<boolean> {
+  try {
+    let query = supabase
+      .from('blog_posts')
+      .select('id')
+      .eq('slug', slug)
+      .limit(1)
+
+    if (excludeId) {
+      query = query.neq('id', excludeId)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error checking slug:', error)
+      return false
+    }
+
+    return (data?.length || 0) > 0
+  } catch (error) {
+    console.error('Error checking slug:', error)
+    return false
+  }
+}
+
+// Generate unique slug
+async function generateUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
+  let finalSlug = baseSlug
+  let counter = 1
+
+  while (await slugExists(finalSlug, excludeId)) {
+    finalSlug = `${baseSlug}-${counter}`
+    counter++
+  }
+
+  return finalSlug
+}
+
 // Create new blog post
 export type CreateBlogPostPayload = Omit<BlogPost, 'id' | 'date' | 'readTime' | 'slug'> & {
   slug?: string
@@ -145,32 +250,32 @@ export type CreateBlogPostPayload = Omit<BlogPost, 'id' | 'date' | 'readTime' | 
 
 export async function createBlogPost(payload: CreateBlogPostPayload): Promise<BlogPost> {
   try {
-    const posts = await loadBlogPosts()
-    const newId = String(Math.max(0, ...posts.map(p => parseInt(p.id) || 0)) + 1)
     const slug = payload.slug || generateSlug(payload.title)
     const readTime = calculateReadTime(payload.content)
     const date = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
 
-    // Check if slug already exists
-    let finalSlug = slug
-    let slugCounter = 1
-    while (posts.some(p => p.slug === finalSlug && p.id !== newId)) {
-      finalSlug = `${slug}-${slugCounter}`
-      slugCounter++
-    }
+    // Generate unique slug
+    const finalSlug = await generateUniqueSlug(slug)
 
-    const newPost: BlogPost = {
-      id: newId,
+    const rowData = mapBlogPostToRow({
       ...payload,
       slug: finalSlug,
       readTime,
       date,
+    })
+
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .insert(rowData)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating blog post:', error)
+      throw new Error('Failed to create blog post')
     }
 
-    const updatedPosts = [...posts, newPost]
-    persistPosts(updatedPosts)
-
-    return newPost
+    return mapRowToBlogPost(data)
   } catch (error) {
     console.error('Error creating blog post:', error)
     throw new Error('Failed to create blog post')
@@ -184,43 +289,56 @@ export type UpdateBlogPostPayload = Partial<Omit<BlogPost, 'id' | 'date' | 'read
 
 export async function updateBlogPost(payload: UpdateBlogPostPayload): Promise<BlogPost> {
   try {
-    const posts = await loadBlogPosts()
-    const postIndex = posts.findIndex(p => p.id === payload.id)
+    // Fetch existing post to get current values
+    const { data: existingData, error: fetchError } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('id', payload.id)
+      .single()
 
-    if (postIndex === -1) {
+    if (fetchError || !existingData) {
       throw new Error('Blog post not found')
     }
 
-    const existingPost = posts[postIndex]
+    const existingPost = mapRowToBlogPost(existingData)
     const updatedContent = payload.content !== undefined ? payload.content : existingPost.content
     const readTime = calculateReadTime(updatedContent)
     
     // Generate new slug if title changed
     let slug = existingPost.slug
     if (payload.title && payload.title !== existingPost.title) {
-      slug = generateSlug(payload.title)
-      // Check if slug already exists (excluding current post)
-      let finalSlug = slug
-      let slugCounter = 1
-      while (posts.some(p => p.slug === finalSlug && p.id !== payload.id)) {
-        finalSlug = `${slug}-${slugCounter}`
-        slugCounter++
-      }
-      slug = finalSlug
+      const baseSlug = generateSlug(payload.title)
+      slug = await generateUniqueSlug(baseSlug, payload.id)
     }
 
-    const updatedPost: BlogPost = {
-      ...existingPost,
-      ...payload,
-      slug,
-      readTime,
+    const updateData: any = {}
+    if (payload.title !== undefined) updateData.title = payload.title
+    if (payload.excerpt !== undefined) updateData.excerpt = payload.excerpt
+    if (payload.content !== undefined) updateData.content = payload.content
+    if (payload.author !== undefined) updateData.author = payload.author
+    if (payload.category !== undefined) updateData.category = payload.category
+    if (payload.imageUrl !== undefined) updateData.image_url = payload.imageUrl || null
+    if (payload.tags !== undefined) updateData.tags = payload.tags || []
+    if (payload.status !== undefined) updateData.status = payload.status
+    if (payload.metaTitle !== undefined) updateData.meta_title = payload.metaTitle || null
+    if (payload.metaDescription !== undefined) updateData.meta_description = payload.metaDescription || null
+    if (payload.scheduledAt !== undefined) updateData.scheduled_at = payload.scheduledAt || null
+    if (slug !== existingPost.slug) updateData.slug = slug
+    updateData.read_time = readTime
+
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .update(updateData)
+      .eq('id', payload.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating blog post:', error)
+      throw new Error('Failed to update blog post')
     }
 
-    const updatedPosts = [...posts]
-    updatedPosts[postIndex] = updatedPost
-    persistPosts(updatedPosts)
-
-    return updatedPost
+    return mapRowToBlogPost(data)
   } catch (error) {
     console.error('Error updating blog post:', error)
     throw new Error('Failed to update blog post')
@@ -230,14 +348,15 @@ export async function updateBlogPost(payload: UpdateBlogPostPayload): Promise<Bl
 // Delete blog post
 export async function deleteBlogPost(id: string): Promise<void> {
   try {
-    const posts = await loadBlogPosts()
-    const filteredPosts = posts.filter(p => p.id !== id)
+    const { error } = await supabase
+      .from('blog_posts')
+      .delete()
+      .eq('id', id)
 
-    if (filteredPosts.length === posts.length) {
-      throw new Error('Blog post not found')
+    if (error) {
+      console.error('Error deleting blog post:', error)
+      throw new Error('Failed to delete blog post')
     }
-
-    persistPosts(filteredPosts)
   } catch (error) {
     console.error('Error deleting blog post:', error)
     throw new Error('Failed to delete blog post')
@@ -257,4 +376,3 @@ export const BLOG_CATEGORIES = [
 ] as const
 
 export type BlogCategory = typeof BLOG_CATEGORIES[number]
-
