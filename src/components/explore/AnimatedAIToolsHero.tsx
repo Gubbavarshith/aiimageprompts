@@ -112,8 +112,15 @@ const FloatingLogos = () => {
         const minItems = 4;
         const padded: AITool[] = [];
         if (mapped.length > 0) {
+          let counter = 0;
           while (padded.length < Math.max(minItems, mapped.length)) {
-            padded.push(...mapped);
+            mapped.forEach(tool => {
+              // Add unique identifier to each instance
+              padded.push({
+                ...tool,
+                id: `${tool.id}-${counter++}`
+              });
+            });
           }
         }
 

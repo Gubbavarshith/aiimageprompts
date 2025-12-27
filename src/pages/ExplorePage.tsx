@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback, forwardRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Copy, Check, ExternalLink, X, SlidersHorizontal, Bookmark, Share2, Share, Link as LinkIcon, Heart } from 'lucide-react'
+import { Search, Copy, Check, ExternalLink, X, Bookmark, Share2, Share, Link as LinkIcon, Heart } from 'lucide-react'
 import { useAuth, useUser } from '@clerk/clerk-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
 import { AnimatedAIToolsHero } from '@/components/explore/AnimatedAIToolsHero'
+import { ExploreSidebar } from '@/components/explore/ExploreSidebar'
 import { fetchPromptsByStatus, generateSlug, type PromptRecord } from '@/lib/services/prompts'
 import { savePrompt, unsavePrompt, getSavedPromptIds } from '@/lib/services/savedPrompts'
 import { logDiscoveryEvent } from '@/lib/services/discoveryEvents'
@@ -56,7 +57,7 @@ interface PromptCardProps {
   onTagClick: (tag: string) => void;
 }
 
-const PromptCard = ({
+const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
   prompt,
   index,
   onCopy,
@@ -70,13 +71,14 @@ const PromptCard = ({
   isSignedIn,
   onClearRating,
   onTagClick,
-}: PromptCardProps) => {
+}, ref) => {
   const isCopied = copiedId === prompt.id;
   const avg = typeof prompt.rating_avg === 'number' ? prompt.rating_avg : null;
   const count = prompt.rating_count ?? 0;
 
   return (
     <motion.div
+      ref={ref}
       layout
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
@@ -271,7 +273,9 @@ const PromptCard = ({
       </div>
     </motion.div>
   );
-};
+});
+
+PromptCard.displayName = 'PromptCard';
 
 export default function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -569,7 +573,7 @@ export default function ExplorePage() {
       userId: user?.id || null,
       anonId: anonIdRef.current || null,
     }).catch(err => console.error('Failed to log discovery event:', err))
-    
+
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev)
       if (selectedTag === tag) {
@@ -877,230 +881,184 @@ export default function ExplorePage() {
 
         <div className="container mx-auto px-4">
 
-          {/* Search & Filters Toolbar - Sticky */}
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="relative z-20 mb-8 mx-auto px-4 py-6"
-          >
-            <div className="max-w-6xl mx-auto flex flex-col gap-6">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 relative items-start">
 
-              {/* Row 1: Search Bar - Premium & Centered */}
-              <div className="w-full max-w-2xl mx-auto relative z-20 group">
-                <motion.div
-                  className={`absolute -inset-1 bg-gradient-to-r from-[#F8BE00] via-orange-400 to-[#F8BE00] rounded-2xl blur-md opacity-0 transition-opacity duration-500 ${isSearchFocused ? 'opacity-50' : 'group-hover:opacity-25'}`}
-                />
-                <div className={`relative flex items-center bg-white dark:bg-zinc-900 rounded-2xl transition-all duration-300 border-2 ${isSearchFocused ? 'border-black dark:border-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] scale-[1.01]' : 'border-black/5 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'}`}>
-                  <div className={`pl-5 text-gray-400 transition-colors duration-300 ${isSearchFocused ? 'text-black dark:text-white' : ''}`}>
-                    <Search size={22} strokeWidth={2.5} />
-                  </div>
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={localSearchQuery}
-                    onChange={handleSearchChange}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setIsSearchFocused(false)}
-                    placeholder="Search prompts, styles, or keywords"
-                    aria-label="Search prompts"
-                    className="w-full h-14 pl-4 pr-12 bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-lg font-bold placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-black dark:text-white"
-                  />
-                  <AnimatePresence>
-                    {localSearchQuery && (
-                      <motion.button
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        onClick={() => {
-                          setLocalSearchQuery('')
-                          setSearchParams(prev => {
-                            const newParams = new URLSearchParams(prev)
-                            newParams.delete('q')
-                            return newParams
-                          }, { replace: true })
-                        }}
-                        className="absolute right-4 p-1.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
-                      >
-                        <X size={16} strokeWidth={3} />
-                      </motion.button>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:block sticky top-24 z-30">
+              <ExploreSidebar
+                searchQuery={localSearchQuery}
+                onSearchChange={handleSearchChange}
+                onClearSearch={() => {
+                  setLocalSearchQuery('')
+                  setSearchParams(prev => {
+                    const newParams = new URLSearchParams(prev)
+                    newParams.delete('q')
+                    return newParams
+                  }, { replace: true })
+                }}
+                categories={categories}
+                selectedCategory={categoryFilter}
+                onCategoryChange={handleCategoryChange}
+                popularTags={popularTags}
+                selectedTag={selectedTag}
+                onTagClick={handleTagClick}
+                isLoadingCategories={isLoadingCategories}
+                isLoadingTags={isLoadingTags}
+                isSearchFocused={isSearchFocused}
+                setIsSearchFocused={setIsSearchFocused}
+              />
+            </div>
 
-              {/* Row 2: Filters - Animated Chips */}
-              <div className="w-full pb-2 px-4 sm:px-0">
-                <div className="flex flex-wrap gap-3 items-center justify-center mx-auto px-2 py-2">
-                  <div className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 mr-2 bg-gray-100 dark:bg-zinc-900 px-3 py-1.5 rounded-lg select-none">
-                    <SlidersHorizontal size={14} />
-                    <span>Filter by category</span>
-                  </div>
-                  {/* Always show "All" first */}
-                  <motion.button
-                    key="All"
-                    onClick={() => handleCategoryChange('All')}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`relative px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 isolate ${(categoryFilter === 'All' || !categoryFilter)
-                      ? 'text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]'
-                      : 'bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
-                      }`}
-                  >
-                    {(categoryFilter === 'All' || !categoryFilter) && (
-                      <motion.div
-                        layoutId="activeFilter"
-                        className="absolute inset-0 bg-[#F8BE00] rounded-xl -z-10 border-2 border-black"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+            {/* Main Content Area */}
+            <div className="flex-grow w-full">
+
+              {/* Mobile/Tablet Sticky Toolbar - HIDDEN on Desktop */}
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="relative z-20 mb-8 py-4 lg:hidden sticky top-20 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5 -mx-4 px-4 shadow-sm"
+              >
+                <div className="flex flex-col gap-4">
+
+                  {/* Row 1: Search Bar */}
+                  <div className="w-full relative z-20 group">
+                    <div className={`relative flex items-center bg-white dark:bg-zinc-900 rounded-xl transition-all duration-300 border-2 ${isSearchFocused ? 'border-black dark:border-white shadow-[0_4px_12px_rgb(0,0,0,0.1)]' : 'border-black/5 dark:border-white/10'}`}>
+                      <div className="pl-4 text-gray-400">
+                        <Search size={20} strokeWidth={2.5} />
+                      </div>
+                      <input
+                        type="text"
+                        value={localSearchQuery}
+                        onChange={handleSearchChange}
+                        onFocus={() => setIsSearchFocused(true)}
+                        onBlur={() => setIsSearchFocused(false)}
+                        placeholder="Search..."
+                        className="w-full h-12 pl-3 pr-12 bg-transparent border-none outline-none focus:outline-none text-base font-bold placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-black dark:text-white"
                       />
-                    )}
-                    <span className="relative z-10">All</span>
-                  </motion.button>
-                  {/* Dynamic categories */}
-                  {isLoadingCategories ? (
-                    <div className="px-5 py-2.5 text-sm text-gray-400">Loading categories...</div>
-                  ) : (
-                    categories.map((cat) => {
-                      const isActive = categoryFilter === cat
-                      return (
-                        <motion.button
+                      {localSearchQuery && (
+                        <button
+                          onClick={() => {
+                            setLocalSearchQuery('')
+                            setSearchParams(prev => {
+                              const newParams = new URLSearchParams(prev)
+                              newParams.delete('q')
+                              return newParams
+                            }, { replace: true })
+                          }}
+                          className="absolute right-3 p-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500"
+                        >
+                          <X size={14} strokeWidth={3} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 2: Filters - Horizontal Scroll */}
+                  <div className="w-full overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
+                    <div className="flex gap-3 min-w-max">
+                      <button
+                        onClick={() => handleCategoryChange('All')}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border-2 ${(categoryFilter === 'All' || !categoryFilter)
+                          ? 'bg-[#F8BE00] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                          : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500'
+                          }`}
+                      >
+                        All
+                      </button>
+                      {categories.map((cat) => (
+                        <button
                           key={cat}
                           onClick={() => handleCategoryChange(cat)}
-                          whileHover={{ scale: 1.05, y: -2 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={`relative px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 isolate ${isActive
-                            ? 'text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]'
-                            : 'bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
+                          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border-2 ${categoryFilter === cat
+                            ? 'bg-[#F8BE00] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                            : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500'
                             }`}
                         >
-                          {isActive && (
-                            <motion.div
-                              layoutId="activeFilter"
-                              className="absolute inset-0 bg-[#F8BE00] rounded-xl -z-10 border-2 border-black"
-                              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                          )}
-                          <span className="relative z-10">{cat}</span>
-                        </motion.button>
-                      )
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* Row 3: Popular Tags */}
-              {popularTags.length > 0 && (
-                <div className="w-full pb-2 px-4 sm:px-0 mt-4">
-                  <div className="flex flex-wrap gap-2 items-center justify-center mx-auto px-2 py-2">
-                    <div className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 mr-2 bg-gray-100 dark:bg-zinc-900 px-3 py-1.5 rounded-lg select-none">
-                      <span>Popular tags</span>
+                          {cat}
+                        </button>
+                      ))}
                     </div>
-                    {isLoadingTags ? (
-                      <div className="px-3 py-1 text-xs text-gray-400">Loading tags...</div>
-                    ) : (
-                      popularTags.slice(0, 15).map((tagItem) => {
-                        const isActive = selectedTag === tagItem.tag
-                        return (
-                          <motion.button
-                            key={tagItem.tag}
-                            onClick={() => handleTagClick(tagItem.tag)}
-                            whileHover={{ scale: 1.05, y: -1 }}
-                            whileTap={{ scale: 0.95 }}
-                            className={`relative px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${isActive
-                                ? 'bg-[#F8BE00] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                                : 'bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-zinc-800 hover:border-[#F8BE00] hover:text-black dark:hover:text-white'
-                              }`}
-                          >
-                            <span className="relative z-10">
-                              {tagItem.tag}
-                              {tagItem.count > 1 && (
-                                <span className="ml-1.5 text-[10px] opacity-70">({tagItem.count})</span>
-                              )}
-                            </span>
-                          </motion.button>
-                        )
-                      })
-                    )}
                   </div>
                 </div>
-              )}
-
-            </div>
-          </motion.div>
-
-          {/* Results Grid */}
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-32">
-              <div className="w-16 h-16 border-4 border-black dark:border-white border-t-[#F8BE00] rounded-full animate-spin mb-6" />
-              <p className="text-xl font-mono text-gray-500 animate-pulse">Loading prompts…</p>
-            </div>
-          ) : filteredPrompts.length === 0 ? (
-            <div className="text-center py-32 bg-gray-50 dark:bg-zinc-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-700">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-white dark:bg-black border-2 border-black dark:border-white rounded-full mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
-                <Search size={32} className="text-black dark:text-white" />
-              </div>
-              <h3 className="text-2xl font-black mb-2">No prompts found for your search.</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto font-medium">
-                We couldn’t find anything matching "{localSearchQuery}". Try changing your keywords or clearing filters.
-              </p>
-              <button
-                onClick={clearFilters}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#F8BE00] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-              >
-                <X size={18} className="stroke-[3px]" />
-                Clear filters
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-8 px-2 max-w-7xl mx-auto">
-                <p className="text-gray-500 dark:text-gray-400 font-mono text-sm uppercase tracking-widest">
-                  Showing{' '}
-                  <span className="font-black text-black dark:text-white">{displayedPrompts.length}</span>
-                  {hasMore && ` of ${filteredPrompts.length}`}{' '}
-                  curated prompt{displayedPrompts.length === 1 ? '' : 's'}
-                </p>
-              </div>
-
-              <motion.div
-                layout
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20 max-w-7xl mx-auto"
-              >
-                <AnimatePresence mode='popLayout'>
-                  {displayedPrompts.map((prompt, index) => (
-                    <PromptCard
-                      key={prompt.id}
-                      prompt={prompt}
-                      index={index}
-                      onCopy={handleCopy}
-                      copiedId={copiedId}
-                      isSaved={savedPromptIds.has(prompt.id)}
-                      onSaveToggle={handleSaveToggle}
-                      onShare={handleSharePrompt}
-                      onView={handleOpenImage}
-                      onRate={handleRatePrompt}
-                      requireLoginForRatings={requireLoginForRatings}
-                      isSignedIn={!!user?.id}
-                      onClearRating={handleClearRating}
-                      onTagClick={handleTagClick}
-                    />
-                  ))}
-                </AnimatePresence>
               </motion.div>
 
-              {/* Infinite scroll trigger */}
-              {hasMore && (
-                <div ref={loadMoreRef} className="flex justify-center items-center py-8">
-                  {isLoadingMore && (
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 border-4 border-black dark:border-white border-t-[#F8BE00] rounded-full animate-spin" />
-                      <p className="text-sm font-mono text-gray-500 dark:text-gray-400">Loading more prompts...</p>
+              {/* Results Grid */}
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-32">
+                  <div className="w-16 h-16 border-4 border-black dark:border-white border-t-[#F8BE00] rounded-full animate-spin mb-6" />
+                  <p className="text-xl font-mono text-gray-500 animate-pulse">Loading prompts…</p>
+                </div>
+              ) : filteredPrompts.length === 0 ? (
+                <div className="text-center py-32 bg-gray-50 dark:bg-zinc-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-700">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-white dark:bg-black border-2 border-black dark:border-white rounded-full mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+                    <Search size={32} className="text-black dark:text-white" />
+                  </div>
+                  <h3 className="text-2xl font-black mb-2">No prompts found for your search.</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto font-medium">
+                    We couldn’t find anything matching "{localSearchQuery}". Try changing your keywords or clearing filters.
+                  </p>
+                  <button
+                    onClick={clearFilters}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#F8BE00] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  >
+                    <X size={18} className="stroke-[3px]" />
+                    Clear filters
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-8 px-2">
+                    <p className="text-gray-500 dark:text-gray-400 font-mono text-sm uppercase tracking-widest">
+                      Showing{' '}
+                      <span className="font-black text-black dark:text-white">{displayedPrompts.length}</span>
+                      {hasMore && ` of ${filteredPrompts.length}`}{' '}
+                      curated prompt{displayedPrompts.length === 1 ? '' : 's'}
+                    </p>
+                  </div>
+
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8 pb-20"
+                  >
+                    <AnimatePresence mode='popLayout'>
+                      {displayedPrompts.map((prompt, index) => (
+                        <PromptCard
+                          key={prompt.id}
+                          prompt={prompt}
+                          index={index}
+                          onCopy={handleCopy}
+                          copiedId={copiedId}
+                          isSaved={savedPromptIds.has(prompt.id)}
+                          onSaveToggle={handleSaveToggle}
+                          onShare={handleSharePrompt}
+                          onView={handleOpenImage}
+                          onRate={handleRatePrompt}
+                          requireLoginForRatings={requireLoginForRatings}
+                          isSignedIn={!!user?.id}
+                          onClearRating={handleClearRating}
+                          onTagClick={handleTagClick}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
+
+                  {/* Infinite scroll trigger */}
+                  {hasMore && (
+                    <div ref={loadMoreRef} className="flex justify-center items-center py-8">
+                      {isLoadingMore && (
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-12 h-12 border-4 border-black dark:border-white border-t-[#F8BE00] rounded-full animate-spin" />
+                          <p className="text-sm font-mono text-gray-500 dark:text-gray-400">Loading more prompts...</p>
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
+                </>
               )}
-            </>
-          )}
+            </div>
+          </div>
+
         </div>
       </main>
 
