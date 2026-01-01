@@ -30,6 +30,7 @@ const PromptPage = lazy(() => import('./pages/PromptPage'))
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
 const PromptsPage = lazy(() => import('./pages/admin/PromptsPage'))
+const BulkUploadPage = lazy(() => import('./pages/admin/BulkUploadPage'))
 const ReviewPromptsPage = lazy(() => import('./pages/admin/ReviewPromptsPage'))
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'))
 const SubscriptionsPage = lazy(() => import('./pages/admin/SubscriptionsPage'))
@@ -38,6 +39,9 @@ const AdminBlogEditorPage = lazy(() => import('./pages/admin/AdminBlogEditorPage
 const ExploreHeroToolsAdminPage = lazy(() => import('./pages/admin/ExploreHeroToolsAdminPage'))
 const CategoriesPage = lazy(() => import('./pages/admin/CategoriesPage'))
 const TagsPage = lazy(() => import('./pages/admin/TagsPage'))
+const LinkTrackingPage = lazy(() => import('./pages/admin/LinkTrackingPage'))
+const LinkAnalyticsPage = lazy(() => import('./pages/admin/LinkAnalyticsPage'))
+const LinkTrackingGlobalPage = lazy(() => import('./pages/admin/LinkTrackingGlobalPage'))
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const SavedPromptsPage = lazy(() => import('./pages/SavedPromptsPage'))
@@ -118,6 +122,7 @@ function App() {
           >
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/prompts" element={<PromptsPage />} />
+            <Route path="/admin/bulk" element={<BulkUploadPage />} />
             <Route path="/admin/review" element={<ReviewPromptsPage />} />
             <Route path="/admin/subscriptions" element={<SubscriptionsPage />} />
             <Route path="/admin/settings" element={<SettingsPage />} />
@@ -127,6 +132,9 @@ function App() {
             <Route path="/admin/explore-hero" element={<ExploreHeroToolsAdminPage />} />
             <Route path="/admin/categories" element={<CategoriesPage />} />
             <Route path="/admin/tags" element={<TagsPage />} />
+            <Route path="/admin/links" element={<LinkTrackingPage />} />
+            <Route path="/admin/links/:id" element={<LinkAnalyticsPage />} />
+            <Route path="/admin/links/global" element={<LinkTrackingGlobalPage />} />
           </Route>
 
           {/* 404 Catch-all Route */}

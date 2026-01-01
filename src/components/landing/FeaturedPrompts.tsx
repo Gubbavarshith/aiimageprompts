@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Copy, ExternalLink, Check } from 'lucide-react';
 import { fetchFeaturedPrompts, type PromptRecord } from '@/lib/services/prompts';
+import { getAspectRatioClass } from '@/lib/utils';
 
 interface PromptCardProps {
   prompt: PromptRecord;
@@ -28,7 +29,7 @@ const PromptCard = ({ prompt, index, onCopy, copiedId }: PromptCardProps) => {
       className="group relative flex flex-col h-full"
     >
       {/* Visual Component - The Image */}
-      <div className="relative aspect-[4/3] overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10">
+      <div className={`relative ${getAspectRatioClass(prompt.image_ratio)} overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10`}>
         <img
           src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
           alt={prompt.title}

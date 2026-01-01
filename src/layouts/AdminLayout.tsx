@@ -17,6 +17,8 @@ import {
   EnvelopeIcon,
   TagIcon,
   HashtagIcon,
+  ArrowUpTrayIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useTheme } from '../components/use-theme'
@@ -112,12 +114,14 @@ export default function AdminLayout() {
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon, count: null },
     { name: 'Prompts', href: '/admin/prompts', icon: PhotoIcon, count: null },
+    { name: 'Bulk', href: '/admin/bulk', icon: ArrowUpTrayIcon, count: null },
     { name: 'Review', href: '/admin/review', icon: ClipboardDocumentCheckIcon, count: reviewCount },
     { name: 'Explore Hero', href: '/admin/explore-hero', icon: PhotoIcon, count: null },
     { name: 'Blogs', href: '/admin/blogs', icon: DocumentTextIcon, count: null },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: EnvelopeIcon, count: subscriptionsCount },
     { name: 'Categories', href: '/admin/categories', icon: TagIcon, count: null },
     { name: 'Tags', href: '/admin/tags', icon: HashtagIcon, count: null },
+    { name: 'Link Tracking', href: '/admin/links', icon: LinkIcon, count: null },
     { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon, count: null },
   ]
 

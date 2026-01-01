@@ -8,6 +8,7 @@ import { Footer } from '@/components/landing/Footer'
 import { getSavedPrompts, unsavePrompt } from '@/lib/services/savedPrompts'
 import type { SavedPromptWithDetails } from '@/lib/services/savedPrompts'
 import { useToast } from '@/contexts/ToastContext'
+import { getAspectRatioClass } from '@/lib/utils'
 
 interface SavedPromptCardProps {
     savedPrompt: SavedPromptWithDetails;
@@ -35,7 +36,7 @@ const SavedPromptCard = ({ savedPrompt, index, onCopy, onRemove, copiedId }: Sav
             className="group relative flex flex-col h-full"
         >
             {/* Visual Component - The Image */}
-            <div className="relative aspect-[4/3] overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10">
+            <div className={`relative ${getAspectRatioClass(prompt.image_ratio)} overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10`}>
                 <img
                     src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
                     alt={prompt.title}

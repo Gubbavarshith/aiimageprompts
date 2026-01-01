@@ -12,6 +12,7 @@ import { useToast } from '../contexts/ToastContext'
 import { savePrompt, unsavePrompt, getSavedPromptIds } from '../lib/services/savedPrompts'
 import { getRatingSettings, upsertPromptRating, removePromptRating } from '../lib/services/ratings'
 import { updateMetaTags } from '../lib/seo'
+import { getAspectRatioClass } from '../lib/utils'
 
 // Social Media Icon Components (from ExplorePage)
 const XIcon = ({ className }: { className?: string }) => (
@@ -57,7 +58,7 @@ const RelatedPromptCard = ({ prompt, onNavigate }: RelatedPromptCardProps) => {
       onClick={() => onNavigate(slug, prompt.id)}
       className="group cursor-pointer"
     >
-      <div className="relative aspect-[4/3] overflow-hidden border-2 border-black dark:border-white rounded-xl bg-gray-100 dark:bg-zinc-800 mb-3">
+      <div className={`relative ${getAspectRatioClass(prompt.image_ratio)} overflow-hidden border-2 border-black dark:border-white rounded-xl bg-gray-100 dark:bg-zinc-800 mb-3`}>
         <img
           src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
           alt={prompt.title}
@@ -482,8 +483,8 @@ export default function PromptPage() {
           <div className="grid lg:grid-cols-[2fr_1fr] gap-8 lg:gap-12">
             {/* Main Content */}
             <div>
-              {/* Category Badge */}
-              <div className="mb-6">
+              {/* Category Badge and Ratio */}
+              <div className="mb-6 flex items-center gap-3 flex-wrap">
                 <Link
                   to={`/explore?category=${encodeURIComponent(prompt.category)}`}
                   onClick={() => {
@@ -499,6 +500,9 @@ export default function PromptPage() {
                 >
                   {prompt.category}
                 </Link>
+                <span className="bg-white dark:bg-black border-2 border-black dark:border-white text-black dark:text-white text-xs font-bold px-4 py-2 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] inline-block">
+                  Ratio: {prompt.image_ratio}
+                </span>
               </div>
 
               {/* Title */}
@@ -587,6 +591,32 @@ export default function PromptPage() {
                         #{tag}
                       </button>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Attribution */}
+              {(prompt.attribution || prompt.attribution_link) && (
+                <div className="mb-8">
+                  <h2 className="text-sm uppercase font-black text-gray-500 dark:text-gray-400 tracking-[0.2em] mb-4">
+                    Attribution
+                  </h2>
+                  <div className="bg-gray-50 dark:bg-zinc-950 border-2 border-black dark:border-white rounded-xl p-6">
+                    {prompt.attribution_link ? (
+                      <a
+                        href={prompt.attribution_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-base font-medium text-gray-700 dark:text-gray-200 hover:text-[#F8BE00] transition-colors"
+                      >
+                        {prompt.attribution || prompt.attribution_link}
+                        <ExternalLink size={16} />
+                      </a>
+                    ) : (
+                      <p className="text-base font-medium text-gray-700 dark:text-gray-200">
+                        {prompt.attribution}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}

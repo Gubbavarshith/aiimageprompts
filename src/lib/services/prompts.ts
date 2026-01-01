@@ -33,12 +33,17 @@ export type PromptRecord = {
   updated_at: string
   rating_avg?: number | null
   rating_count?: number
+  attribution?: string | null
+  attribution_link?: string | null
+  scheduled_at?: string | null
+  image_ratio: string
 }
 
 export type PromptPayload = Omit<PromptRecord, 'id' | 'created_at' | 'updated_at'>
 
 export type SubmitPromptPayload = Omit<PromptPayload, 'status' | 'views'> & {
   user_id: string
+  image_ratio: string
 }
 
 export type PromptChangePayload = RealtimePostgresChangesPayload<PromptRecord>

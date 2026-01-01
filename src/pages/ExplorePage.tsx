@@ -14,6 +14,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { getRatingSettings, upsertPromptRating, removePromptRating } from '@/lib/services/ratings'
 import { updateCanonical } from '@/lib/seo'
 import { fetchUniqueCategories, fetchPopularTags } from '@/lib/services/categories'
+import { getAspectRatioClass } from '@/lib/utils'
 
 // Social Media Icon Components
 const XIcon = ({ className }: { className?: string }) => (
@@ -93,7 +94,7 @@ const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
     >
       {/* Visual Component - The Image */}
       <div
-        className="relative aspect-[4/3] overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10 cursor-pointer"
+        className={`relative ${getAspectRatioClass(prompt.image_ratio)} overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10 cursor-pointer`}
         onClick={() => prompt.preview_image_url && onView(prompt)}
         role="button"
         tabIndex={0}

@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { submitPrompt } from '@/lib/services/prompts'
 import { supabase, isSupabaseReady } from '@/lib/supabaseClient'
 import { useToast } from '@/contexts/ToastContext'
-import { sanitizeForStorage } from '@/lib/utils'
+import { sanitizeForStorage, IMAGE_RATIOS, getAspectRatioClass, detectImageRatioFromSource } from '@/lib/utils'
 import { fetchUniqueCategories } from '@/lib/services/categories'
 import {
   Upload,
@@ -48,6 +48,7 @@ export default function SubmitPromptPage() {
     category: '',
     tags: '',
     preview_image_url: '',
+    image_ratio: '4:3',
   })
   const [categories, setCategories] = useState<string[]>([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
@@ -125,15 +126,27 @@ export default function SubmitPromptPage() {
     }
   }
 
-  const handleInputChange = (
+  const handleInputChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
 
     // Validate URL if it's the preview_image_url field
-    if (name === 'preview_image_url' && value.trim() && !isValidUrl(value)) {
-      setError('Please enter a valid URL (must start with http:// or https://)')
+    if (name === 'preview_image_url' && value.trim()) {
+      if (!isValidUrl(value)) {
+        setError('Please enter a valid URL (must start with http:// or https://)')
+      } else {
+        setError(null)
+        // Auto-detect ratio from image URL
+        try {
+          const detectedRatio = await detectImageRatioFromSource(value.trim())
+          setFormData((prev) => ({ ...prev, image_ratio: detectedRatio }))
+        } catch (err) {
+          // Silently fail - keep current ratio if detection fails
+          console.warn('Failed to detect image ratio from URL:', err)
+        }
+      }
     } else {
       setError(null)
     }
@@ -181,7 +194,14 @@ export default function SubmitPromptPage() {
         const { data: urlData } = supabase.storage.from('prompt-images').getPublicUrl(filePath)
         if (!urlData?.publicUrl) throw new Error('Failed to get image URL')
 
-        setFormData((prev) => ({ ...prev, preview_image_url: urlData.publicUrl }))
+        // Auto-detect image ratio
+        const detectedRatio = await detectImageRatioFromSource(file)
+        
+        setFormData((prev) => ({ 
+          ...prev, 
+          preview_image_url: urlData.publicUrl,
+          image_ratio: detectedRatio
+        }))
         toast.success('Image uploaded successfully')
       } catch (err: any) {
         const errorMessage = err?.message || err?.error || 'Unknown error'
@@ -227,9 +247,10 @@ export default function SubmitPromptPage() {
     const trimmedTitle = formData.title.trim()
     const trimmedPrompt = formData.prompt.trim()
     const trimmedCategory = formData.category.trim()
+    const trimmedRatio = formData.image_ratio.trim()
 
-    if (!trimmedTitle || !trimmedPrompt || !trimmedCategory) {
-      setError('Title, prompt, and category are required.')
+    if (!trimmedTitle || !trimmedPrompt || !trimmedCategory || !trimmedRatio) {
+      setError('Title, prompt, category, and image ratio are required.')
       return
     }
 
@@ -255,6 +276,7 @@ export default function SubmitPromptPage() {
         category: sanitizeForStorage(trimmedCategory),
         tags: canonicalTags.length ? canonicalTags.map(tag => sanitizeForStorage(tag)) : null,
         preview_image_url: formData.preview_image_url.trim() || null,
+        image_ratio: trimmedRatio,
         user_id: user.id,
       })
 
@@ -271,6 +293,7 @@ export default function SubmitPromptPage() {
           category: '',
           tags: '',
           preview_image_url: '',
+          image_ratio: '4:3',
         })
         setSuccess(false)
         timeoutRef.current = null
@@ -452,6 +475,32 @@ export default function SubmitPromptPage() {
                     </div>
                   </div>
 
+                  {/* Image Ratio Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="image_ratio" className="uppercase text-xs font-bold tracking-wider text-zinc-500">
+                      Image Ratio <span className="text-[#FFDE1A]">*</span>
+                    </Label>
+                    <div className="relative">
+                      <select
+                        id="image_ratio"
+                        name="image_ratio"
+                        value={formData.image_ratio}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full h-12 px-3 bg-transparent border-2 border-zinc-200 dark:border-zinc-800 focus:border-black dark:focus:border-white rounded-lg text-base outline-none appearance-none cursor-pointer transition-colors"
+                      >
+                        {IMAGE_RATIOS.map((ratio) => (
+                          <option key={ratio.value} value={ratio.value} className="bg-white dark:bg-black">
+                            {ratio.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <span className="text-xs">▼</span>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Main Inputs */}
                   <div className="space-y-2">
                     <Label htmlFor="prompt" className="uppercase text-xs font-bold tracking-wider text-zinc-500">
@@ -589,7 +638,7 @@ export default function SubmitPromptPage() {
                   {/* --- Preview Card (Brutalist Style) --- */}
                   <div className="group relative flex flex-col h-full bg-transparent w-full">
                     {/* Visual Component - The Image */}
-                    <div className="relative aspect-[4/3] overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10 transition-transform duration-300">
+                    <div className={`relative ${getAspectRatioClass(formData.image_ratio)} overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10 transition-transform duration-300`}>
                       {formData.preview_image_url ? (
                         <img
                           src={formData.preview_image_url}

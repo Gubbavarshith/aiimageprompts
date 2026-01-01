@@ -12,7 +12,7 @@ import {
     type PromptPayload,
 } from '@/lib/services/prompts'
 import { useToast } from '@/contexts/ToastContext'
-import { sanitizeForStorage } from '@/lib/utils'
+import { sanitizeForStorage, IMAGE_RATIOS, detectImageRatioFromSource } from '@/lib/utils'
 import { fetchUniqueCategories } from '@/lib/services/categories'
 
 const STATUS_OPTIONS = ['Published', 'Draft', 'Review']
@@ -26,6 +26,10 @@ const EMPTY_FORM_STATE = {
     preview_image_url: '',
     status: 'Draft',
     views: '0',
+    attribution: '',
+    attribution_link: '',
+    scheduled_at: '',
+    image_ratio: '4:3',
 }
 
 type PromptFormState = typeof EMPTY_FORM_STATE
@@ -95,6 +99,23 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
     useEffect(() => {
         if (isOpen) {
             if (initialData) {
+                // Format scheduled_at for datetime-local input (YYYY-MM-DDTHH:mm)
+                const formatScheduledAt = (dateString: string | null | undefined): string => {
+                    if (!dateString) return ''
+                    try {
+                        const date = new Date(dateString)
+                        // Convert to local time and format as YYYY-MM-DDTHH:mm
+                        const year = date.getFullYear()
+                        const month = String(date.getMonth() + 1).padStart(2, '0')
+                        const day = String(date.getDate()).padStart(2, '0')
+                        const hours = String(date.getHours()).padStart(2, '0')
+                        const minutes = String(date.getMinutes()).padStart(2, '0')
+                        return `${year}-${month}-${day}T${hours}:${minutes}`
+                    } catch {
+                        return ''
+                    }
+                }
+                
                 setFormValues({
                     title: initialData.title ?? '',
                     prompt: initialData.prompt ?? '',
@@ -104,6 +125,10 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                     preview_image_url: initialData.preview_image_url ?? '',
                     status: initialData.status ?? 'Draft',
                     views: initialData.views?.toString() ?? '0',
+                    attribution: initialData.attribution ?? '',
+                    attribution_link: initialData.attribution_link ?? '',
+                    scheduled_at: formatScheduledAt(initialData.scheduled_at),
+                    image_ratio: initialData.image_ratio ?? '4:3',
                 })
             } else {
                 setFormValues(EMPTY_FORM_STATE)
@@ -157,7 +182,11 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                 const { data: urlData } = supabase.storage.from('prompt-images').getPublicUrl(filePath)
                 if (!urlData?.publicUrl) throw new Error('Failed to get image URL')
 
+                // Auto-detect image ratio
+                const detectedRatio = await detectImageRatioFromSource(file)
+                
                 handleFormInputChange('preview_image_url', urlData.publicUrl)
+                handleFormInputChange('image_ratio', detectedRatio)
                 toast.success('Image uploaded successfully')
             } catch (err: any) {
                 const errorMessage = err?.message || err?.error || 'Unknown error'
@@ -237,9 +266,10 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
         const trimmedTitle = formValues.title.trim()
         const trimmedPrompt = formValues.prompt.trim()
         const trimmedCategory = formValues.category.trim()
+        const trimmedRatio = formValues.image_ratio.trim()
 
-        if (!trimmedTitle || !trimmedPrompt || !trimmedCategory) {
-            setFormError('Title, prompt, and category are required.')
+        if (!trimmedTitle || !trimmedPrompt || !trimmedCategory || !trimmedRatio) {
+            setFormError('Title, prompt, category, and image ratio are required.')
             return
         }
 
@@ -251,6 +281,27 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
             .filter(Boolean)
         const canonicalTags = Array.from(new Set(tagsArray)) // Remove duplicates
 
+        // Handle scheduled_at: convert datetime-local to ISO string if provided
+        // Only set scheduled_at if status is Published
+        let scheduledAt: string | null = null
+        if (formValues.status === 'Published' && formValues.scheduled_at.trim()) {
+            try {
+                const localDate = new Date(formValues.scheduled_at)
+                // Validate that scheduled date is in the future
+                if (localDate <= new Date()) {
+                    setFormError('Scheduled date must be in the future.')
+                    setIsSaving(false)
+                    return
+                }
+                scheduledAt = localDate.toISOString()
+            } catch (err) {
+                setFormError('Invalid scheduled date/time. Please check the format.')
+                setIsSaving(false)
+                return
+            }
+        }
+        // Clear scheduled_at if status is not Published
+
         const payload: PromptPayload = {
             title: sanitizeForStorage(trimmedTitle),
             prompt: sanitizeForStorage(trimmedPrompt),
@@ -261,6 +312,10 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
             status: formValues.status,
             views: isNaN(Number(formValues.views)) ? 0 : Number(formValues.views),
             user_id: null,
+            attribution: formValues.attribution.trim() || null,
+            attribution_link: formValues.attribution_link.trim() || null,
+            scheduled_at: scheduledAt,
+            image_ratio: trimmedRatio,
         }
 
         setIsSaving(true)
@@ -364,6 +419,24 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                             </select>
                         </div>
                         <div className="space-y-2">
+                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Image Ratio *</label>
+                            <select
+                                value={formValues.image_ratio}
+                                onChange={(e) => handleFormInputChange('image_ratio', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                                required
+                            >
+                                {IMAGE_RATIOS.map((ratio) => (
+                                    <option key={ratio.value} value={ratio.value}>
+                                        {ratio.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
                             <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Tags (comma separated)</label>
                             <input
                                 type="text"
@@ -422,12 +495,26 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                                 <input
                                     type="url"
                                     value={formValues.preview_image_url}
-                                    onChange={(e) => handleFormInputChange('preview_image_url', e.target.value)}
+                                    onChange={async (e) => {
+                                        const url = e.target.value
+                                        handleFormInputChange('preview_image_url', url)
+                                        
+                                        // Auto-detect ratio from image URL
+                                        if (url.trim()) {
+                                            try {
+                                                const detectedRatio = await detectImageRatioFromSource(url.trim())
+                                                handleFormInputChange('image_ratio', detectedRatio)
+                                            } catch (err) {
+                                                // Silently fail - keep current ratio if detection fails
+                                                console.warn('Failed to detect image ratio from URL:', err)
+                                            }
+                                        }
+                                    }}
                                     className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
                                     placeholder="Or paste image URL..."
                                 />
                                 <p className="text-xs text-zinc-500">
-                                    Upload an image or paste a direct URL. Recommended size: 1024x1024px.
+                                    Upload an image or paste a direct URL. Ratio will be auto-detected.
                                 </p>
                                 <input
                                     ref={fileInputRef}
@@ -460,6 +547,45 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                             placeholder="Things to avoid..."
                         />
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Attribution (optional)</label>
+                            <input
+                                type="text"
+                                value={formValues.attribution}
+                                onChange={(e) => handleFormInputChange('attribution', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                                placeholder="Creator name or source"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Attribution Link (optional)</label>
+                            <input
+                                type="url"
+                                value={formValues.attribution_link}
+                                onChange={(e) => handleFormInputChange('attribution_link', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                                placeholder="https://example.com"
+                            />
+                        </div>
+                    </div>
+
+                    {formValues.status === 'Published' && (
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Schedule Publication (optional)</label>
+                            <input
+                                type="datetime-local"
+                                value={formValues.scheduled_at}
+                                onChange={(e) => handleFormInputChange('scheduled_at', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"
+                                min={new Date().toISOString().slice(0, 16)}
+                            />
+                            <p className="text-xs text-zinc-500">
+                                Leave empty to publish immediately. Set a future date/time to schedule publication.
+                            </p>
+                        </div>
+                    )}
 
                     <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-white/5">
                         <button
