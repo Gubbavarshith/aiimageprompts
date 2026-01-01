@@ -39,9 +39,6 @@ const AdminBlogEditorPage = lazy(() => import('./pages/admin/AdminBlogEditorPage
 const ExploreHeroToolsAdminPage = lazy(() => import('./pages/admin/ExploreHeroToolsAdminPage'))
 const CategoriesPage = lazy(() => import('./pages/admin/CategoriesPage'))
 const TagsPage = lazy(() => import('./pages/admin/TagsPage'))
-const LinkTrackingPage = lazy(() => import('./pages/admin/LinkTrackingPage'))
-const LinkAnalyticsPage = lazy(() => import('./pages/admin/LinkAnalyticsPage'))
-const LinkTrackingGlobalPage = lazy(() => import('./pages/admin/LinkTrackingGlobalPage'))
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const SavedPromptsPage = lazy(() => import('./pages/SavedPromptsPage'))
@@ -132,9 +129,6 @@ function App() {
             <Route path="/admin/explore-hero" element={<ExploreHeroToolsAdminPage />} />
             <Route path="/admin/categories" element={<CategoriesPage />} />
             <Route path="/admin/tags" element={<TagsPage />} />
-            <Route path="/admin/links" element={<LinkTrackingPage />} />
-            <Route path="/admin/links/:id" element={<LinkAnalyticsPage />} />
-            <Route path="/admin/links/global" element={<LinkTrackingGlobalPage />} />
           </Route>
 
           {/* 404 Catch-all Route */}

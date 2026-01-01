@@ -10,10 +10,6 @@
       "destination": "/api/sitemap.xml"
     },
     {
-      "source": "/go/(.*)",
-      "destination": "/api/go/$1"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

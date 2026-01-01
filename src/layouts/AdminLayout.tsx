@@ -18,7 +18,6 @@ import {
   TagIcon,
   HashtagIcon,
   ArrowUpTrayIcon,
-  LinkIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useTheme } from '../components/use-theme'
@@ -121,7 +120,6 @@ export default function AdminLayout() {
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: EnvelopeIcon, count: subscriptionsCount },
     { name: 'Categories', href: '/admin/categories', icon: TagIcon, count: null },
     { name: 'Tags', href: '/admin/tags', icon: HashtagIcon, count: null },
-    { name: 'Link Tracking', href: '/admin/links', icon: LinkIcon, count: null },
     { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon, count: null },
   ]
 
