@@ -13,7 +13,7 @@ import {
 import { parseCSV, validateBulkPrompt, normalizeBulkPrompt, detectImageRatioFromSource, getAspectRatioClass } from '@/lib/utils'
 import { fetchUniqueCategories } from '@/lib/services/categories'
 import { bulkCreatePrompts, type BulkUploadResult } from '@/lib/services/bulkUpload'
-import { saveBulkUploadDrafts, loadBulkUploadDrafts, clearBulkUploadDrafts, deleteBulkUploadDraft, type BulkUploadDraft } from '@/lib/services/bulkUploadDrafts'
+import { saveBulkUploadDrafts, loadBulkUploadDrafts, clearBulkUploadDrafts, deleteBulkUploadDraft } from '@/lib/services/bulkUploadDrafts'
 import { useToast } from '@/contexts/ToastContext'
 import type { PromptPayload } from '@/lib/services/prompts'
 import { supabase, isSupabaseReady } from '@/lib/supabaseClient'

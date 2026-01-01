@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowLeftIcon,
-  LinkIcon,
   ChartBarIcon,
 } from '@heroicons/react/24/outline'
 import {
@@ -334,12 +333,16 @@ export default function LinkAnalyticsPage() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ device, percent }) => `${device}: ${(percent * 100).toFixed(0)}%`}
+                label={(entry: any) => {
+                  const percent = entry.percent
+                  const device = entry.device
+                  return percent !== undefined ? `${device}: ${(percent * 100).toFixed(0)}%` : ''
+                }}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="count"
               >
-                {deviceBreakdown.map((entry, index) => (
+                {deviceBreakdown.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>

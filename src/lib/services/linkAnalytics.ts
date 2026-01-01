@@ -108,7 +108,7 @@ export async function getAnalyticsSummary(linkId: string, dateRange?: { start: s
     return {
       total_clicks: data.length,
       unique_clicks: uniqueVisitors.size,
-      device_breakdown,
+      device_breakdown: deviceBreakdown,
       top_referrers: topReferrers,
       top_countries: topCountries,
     }
