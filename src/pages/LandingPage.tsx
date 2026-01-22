@@ -5,7 +5,9 @@ import { HeroSection } from '../components/landing/HeroSection';
 const FloatingNavbar = lazy(() => import('../components/landing/FloatingNavbar').then(m => ({ default: m.FloatingNavbar })));
 const FeaturedPrompts = lazy(() => import('../components/landing/FeaturedPrompts').then(m => ({ default: m.FeaturedPrompts })));
 const SEOContentSection = lazy(() => import('../components/landing/SEOContentSection').then(m => ({ default: m.SEOContentSection })));
+const SubmitPromptSection = lazy(() => import('../components/landing/SubmitPromptSection').then(m => ({ default: m.SubmitPromptSection })));
 const TestimonialsSection = lazy(() => import('../components/landing/TestimonialsSection').then(m => ({ default: m.TestimonialsSection })));
+const BadgesSection = lazy(() => import('../components/landing/BadgesSection').then(m => ({ default: m.BadgesSection })));
 
 const Footer = lazy(() => import('../components/landing/Footer').then(m => ({ default: m.Footer })));
 
@@ -17,7 +19,7 @@ const BelowFoldPlaceholder = () => (
 const LandingPage = () => {
   useEffect(() => {
     // Set document title - static for fast LCP
-    document.title = 'AI Image Prompts – Free AI Prompt Library for Image Generation';
+    document.title = 'Better Prompts, Better Art | AI Image Prompts';
   }, []);
 
   return (
@@ -34,7 +36,9 @@ const LandingPage = () => {
       <Suspense fallback={<BelowFoldPlaceholder />}>
         <FeaturedPrompts />
         <SEOContentSection />
+        <SubmitPromptSection />
         <TestimonialsSection />
+        <BadgesSection />
 
         <Footer />
       </Suspense>

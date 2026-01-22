@@ -5,6 +5,8 @@ import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
 import { useToast } from '@/contexts/ToastContext'
 import { updateCanonical } from '@/lib/seo'
+import { createContactMessage } from '@/lib/services/contactMessages'
+import { isSupabaseReady } from '@/lib/supabaseClient'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '', honeypot: '' })
@@ -14,7 +16,7 @@ export default function ContactPage() {
   const toast = useToast()
 
   useEffect(() => {
-    document.title = 'Contact – AI Image Prompts'
+    document.title = 'Contact | Better Prompts, Better Art'
     updateCanonical('/contact')
     window.scrollTo(0, 0)
   }, [])
@@ -25,23 +27,37 @@ export default function ContactPage() {
     setIsSubmitting(true)
     
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-
-      if (!response.ok) {
-        const message = await response.text()
-        throw new Error(message || 'Failed to send message')
+      // Check if honeypot is filled (bot detection)
+      if (formData.honeypot) {
+        setSubmitted(true)
+        setFormData({ name: '', email: '', message: '', honeypot: '' })
+        setIsSubmitting(false)
+        return
       }
 
-      setSubmitted(true)
-      setFormData({ name: '', email: '', message: '', honeypot: '' })
-      toast.success('Message sent. We’ll get back to you soon.')
+      // Use Supabase directly
+      if (!isSupabaseReady()) {
+        throw new Error('Database is not configured. Please try again later.')
+      }
+
+      const result = await createContactMessage({
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+        user_agent: navigator.userAgent,
+      })
+
+      if (result.success) {
+        setSubmitted(true)
+        setFormData({ name: '', email: '', message: '', honeypot: '' })
+        toast.success('Message sent. We'll get back to you soon.')
+      } else {
+        throw new Error(result.error || 'Failed to send message')
+      }
     } catch (err) {
-      console.error(err)
-      toast.error('Something went wrong while sending your message. Please try again.')
+      console.error('Contact form error:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Something went wrong while sending your message. Please try again.'
+      toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -55,12 +71,12 @@ export default function ContactPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 font-sans selection:bg-[#F8BE00] selection:text-black overflow-x-hidden">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 font-sans selection:bg-[#FFDE1A] selection:text-black overflow-x-hidden">
       <FloatingNavbar />
 
       {/* Ambient Spotlight Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[#F8BE00]/10 dark:bg-[#F8BE00]/5 rounded-[100%] blur-[120px] opacity-60" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[#FFDE1A]/10 dark:bg-[#FFDE1A]/5 rounded-[100%] blur-[120px] opacity-60" />
         <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[150px] opacity-40" />
       </div>
 
@@ -75,8 +91,8 @@ export default function ContactPage() {
               transition={{ duration: 0.6 }}
               className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6"
             >
-              Let’s talk about your next image. <br />
-              <span className="text-[#F8BE00]">Or your entire visual system.</span>
+              Let's talk about your next image. <br />
+              <span className="text-[#FFDE1A]">Or your entire visual system.</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -84,7 +100,7 @@ export default function ContactPage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-lg md:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto"
             >
-              Whether you’re exploring prompts for the first time or building a serious visual workflow, we’d love to hear what you’re making.
+              Whether you're exploring prompts for the first time or building a serious visual workflow, we'd love to hear what you're making.
             </motion.p>
           </div>
 
@@ -111,7 +127,7 @@ export default function ContactPage() {
                     </div>
                     <h3 className="text-2xl font-bold mb-2">Message sent</h3>
                     <p className="text-neutral-500 dark:text-neutral-400 max-w-sm mb-8">
-                      We’ve received your message and will get back to you as soon as we can.
+                      We've received your message and will get back to you as soon as we can.
                     </p>
                     <button
                       onClick={() => setSubmitted(false)}
@@ -152,7 +168,7 @@ export default function ContactPage() {
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             onFocus={() => setFocusedField('name')}
                             onBlur={() => setFocusedField(null)}
-                            className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#F8BE00] focus:ring-1 focus:ring-[#F8BE00] outline-none transition-all"
+                            className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-1 focus:ring-[#FFDE1A] outline-none transition-all"
                             placeholder="Your name"
                           />
                         </div>
@@ -167,7 +183,7 @@ export default function ContactPage() {
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             onFocus={() => setFocusedField('email')}
                             onBlur={() => setFocusedField(null)}
-                            className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#F8BE00] focus:ring-1 focus:ring-[#F8BE00] outline-none transition-all"
+                            className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-1 focus:ring-[#FFDE1A] outline-none transition-all"
                             placeholder="you@example.com"
                           />
                         </div>
@@ -184,8 +200,8 @@ export default function ContactPage() {
                           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                           onFocus={() => setFocusedField('message')}
                           onBlur={() => setFocusedField(null)}
-                          className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#F8BE00] focus:ring-1 focus:ring-[#F8BE00] outline-none transition-all resize-none"
-                          placeholder="Tell us what you’re working on, what you need, or what’s not working."
+                          className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-1 focus:ring-[#FFDE1A] outline-none transition-all resize-none"
+                          placeholder="Tell us what you're working on, what you need, or what's not working."
                         />
                       </div>
                     </div>
@@ -195,7 +211,7 @@ export default function ContactPage() {
                       disabled={isSubmitting}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
-                      className="w-full py-4 rounded-xl bg-[#F8BE00] text-black font-bold text-lg shadow-lg shadow-[#F8BE00]/20 hover:shadow-[#F8BE00]/40 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                      className="w-full py-4 rounded-xl bg-[#FFDE1A] text-black font-bold text-lg shadow-lg shadow-[#FFDE1A]/20 hover:shadow-[#FFDE1A]/40 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                     >
                       {isSubmitting ? (
                         <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
@@ -222,7 +238,7 @@ export default function ContactPage() {
               <div className="bg-neutral-100 dark:bg-neutral-900/50 rounded-3xl p-8 border border-neutral-200 dark:border-neutral-800">
                 <h3 className="text-xl font-bold mb-4">Other ways to connect</h3>
                 <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
-                  Prefer social? Reach out on any of these channels and share what you’re building, testing, or imagining.
+                  Prefer social? Reach out on any of these channels and share what you're building, testing, or imagining.
                 </p>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -230,9 +246,9 @@ export default function ContactPage() {
                     <a
                       key={link.label}
                       href={link.href}
-                      className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 hover:border-[#F8BE00] hover:bg-[#F8BE00]/5 transition-all group"
+                      className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 hover:border-[#FFDE1A] hover:bg-[#FFDE1A]/5 transition-all group"
                     >
-                      <link.icon className="w-6 h-6 mb-2 text-neutral-400 group-hover:text-[#F8BE00] transition-colors" />
+                      <link.icon className="w-6 h-6 mb-2 text-neutral-400 group-hover:text-[#FFDE1A] transition-colors" />
                       <span className="text-sm font-medium">{link.label}</span>
                     </a>
                   ))}
@@ -240,11 +256,17 @@ export default function ContactPage() {
               </div>
 
               {/* FAQ Mini Section */}
-              <div className="bg-[#F8BE00] rounded-3xl p-8 text-black relative overflow-hidden group">
+              <div className="bg-[#FFDE1A] rounded-3xl p-8 text-black relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 transition-transform group-hover:scale-150 duration-700" />
                 <h3 className="text-xl font-bold mb-2 relative z-10">Need something quick?</h3>
-                <p className="opacity-80 mb-4 relative z-10">Ask a short, specific question and we’ll do our best to unblock you fast.</p>
-                <button className="px-4 py-2 bg-black text-white rounded-full text-sm font-bold hover:bg-black/80 transition-colors relative z-10">
+                <p className="opacity-80 mb-4 relative z-10">Ask a short, specific question and we'll do our best to unblock you fast.</p>
+                <button 
+                  onClick={() => {
+                    const formElement = document.querySelector('form')
+                    formElement?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }}
+                  className="px-4 py-2 bg-black text-white rounded-full text-sm font-bold hover:bg-black/80 transition-colors relative z-10"
+                >
                   Open contact form
                 </button>
               </div>

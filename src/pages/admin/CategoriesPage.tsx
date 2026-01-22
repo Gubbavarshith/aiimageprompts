@@ -309,7 +309,7 @@ export default function CategoriesPage() {
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="px-5 py-2.5 rounded-xl bg-[#FFDE1A] text-black text-sm font-semibold shadow-[0_0_15px_-5px_#FFDE1A] hover:bg-[#ffe64d] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 rounded-xl bg-[#FFDE1A] text-black text-sm font-semibold shadow-[0_0_15px_-5px_#FFDE1A] hover:bg-[#F8BE00] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>

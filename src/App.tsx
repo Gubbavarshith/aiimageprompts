@@ -11,6 +11,7 @@ const AdminLayout = lazy(() => import('./layouts/AdminLayout'))
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'))
 const AdminProvider = lazy(() => import('./contexts/AdminContext').then(m => ({ default: m.AdminProvider })))
 const BuyMeACoffee = lazy(() => import('./components/BuyMeACoffee'))
+const FAQButton = lazy(() => import('./components/FAQButton'))
 
 // Lazy load other pages for code splitting
 const ExplorePage = lazy(() => import('./pages/ExplorePage'))
@@ -19,6 +20,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
 const RefundPolicyPage = lazy(() => import('./pages/RefundPolicyPage'))
+const CookiesPolicyPage = lazy(() => import('./pages/CookiesPolicyPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const FAQPage = lazy(() => import('./pages/FAQPage'))
@@ -39,9 +41,14 @@ const AdminBlogEditorPage = lazy(() => import('./pages/admin/AdminBlogEditorPage
 const ExploreHeroToolsAdminPage = lazy(() => import('./pages/admin/ExploreHeroToolsAdminPage'))
 const CategoriesPage = lazy(() => import('./pages/admin/CategoriesPage'))
 const TagsPage = lazy(() => import('./pages/admin/TagsPage'))
+const LinksPage = lazy(() => import('./pages/admin/LinksPage'))
+const GoogleAnalyticsPage = lazy(() => import('./pages/admin/GoogleAnalyticsPage'))
+const ContactMessagesPage = lazy(() => import('./pages/admin/ContactMessagesPage'))
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const SavedPromptsPage = lazy(() => import('./pages/SavedPromptsPage'))
+const DonatePage = lazy(() => import('./pages/DonatePage'))
+const CookieConsent = lazy(() => import('./components/CookieConsent'))
 import { WelcomeModal } from './components/modals/WelcomeModal'
 
 // Loading fallback component
@@ -91,10 +98,12 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/refund" element={<RefundPolicyPage />} />
+          <Route path="/cookies" element={<CookiesPolicyPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/guidelines" element={<GuidelinesPage />} />
+          <Route path="/donate" element={<DonatePage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
           <Route path="/prompt/:slug" element={<PromptPage />} />
@@ -129,6 +138,9 @@ function App() {
             <Route path="/admin/explore-hero" element={<ExploreHeroToolsAdminPage />} />
             <Route path="/admin/categories" element={<CategoriesPage />} />
             <Route path="/admin/tags" element={<TagsPage />} />
+            <Route path="/admin/links" element={<LinksPage />} />
+            <Route path="/admin/google-analytics" element={<GoogleAnalyticsPage />} />
+            <Route path="/admin/contact" element={<ContactMessagesPage />} />
           </Route>
 
           {/* 404 Catch-all Route */}
@@ -136,7 +148,13 @@ function App() {
         </Routes>
       </Suspense>
       <Suspense fallback={null}>
+        <FAQButton />
+      </Suspense>
+      <Suspense fallback={null}>
         <BuyMeACoffee />
+      </Suspense>
+      <Suspense fallback={null}>
+        <CookieConsent />
       </Suspense>
       <WelcomeModal />
     </>

@@ -9,6 +9,16 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      // Proxy /l/* requests to Supabase Edge Function for local link tracking
+      '/l': {
+        target: 'https://hfncjkqzflreyfxvobxx.supabase.co/functions/v1/track-link',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/l\//, ''),
+      },
+    },
+  },
   build: {
     minify: 'esbuild',
     chunkSizeWarningLimit: 1000,

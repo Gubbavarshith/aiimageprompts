@@ -684,7 +684,7 @@ export default function BulkUploadPage() {
                 <button
                   onClick={() => handlePublish(false)}
                   disabled={selectedRows.size === 0 || isPublishing}
-                  className="px-4 py-2 bg-[#FFDE1A] text-black font-semibold rounded-lg hover:bg-[#ffe64d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 bg-[#FFDE1A] text-black font-semibold rounded-lg hover:bg-[#F8BE00] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isPublishing ? 'Publishing...' : `Publish Selected (${selectedRows.size})`}
                 </button>
@@ -1022,7 +1022,7 @@ function PromptPreviewModal({
 
               {/* Category Tag */}
               <div className="absolute top-3 left-3 z-20">
-                <span className="bg-[#F8BE00] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <span className="bg-[#FFDE1A] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   {prompt.category}
                 </span>
               </div>
@@ -1040,7 +1040,7 @@ function PromptPreviewModal({
               {/* Prompt Content */}
               <div className="p-4 flex-grow bg-gray-50 dark:bg-zinc-950">
                 <div className="relative">
-                  <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#F8BE00] opacity-50"></div>
+                  <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#FFDE1A] opacity-50"></div>
                   <p className="pl-3 text-sm font-mono text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-4">
                     {prompt.prompt}
                   </p>
@@ -1104,7 +1104,7 @@ function PromptPreviewModal({
                 <button
                   onClick={onPublish}
                   disabled={isPublishing || isDeleting || isReviewing}
-                  className="flex-1 py-3 px-4 bg-[#FFDE1A] text-black hover:bg-[#ffe64d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 font-bold uppercase text-sm tracking-widest"
+                  className="flex-1 py-3 px-4 bg-[#FFDE1A] text-black hover:bg-[#F8BE00] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 font-bold uppercase text-sm tracking-widest"
                 >
                   {isPublishing ? (
                     <>
@@ -1476,7 +1476,7 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-[#FFDE1A] text-black text-sm font-semibold shadow-[0_0_15px_-5px_#FFDE1A] hover:bg-[#ffe64d] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 rounded-xl bg-[#FFDE1A] text-black text-sm font-semibold shadow-[0_0_15px_-5px_#FFDE1A] hover:bg-[#F8BE00] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
               disabled={isSaving}
             >
               {isSaving ? 'Saving...' : 'Save Changes'}

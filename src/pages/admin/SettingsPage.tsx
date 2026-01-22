@@ -502,7 +502,7 @@ export default function SettingsPage() {
                         setShowMaintenanceModal(false)
                         toast.success('Maintenance mode enabled with timer')
                       }}
-                      className="flex-1 px-4 py-2.5 bg-[#FFDE1A] hover:bg-[#ffe64d] text-black font-bold rounded-xl transition-colors active:scale-95"
+                      className="flex-1 px-4 py-2.5 bg-[#FFDE1A] hover:bg-[#F8BE00] text-black font-bold rounded-xl transition-colors active:scale-95"
                     >
                       Enable with Timer
                     </button>
@@ -625,7 +625,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSaveChanges}
                   disabled={isSaving}
-                  className="px-6 py-3 bg-[#FFDE1A] hover:bg-[#ffe64d] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold rounded-xl transition-colors shadow-[0_0_20px_-5px_#FFDE1A] active:scale-95"
+                  className="px-6 py-3 bg-[#FFDE1A] hover:bg-[#F8BE00] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold rounded-xl transition-colors shadow-[0_0_20px_-5px_#FFDE1A] active:scale-95"
                 >
                   {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>

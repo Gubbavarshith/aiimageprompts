@@ -137,7 +137,7 @@ const BlogPage = () => {
     const toast = useToast()
 
     useEffect(() => {
-        document.title = 'Blog – AI Image Prompts'
+        document.title = 'Blog | Better Prompts, Better Art'
         updateCanonical('/blog')
         window.scrollTo(0, 0)
     }, [])

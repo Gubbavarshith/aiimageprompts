@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
-import { Menu, X, Moon, Sun } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SignedIn, SignedOut, UserButton, useAuth } from '@clerk/clerk-react';
 import { useTheme } from '@/components/use-theme';
 import { cn } from '@/lib/utils';
+import ThemeSwitch from '@/components/ui/ThemeSwitch';
 
 // ============================================
 // UNIFIED SPRING CONFIGURATIONS
@@ -274,103 +275,45 @@ export const FloatingNavbar = () => {
                   className="flex items-center gap-3 flex-shrink-0"
                 >
                   {/* Theme Toggle */}
-                  <motion.button
-                    onClick={toggleTheme}
-                    aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                    className="w-10 h-10 rounded-full border border-black/8 dark:border-white/10 flex items-center justify-center relative overflow-hidden flex-shrink-0"
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.92 }}
-                    transition={snappySpring}
+                  <motion.div
+                    variants={itemVariants}
+                    className="flex items-center justify-center flex-shrink-0"
                   >
-                    {/* Hover background */}
-                    <motion.div
-                      className="absolute inset-0 bg-[#F8BE00]/12 rounded-full"
-                      initial={{ scale: 0, opacity: 0 }}
-                      whileHover={{ scale: 1, opacity: 1 }}
-                      transition={snappySpring}
+                    <ThemeSwitch 
+                      checked={theme === 'dark'} 
+                      onChange={toggleTheme}
                     />
+                  </motion.div>
 
-                    <AnimatePresence mode="popLayout" initial={false}>
-                      {theme === 'dark' ? (
-                        <motion.div
-                          key="sun"
-                          initial={{ rotate: -45, opacity: 0, scale: 0.5 }}
-                          animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                          exit={{ rotate: 45, opacity: 0, scale: 0.5 }}
-                          transition={snappySpring}
-                        >
-                          <Sun size={18} className="text-white relative z-10" />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="moon"
-                          initial={{ rotate: 45, opacity: 0, scale: 0.5 }}
-                          animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                          exit={{ rotate: -45, opacity: 0, scale: 0.5 }}
-                          transition={snappySpring}
-                        >
-                          <Moon size={18} className="text-black relative z-10" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.button>
-
-                  {/* Sign In / Sign Up Button or User Button */}
+                  {/* Sign In / Sign Up Button - visible when signed out (desktop/tablet only) */}
                   <SignedOut>
-                    <Link to="/auth" className="relative group">
-                      <motion.button
-                        className="relative px-6 h-10 rounded-full font-bold text-sm whitespace-nowrap overflow-hidden
-                                 bg-gradient-to-br from-[#F8BE00] via-[#FFD700] to-[#F8BE00]
-                                 text-black flex items-center justify-center
-                                 shadow-[0_4px_16px_rgba(248,190,0,0.3)] dark:shadow-[0_4px_20px_rgba(248,190,0,0.4)]
-                                 border border-[#FFD700]/20"
-                        whileHover={{
-                          scale: 1.05,
-                          boxShadow: "0 6px 24px rgba(248, 190, 0, 0.5)"
-                        }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={snappySpring}
+                    <Link to="/auth" className="relative group hidden md:block">
+                      <button
+                        className="border duration-300 relative cursor-pointer overflow-hidden
+                        h-12 w-40 rounded-full p-2 font-extrabold
+                        bg-black hover:bg-white
+                        dark:bg-white dark:hover:bg-black
+                        border-black/10 dark:border-white/10
+                        transition-[background,box-shadow]"
                       >
-                        {/* Shimmer effect overlay */}
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                          initial={{ x: "-100%", opacity: 0 }}
-                          animate={{
-                            x: ["100%", "-100%"],
-                            opacity: [0, 1, 0]
-                          }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 3,
-                            ease: "linear",
-                            repeatDelay: 1
-                          }}
-                        />
+                        {/* Accent bubbles with brand palette */}
+                        <div className="absolute group-hover:-top-1 group-hover:-right-2 z-10 w-16 h-16 rounded-full group-hover:scale-150 duration-700 right-12 top-12 bg-[#FFF3B0]" />
+                        <div className="absolute group-hover:-top-1 group-hover:-right-2 z-10 w-12 h-12 rounded-full group-hover:scale-150 duration-700 right-20 -top-6 bg-[#FFDE1A]" />
+                        <div className="absolute group-hover:-top-1 group-hover:-right-2 z-10 w-8 h-8 rounded-full group-hover:scale-150 duration-700 right-32 top-6 bg-[#FFC527]" />
+                        <div className="absolute group-hover:-top-1 group-hover:-right-2 z-10 w-4 h-4 rounded-full group-hover:scale-150 duration-700 right-2 top-12 bg-[#F29F05]" />
 
-                        {/* Hover glow effect */}
-                        <motion.div
-                          className="absolute inset-0 rounded-full bg-white"
-                          initial={{ opacity: 0 }}
-                          whileHover={{ opacity: 0.2 }}
-                          transition={snappySpring}
-                        />
-
-                        {/* Button text - responsive */}
-                        <span className="relative z-10 flex items-center gap-1.5">
-                          <span className="hidden sm:inline">Sign in / Sign up</span>
-                          <span className="sm:hidden">Sign in</span>
-                        </span>
-                      </motion.button>
-
-                      {/* Subtle rotating glow behind button */}
-                      <motion.div
-                        className="absolute -inset-1 bg-gradient-to-r from-[#F8BE00] to-[#FFD700] rounded-full opacity-0 blur-lg -z-10"
-                        initial={{ opacity: 0, rotate: 0 }}
-                        whileHover={{ opacity: 0.4, rotate: 180 }}
-                        transition={{ ...snappySpring, duration: 0.6 }}
-                      />
+                        <p
+                          className="z-10 absolute inset-0 flex items-center pl-4 text-sm font-extrabold
+                          text-white group-hover:text-black
+                          dark:text-black dark:group-hover:text-white"
+                        >
+                          Sign in / Sign up
+                        </p>
+                      </button>
                     </Link>
                   </SignedOut>
+
+                  {/* User avatar (visible for signed-in users only) */}
                   <SignedIn>
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -381,9 +324,12 @@ export const FloatingNavbar = () => {
                       <UserButton
                         appearance={{
                           elements: {
-                            avatarBox: 'w-10 h-10 border-2 border-black/10 dark:border-white/10 flex-shrink-0 rounded-full',
-                            userButtonPopoverCard: 'bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-black/10 dark:border-white/10',
-                            userButtonPopoverActionButton: 'hover:bg-black/5 dark:hover:bg-white/5',
+                            avatarBox:
+                              'w-10 h-10 border-2 border-black/10 dark:border-white/10 flex-shrink-0 rounded-full',
+                            userButtonPopoverCard:
+                              'bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-black/10 dark:border-white/10',
+                            userButtonPopoverActionButton:
+                              'hover:bg-black/5 dark:hover:bg-white/5',
                             userButtonTrigger: 'flex items-center justify-center',
                           },
                         }}
@@ -456,6 +402,46 @@ export const FloatingNavbar = () => {
                         </Link>
                       </motion.div>
                     ))}
+                    
+                    {/* Sign In / Sign Up Button in Mobile Menu */}
+                    <SignedOut>
+                      <motion.div
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: -10, opacity: 0 }}
+                        transition={{ delay: navItems.length * 0.05 }}
+                        className="pt-2"
+                      >
+                        <Link
+                          to="/auth"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="relative group block"
+                        >
+                          <button
+                            className="border duration-300 relative cursor-pointer overflow-hidden
+                            h-12 w-full rounded-full p-2 font-extrabold
+                            bg-black hover:bg-white
+                            dark:bg-white dark:hover:bg-black
+                            border-black/10 dark:border-white/10
+                            transition-[background,box-shadow]"
+                          >
+                            {/* Accent bubbles with brand palette */}
+                            <div className="absolute group-hover:-top-1 group-hover:-right-2 z-10 w-16 h-16 rounded-full group-hover:scale-150 duration-700 right-12 top-12 bg-[#FFF3B0]" />
+                            <div className="absolute group-hover:-top-1 group-hover:-right-2 z-10 w-12 h-12 rounded-full group-hover:scale-150 duration-700 right-20 -top-6 bg-[#FFDE1A]" />
+                            <div className="absolute group-hover:-top-1 group-hover:-right-2 z-10 w-8 h-8 rounded-full group-hover:scale-150 duration-700 right-32 top-6 bg-[#FFC527]" />
+                            <div className="absolute group-hover:-top-1 group-hover:-right-2 z-10 w-4 h-4 rounded-full group-hover:scale-150 duration-700 right-2 top-12 bg-[#F29F05]" />
+
+                            <p
+                              className="z-10 absolute inset-0 flex items-center pl-4 text-sm font-extrabold
+                              text-white group-hover:text-black
+                              dark:text-black dark:group-hover:text-white"
+                            >
+                              Sign in / Sign up
+                            </p>
+                          </button>
+                        </Link>
+                      </motion.div>
+                    </SignedOut>
                   </motion.nav>
                 )}
               </AnimatePresence>

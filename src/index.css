@@ -4,9 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --brand-yellow: #FFDE1A;
+    --brand-yellow-hover: #F8BE00;
+  }
+}
+
 /* Tiptap Editor Styles */
 .ProseMirror {
   outline: none;
+  min-height: 750px;
+  padding: 2rem;
+  max-width: 100%;
+  width: 100%;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
@@ -39,6 +50,11 @@
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
   line-height: 1.4;
+}
+
+.ProseMirror .highlight-heading {
+  background-color: rgba(255, 222, 26, 0.2);
+  transition: background-color 2s ease-out;
 }
 
 .ProseMirror h4 {
@@ -86,7 +102,7 @@
 }
 
 .ProseMirror blockquote {
-  border-left: 4px solid #F8BE00;
+  border-left: 4px solid #FFDE1A;
   padding-left: 1rem;
   margin: 1rem 0;
   font-style: italic;
@@ -222,7 +238,7 @@
 }
 
 .blog-content blockquote {
-  @apply border-l-4 border-[#F8BE00] pl-4 italic my-4 text-zinc-600 dark:text-zinc-400;
+  @apply border-l-4 border-[#FFDE1A] pl-4 italic my-4 text-zinc-600 dark:text-zinc-400;
 }
 
 .blog-content code {
@@ -241,12 +257,69 @@
   @apply rounded-lg max-w-full h-auto my-4;
 }
 
+.blog-content figure {
+  @apply my-6;
+}
+
+.blog-content figure img {
+  @apply my-0;
+}
+
+.blog-content figcaption {
+  @apply text-sm text-zinc-500 dark:text-zinc-400 text-center mt-2 italic;
+}
+
+/* Image alignment styles */
+.blog-content img.float-left {
+  float: left;
+  margin-right: 1rem;
+  margin-bottom: 1rem;
+}
+
+.blog-content img.float-right {
+  float: right;
+  margin-left: 1rem;
+  margin-bottom: 1rem;
+}
+
+.blog-content img.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.blog-content figure.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Clearfix for floated images */
+.blog-content::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.blog-content p::after,
+.blog-content div::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
 .blog-content a {
   @apply text-blue-600 dark:text-blue-400 underline;
 }
 
 .blog-content hr {
-  @apply border-t-2 border-zinc-200 dark:border-zinc-700 my-8;
+  border-top-width: 2px;
+  border-color: #e4e4e7;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.dark .blog-content hr {
+  border-color: #3f3f46;
 }
 
 .blog-content mark {
@@ -267,6 +340,71 @@
 
 .blog-content s {
   @apply line-through;
+}
+
+/* ============================================================================
+   ANCHOR LINKS FOR HEADINGS
+   ============================================================================ */
+
+/* Heading scroll margin for anchor navigation */
+.blog-content h2,
+.blog-content h3,
+.blog-content h4 {
+  position: relative;
+  scroll-margin-top: 6rem;
+}
+
+/* Anchor link styling */
+.blog-content .anchor-link {
+  position: absolute;
+  left: -1.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  color: #FFDE1A;
+  font-size: 0.875rem;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.blog-content h2:hover .anchor-link,
+.blog-content h3:hover .anchor-link,
+.blog-content h4:hover .anchor-link {
+  opacity: 1;
+}
+
+.blog-content .anchor-link:hover {
+  color: #F8BE00;
+}
+
+/* ============================================================================
+   SHOWCASE IMAGE STYLES
+   ============================================================================ */
+
+/* Shadow style for showcase images */
+.blog-content img.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Bordered style for showcase images */
+.blog-content img.border-2 {
+  border-width: 2px;
+  border-style: solid;
+}
+
+.blog-content img.border-zinc-200 {
+  border-color: #e4e4e7;
+}
+
+.dark .blog-content img.border-zinc-700,
+.blog-content img.dark\:border-zinc-700 {
+  border-color: #3f3f46;
+}
+
+/* Extra rounded style for showcase images */
+.blog-content img.rounded-xl {
+  border-radius: 0.75rem;
 }
 
 .blog-content [style*="text-align: left"] {
@@ -456,7 +594,7 @@
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(236, 72, 153, 0.4));
+  background-color: rgba(255, 222, 26, 0.4);
   border: 2px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -465,7 +603,7 @@
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.6), rgba(236, 72, 153, 0.6));
+  background-color: rgba(180, 180, 180, 0.6);
 }
 
 /* Text selection */
@@ -606,4 +744,278 @@
 
 .animate-shimmer {
   animation: shimmer 2.5s infinite;
+}
+
+/* Jello vertical animation for FAQ button */
+@keyframes jello-vertical {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+
+  30% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+
+  40% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+
+  50% {
+    transform: scale3d(0.85, 1.15, 1);
+  }
+
+  65% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+
+  75% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.animate-jello-vertical {
+  animation: jello-vertical 0.7s both;
+}
+
+/* FAQ Button Styles */
+.faq-button {
+  background-color: #FFDE1A;
+  background-image: linear-gradient(147deg, #FFDE1A 0%, #F8BE00 74%);
+  transition: transform 0.3s ease;
+}
+
+.faq-button:hover {
+  transform: scale(1.05);
+}
+
+.faq-button:hover svg {
+  animation: jello-vertical 0.7s both;
+}
+
+.tooltip {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  background-color: #FFDE1A;
+  background-image: linear-gradient(147deg, #FFDE1A 0%, #F8BE00 74%);
+  color: black;
+  padding: 5px 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.tooltip::before {
+  position: absolute;
+  content: "";
+  width: 10px;
+  height: 10px;
+  background-color: #F8BE00;
+  transform: translateX(-50%) rotate(45deg);
+  bottom: -15%;
+  left: 50%;
+  transition-duration: 0.3s;
+}
+
+.faq-button:hover .tooltip {
+  top: -40px;
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+/* ============================================================================
+   DONATE PAGE – ANIMATED PAYMENT BUTTON
+   ============================================================================ */
+
+.donate-pay-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 200px;
+  height: 45px;
+  min-width: 180px;
+  margin-inline: auto;
+  padding: 0.9rem 1.4rem;
+  border-radius: 0.9rem;
+  border: none;
+  text-decoration: none;
+  background: #050505;
+  color: #f9fafb;
+  cursor: pointer;
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(15, 23, 42, 0.7);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+.dark .donate-pay-btn {
+  background: radial-gradient(circle at 0% 0%, #0f172a, #020617 55%);
+}
+
+.donate-pay-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 22px 55px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(148, 163, 184, 0.6);
+  background: #020617;
+}
+
+.donate-pay-btn:active {
+  transform: translateY(0);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(55, 65, 81, 0.9);
+}
+
+.donate-pay-btn-text {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+}
+
+.donate-icon-container {
+  position: relative;
+  width: 26px;
+  height: 26px;
+}
+
+.donate-icon {
+  position: absolute;
+  inset: 0;
+  width: 26px;
+  height: 26px;
+  color: #ffde1a;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.donate-default-icon {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Hover icon choreography */
+.donate-pay-btn:hover .donate-icon {
+  animation: none;
+}
+
+.donate-pay-btn:hover .donate-wallet-icon {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.donate-pay-btn:hover .donate-card-icon {
+  animation: donate-icon-rotate 2.5s infinite;
+  animation-delay: 0s;
+}
+
+.donate-pay-btn:hover .donate-payment-icon {
+  animation: donate-icon-rotate 2.5s infinite;
+  animation-delay: 0.5s;
+}
+
+.donate-pay-btn:hover .donate-dollar-icon {
+  animation: donate-icon-rotate 2.5s infinite;
+  animation-delay: 1s;
+}
+
+.donate-pay-btn:hover .donate-check-icon {
+  animation: donate-icon-rotate 2.5s infinite;
+  animation-delay: 1.5s;
+}
+
+/* Active state – emphasize completion with checkmark */
+.donate-pay-btn:active .donate-icon {
+  animation: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.donate-pay-btn:active .donate-check-icon {
+  animation: donate-checkmark-appear 0.6s ease forwards;
+  visibility: visible;
+}
+
+@keyframes donate-icon-rotate {
+  0% {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px) scale(0.5);
+  }
+
+  5% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  15% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  20% {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.5);
+  }
+
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.5);
+  }
+}
+
+@keyframes donate-checkmark-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-45deg);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2) rotate(0deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes dots {
+  0% {
+    background-position:
+      0 0,
+      4px 4px;
+  }
+  100% {
+    background-position:
+      8px 0,
+      12px 4px;
+  }
 }

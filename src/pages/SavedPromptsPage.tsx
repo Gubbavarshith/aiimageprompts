@@ -52,7 +52,7 @@ const SavedPromptCard = ({ savedPrompt, index, onCopy, onRemove, copiedId }: Sav
 
                 {/* Category Tag */}
                 <div className="absolute top-3 left-3">
-                    <span className="bg-[#F8BE00] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <span className="bg-[#FFDE1A] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                         {prompt.category}
                     </span>
                 </div>
@@ -79,7 +79,7 @@ const SavedPromptCard = ({ savedPrompt, index, onCopy, onRemove, copiedId }: Sav
                 {/* Prompt Teaser */}
                 <div className="p-4 flex-grow bg-gray-50 dark:bg-zinc-950">
                     <div className="relative">
-                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#F8BE00] opacity-50"></div>
+                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#FFDE1A] opacity-50"></div>
                         <p className="pl-3 text-sm font-mono text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed">
                             {prompt.prompt}
                         </p>
@@ -165,7 +165,7 @@ export default function SavedPromptsPage() {
     })
 
     useEffect(() => {
-        document.title = 'Saved Prompts | AI Image Prompts'
+        document.title = 'Saved Prompts | Better Prompts, Better Art'
     }, [])
 
     // Redirect to auth if not signed in
@@ -268,7 +268,7 @@ export default function SavedPromptsPage() {
                         <div className="max-w-4xl mx-auto text-center">
                             <h1 className="font-display text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter mb-6">
                                 Saved <span className="relative inline-block px-2">
-                                    <span className="absolute inset-0 bg-[#F8BE00] transform -skew-x-6 translate-y-2 opacity-100" />
+                                    <span className="absolute inset-0 bg-[#FFDE1A] transform -skew-x-6 translate-y-2 opacity-100" />
                                     <span className="relative z-10 text-black">Prompts</span>
                                 </span>
                             </h1>
@@ -284,7 +284,7 @@ export default function SavedPromptsPage() {
                     {/* Search Toolbar */}
                     <div className="sticky top-20 z-30 mb-12 -mx-4 px-4 py-4 bg-white/90 dark:bg-black/90 backdrop-blur-md border-y border-black/5 dark:border-white/5 shadow-sm">
                         <div className="max-w-3xl mx-auto relative group">
-                            <div className={`absolute -inset-0.5 bg-gradient-to-r from-[#F8BE00] to-yellow-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-500 ${isSearchFocused ? 'opacity-40' : ''}`} />
+                            <div className={`absolute -inset-0.5 bg-gradient-to-r from-[#FFDE1A] to-yellow-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-500 ${isSearchFocused ? 'opacity-40' : ''}`} />
                             <div className="relative flex items-center">
                                 <div className="absolute left-4 text-gray-400 group-focus-within:text-black dark:group-focus-within:text-white transition-colors">
                                     <Search size={24} className="stroke-[2.5px]" />
@@ -305,7 +305,7 @@ export default function SavedPromptsPage() {
                     {/* Results Grid */}
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-32">
-                            <div className="w-16 h-16 border-4 border-black dark:border-white border-t-[#F8BE00] rounded-full animate-spin mb-6" />
+                            <div className="w-16 h-16 border-4 border-black dark:border-white border-t-[#FFDE1A] rounded-full animate-spin mb-6" />
                             <p className="text-xl font-mono text-gray-500 animate-pulse">Loading saved prompts...</p>
                         </div>
                     ) : filteredPrompts.length === 0 ? (
@@ -331,7 +331,7 @@ export default function SavedPromptsPage() {
                                     </p>
                                     <a
                                         href="/explore"
-                                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#F8BE00] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#FFDE1A] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                                     >
                                         <Sparkles size={18} className="stroke-[3px]" />
                                         Explore Prompts

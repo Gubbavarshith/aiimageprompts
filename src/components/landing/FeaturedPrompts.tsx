@@ -45,7 +45,7 @@ const PromptCard = ({ prompt, index, onCopy, copiedId }: PromptCardProps) => {
 
         {/* Category Tag - Absolute positioned */}
         <div className="absolute top-3 left-3">
-          <span className="bg-[#F8BE00] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <span className="bg-[#FFDE1A] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             {prompt.category}
           </span>
         </div>
@@ -64,7 +64,7 @@ const PromptCard = ({ prompt, index, onCopy, copiedId }: PromptCardProps) => {
         {/* Prompt Teaser */}
         <div className="p-4 flex-grow bg-gray-50 dark:bg-zinc-950">
           <div className="relative">
-            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#F8BE00] opacity-50"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#FFDE1A] opacity-50"></div>
             <p className="pl-3 text-sm font-mono text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed">
               {prompt.prompt}
             </p>
@@ -141,17 +141,17 @@ export const FeaturedPrompts = () => {
   return (
     <section className="py-32 bg-white dark:bg-black transition-colors duration-300 border-b border-black/5 dark:border-white/5 relative overflow-hidden">
       {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-[#F8BE00]/5 -skew-x-12 transform origin-top translate-x-1/2 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-[#FFDE1A]/5 -skew-x-12 transform origin-top translate-x-1/2 pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-6">
           <div className="relative">
-            <span className="absolute -top-6 left-0 text-[#F8BE00] font-mono text-sm font-bold tracking-widest uppercase">
+            <span className="absolute -top-6 left-0 text-[#FFDE1A] font-mono text-sm font-bold tracking-widest uppercase">
               // Weekly Selection
             </span>
             <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-black dark:text-white tracking-tight">
               Featured <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F8BE00] to-yellow-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFDE1A] to-yellow-600">
                 Generations
               </span>
             </h2>
@@ -172,7 +172,7 @@ export const FeaturedPrompts = () => {
 
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <div className="w-10 h-10 border-4 border-black dark:border-white border-t-[#F8BE00] rounded-full animate-spin" />
+            <div className="w-10 h-10 border-4 border-black dark:border-white border-t-[#FFDE1A] rounded-full animate-spin" />
           </div>
         ) : prompts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">

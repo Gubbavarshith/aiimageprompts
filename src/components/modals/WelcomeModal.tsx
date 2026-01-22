@@ -57,10 +57,10 @@ export const WelcomeModal = () => {
                                     <motion.div
                                         animate={{ rotate: 360 }}
                                         transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                                        className="absolute -inset-4 bg-gradient-to-tr from-[#F8BE00] to-yellow-200 rounded-full blur-2xl opacity-30"
+                                        className="absolute -inset-4 bg-gradient-to-tr from-[#FFDE1A] to-yellow-200 rounded-full blur-2xl opacity-30"
                                     />
                                     <div className="relative h-20 w-20 bg-black dark:bg-white rounded-3xl flex items-center justify-center shadow-xl">
-                                        <Sparkles size={32} className="text-[#F8BE00] fill-[#F8BE00]" />
+                                        <Sparkles size={32} className="text-[#FFDE1A] fill-[#FFDE1A]" />
                                     </div>
                                 </div>
                             </div>
@@ -74,14 +74,14 @@ export const WelcomeModal = () => {
                                     </span>
                                 </h3>
                                 <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed font-medium">
-                                    Your destination for the world's most creative AI image generation prompts. Let's create something extraordinary.
+                                    Better Prompts, Better Art. Master the art of AI generation with thousands of pro-level prompts ready for your next masterpiece.
                                 </p>
                             </div>
 
                             {/* Feature Pills */}
                             <div className="grid grid-cols-2 gap-3 mt-10 mb-8">
                                 <div className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
-                                    <div className="h-8 w-8 bg-yellow-100 dark:bg-yellow-500/20 rounded-xl flex items-center justify-center text-[#F8BE00]">
+                                    <div className="h-8 w-8 bg-yellow-100 dark:bg-yellow-500/20 rounded-xl flex items-center justify-center text-[#FFDE1A]">
                                         <Rocket size={16} />
                                     </div>
                                     <span className="text-xs font-bold uppercase tracking-wider dark:text-gray-300">Fast Setup</span>

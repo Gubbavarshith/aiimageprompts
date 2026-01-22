@@ -79,7 +79,7 @@ export default function SubmitPromptPage() {
 
   // Set page title
   useEffect(() => {
-    document.title = 'Submit Prompt – AI Image Prompts'
+    document.title = 'Submit Prompt | Better Prompts, Better Art'
   }, [])
 
   // Load dynamic categories
@@ -658,7 +658,7 @@ export default function SubmitPromptPage() {
 
                       {/* Category Tag - Absolute positioned */}
                       <div className="absolute top-3 left-3 z-20 pointer-events-auto">
-                        <span className="bg-[#F8BE00] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        <span className="bg-[#FFDE1A] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                           {formData.category || 'Category'}
                         </span>
                       </div>
@@ -686,7 +686,7 @@ export default function SubmitPromptPage() {
                       {/* Prompt Teaser */}
                       <div className="p-4 flex-grow bg-gray-50 dark:bg-zinc-950">
                         <div className="relative">
-                          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#F8BE00] opacity-50"></div>
+                          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#FFDE1A] opacity-50"></div>
                           <p className="pl-3 text-sm font-mono text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed break-words">
                             {formData.prompt || 'Your prompt description will typically appear here in a truncated view...'}
                           </p>
@@ -740,7 +740,7 @@ export default function SubmitPromptPage() {
                   {/* Helper Box: Submission Guidelines */}
                   <div className="mt-8 p-6 bg-zinc-50 dark:bg-zinc-900/30 border-2 border-zinc-200 dark:border-zinc-800 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <Info className="w-5 h-5 text-[#F8BE00] shrink-0 mt-0.5" />
+                      <Info className="w-5 h-5 text-[#FFDE1A] shrink-0 mt-0.5" />
                       <div className="space-y-2">
                         <h4 className="font-bold text-sm uppercase tracking-wide">Submission Guidelines</h4>
                         <p className="text-xs text-zinc-500">

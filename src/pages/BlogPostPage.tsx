@@ -1,10 +1,84 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Loader2, AlertCircle, Copy, Check, Twitter } from 'lucide-react'
+import { ArrowLeft, Loader2, AlertCircle, Copy, Check, Twitter, ListTree } from 'lucide-react'
 import { FloatingNavbar } from '../components/landing/FloatingNavbar'
 import { Footer } from '../components/landing/Footer'
 import { fetchBlogPostBySlug, formatDate, type BlogPost } from '../lib/services/blogs'
 import { useToast } from '../contexts/ToastContext'
+import { cn } from '../lib/utils'
+
+// ============================================================================
+// TABLE OF CONTENTS COMPONENT
+// ============================================================================
+
+interface TOCHeading {
+    level: number
+    text: string
+    id: string
+}
+
+/**
+ * Extract headings from HTML content for Table of Contents
+ */
+const extractTOCHeadings = (html: string): TOCHeading[] => {
+    const headings: TOCHeading[] = []
+    // Match H2 and H3 headings with or without IDs
+    const regex = /<h([2-3])(?:\s+id="([^"]*)")?[^>]*>([^<]*)<\/h\1>/gi
+    
+    let match
+    while ((match = regex.exec(html)) !== null) {
+        const level = parseInt(match[1])
+        const existingId = match[2]
+        const text = match[3].replace(/<[^>]*>/g, '').trim()
+        
+        // Generate ID if not present
+        const id = existingId || text
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+        
+        if (text && id) {
+            headings.push({ level, text, id })
+        }
+    }
+    
+    return headings
+}
+
+/**
+ * Table of Contents component for blog posts
+ */
+function TableOfContents({ content }: { content: string }) {
+    const headings = useMemo(() => extractTOCHeadings(content), [content])
+    
+    if (headings.length === 0) return null
+    
+    return (
+        <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-6 mb-12 border border-zinc-100 dark:border-zinc-800">
+            <div className="flex items-center gap-2 mb-4">
+                <ListTree className="w-5 h-5 text-[#FFDE1A]" />
+                <h2 className="font-bold text-lg text-zinc-900 dark:text-white">Table of Contents</h2>
+            </div>
+            <nav className="space-y-2">
+                {headings.map((heading, index) => (
+                    <a
+                        key={index}
+                        href={`#${heading.id}`}
+                        className={cn(
+                            "block text-sm transition-colors hover:text-[#FFDE1A]",
+                            heading.level === 2 && "font-medium text-zinc-800 dark:text-zinc-200",
+                            heading.level === 3 && "pl-4 text-zinc-600 dark:text-zinc-400"
+                        )}
+                    >
+                        {heading.text}
+                    </a>
+                ))}
+            </nav>
+        </div>
+    )
+}
 
 export default function BlogPostPage() {
     const { slug } = useParams<{ slug: string }>()
@@ -35,7 +109,7 @@ export default function BlogPostPage() {
                 }
 
                 setPost(data)
-                document.title = `${data.title} | AI Image Prompts`
+                document.title = `${data.title} | Better Prompts, Better Art`
             } catch (err) {
                 console.error('Failed to load blog post:', err)
                 setError('Failed to load blog post. Please try again later.')
@@ -58,6 +132,38 @@ export default function BlogPostPage() {
             toast.error('Failed to copy link')
         }
     }
+
+    // NEW: Add anchor copy buttons to headings
+    useEffect(() => {
+        if (!post) return
+
+        // Wait for content to be rendered
+        const timer = setTimeout(() => {
+            const headings = document.querySelectorAll('.blog-content h2[id], .blog-content h3[id], .blog-content h4[id]')
+            
+            headings.forEach(heading => {
+                // Skip if already has anchor link
+                if (heading.querySelector('.anchor-link')) return
+                
+                const link = document.createElement('a')
+                link.className = 'anchor-link'
+                link.innerHTML = '#'
+                link.href = `#${heading.id}`
+                link.onclick = (e) => {
+                    e.preventDefault()
+                    const url = `${window.location.origin}${window.location.pathname}#${heading.id}`
+                    navigator.clipboard.writeText(url).then(() => {
+                        toast.success('Link copied!')
+                    }).catch(() => {
+                        toast.error('Failed to copy link')
+                    })
+                }
+                heading.prepend(link)
+            })
+        }, 100)
+
+        return () => clearTimeout(timer)
+    }, [post, toast])
 
     // Check if content is HTML or markdown and format accordingly
     const formatContent = (content: string): string => {
@@ -205,8 +311,11 @@ export default function BlogPostPage() {
                         </div>
                     )}
 
+                    {/* NEW: Table of Contents (if enabled) */}
+                    {post.showToc && <TableOfContents content={post.content} />}
+
                     {/* Content Body */}
-                    <div className="article-content max-w-none">
+                    <div className="blog-content max-w-none">
                         {post.excerpt && (
                             <p className="text-xl md:text-2xl leading-relaxed font-medium text-zinc-900 dark:text-white mb-12 border-l-4 border-[#FFDE1A] pl-6 py-1">
                                 {post.excerpt}

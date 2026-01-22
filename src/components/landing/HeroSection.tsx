@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Star, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, Star, ArrowRight } from 'lucide-react';
 import { useTheme } from '@/components/use-theme';
 import { fetchUniqueCategories } from '@/lib/services/categories';
 
@@ -155,6 +155,11 @@ export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [topCategories, setTopCategories] = useState<string[]>([]);
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  
+  // Button colors based on theme
+  const buttonBg = theme === 'dark' ? '#ffffff' : '#292524';
+  const buttonBorder = theme === 'dark' ? '#000000' : '#fafaf9';
 
   // Load top categories (limit to 5 most popular)
   useEffect(() => {
@@ -277,28 +282,128 @@ export const HeroSection = () => {
         </p>
 
         <div className="flex flex-wrap gap-5 mb-12 animate-hero-fade-in animation-delay-150 justify-center items-center">
-          {/* Primary Button - Solid Yellow Brand Color */}
+          {/* Primary Button - 3D Layered Design */}
           <button
             onClick={() => navigate('/explore')}
-            className="group relative h-12 px-8 rounded-full bg-[#FFDE1A] text-black font-extrabold text-base tracking-wide hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_25px_-5px_#FFDE1A] active:scale-95 active:shadow-none overflow-hidden"
+            className="button-3d group"
+            style={{
+              fontSize: '1rem',
+              cursor: 'pointer',
+              position: 'relative',
+              fontFamily: '"Rubik", sans-serif',
+              fontWeight: 'bold',
+              lineHeight: '1',
+              padding: '1px',
+              transform: 'translate(-4px, -4px)',
+              outline: '2px solid transparent',
+              outlineOffset: '5px',
+              borderRadius: '9999px',
+              backgroundColor: buttonBg,
+              color: buttonBg,
+              transition: 'transform 150ms ease, box-shadow 150ms ease',
+              textAlign: 'center',
+              boxShadow: `
+                0.5px 0.5px 0 0 ${buttonBg},
+                1px 1px 0 0 ${buttonBg},
+                1.5px 1.5px 0 0 ${buttonBg},
+                2px 2px 0 0 ${buttonBg},
+                2.5px 2.5px 0 0 ${buttonBg},
+                3px 3px 0 0 ${buttonBg},
+                0 0 0 2px ${buttonBorder},
+                0.5px 0.5px 0 2px ${buttonBorder},
+                1px 1px 0 2px ${buttonBorder},
+                1.5px 1.5px 0 2px ${buttonBorder},
+                2px 2px 0 2px ${buttonBorder},
+                2.5px 2.5px 0 2px ${buttonBorder},
+                3px 3px 0 2px ${buttonBorder},
+                3.5px 3.5px 0 2px ${buttonBorder},
+                4px 4px 0 2px ${buttonBorder}
+              `,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translate(0, 0)';
+              e.currentTarget.style.boxShadow = `0 0 0 2px ${buttonBorder}`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translate(-4px, -4px)';
+              e.currentTarget.style.boxShadow = `
+                0.5px 0.5px 0 0 ${buttonBg},
+                1px 1px 0 0 ${buttonBg},
+                1.5px 1.5px 0 0 ${buttonBg},
+                2px 2px 0 0 ${buttonBg},
+                2.5px 2.5px 0 0 ${buttonBg},
+                3px 3px 0 0 ${buttonBg},
+                0 0 0 2px ${buttonBorder},
+                0.5px 0.5px 0 2px ${buttonBorder},
+                1px 1px 0 2px ${buttonBorder},
+                1.5px 1.5px 0 2px ${buttonBorder},
+                2px 2px 0 2px ${buttonBorder},
+                2.5px 2.5px 0 2px ${buttonBorder},
+                3px 3px 0 2px ${buttonBorder},
+                3.5px 3.5px 0 2px ${buttonBorder},
+                4px 4px 0 2px ${buttonBorder}
+              `;
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.outlineColor = '#FFDE1A';
+              e.currentTarget.style.outlineStyle = 'dashed';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.outlineColor = 'transparent';
+            }}
+            onMouseDown={(e) => {
+              const span = e.currentTarget.querySelector('#button-span') as HTMLElement;
+              if (span) span.style.transform = 'translateY(2px)';
+            }}
+            onMouseUp={(e) => {
+              const span = e.currentTarget.querySelector('#button-span') as HTMLElement;
+              if (span) span.style.transform = 'translateY(0)';
+            }}
           >
-            {/* Diagonal shine effect */}
-            <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] group-hover:animate-shimmer" />
-
-            <div className="relative flex items-center gap-2">
-              <span className="uppercase">Start Exploring</span>
-              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" strokeWidth={2.5} />
-            </div>
-          </button>
-
-          {/* Secondary Button - Glassmorphism */}
-          <button
-            onClick={() => navigate('/submit')}
-            className="group relative h-12 px-8 rounded-full bg-transparent hover:bg-gray-100/50 dark:hover:bg-zinc-800/50 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-100 font-bold text-sm tracking-wide transition-all duration-300 active:scale-95 hover:scale-105 hover:border-[#FFDE1A] dark:hover:border-[#FFDE1A] hover:shadow-[0_0_20px_-5px_#FFDE1A] backdrop-blur-sm"
-          >
-            <div className="relative flex items-center gap-2">
-              <span className="uppercase">Submit Prompt</span>
-              <Sparkles className="w-4 h-4 text-zinc-400 group-hover:text-[#FFDE1A] transition-colors duration-300 group-hover:rotate-12" strokeWidth={2.5} />
+            <div
+              className="relative pointer-events-none bg-[#FFDE1A] border-2 border-white/30 rounded-full"
+              style={{
+                position: 'relative',
+                pointerEvents: 'none',
+                backgroundColor: '#FFDE1A',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '9999px',
+              }}
+            >
+              <div
+                className="absolute inset-0 rounded-full opacity-50 mix-blend-hard-light"
+                style={{
+                  content: '""',
+                  position: 'absolute',
+                  inset: '0',
+                  borderRadius: '9999px',
+                  opacity: '0.5',
+                  backgroundImage: `
+                    radial-gradient(rgb(255 255 255 / 80%) 20%, transparent 20%),
+                    radial-gradient(rgb(255 255 255 / 100%) 20%, transparent 20%)
+                  `,
+                  backgroundPosition: '0 0, 4px 4px',
+                  backgroundSize: '8px 8px',
+                  mixBlendMode: 'hard-light',
+                  animation: 'dots 0.5s infinite linear',
+                }}
+              />
+              <span
+                id="button-span"
+                className="relative flex items-center justify-center gap-1 uppercase"
+                style={{
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.75rem 1.25rem',
+                  gap: '0.25rem',
+                  filter: 'drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.25))',
+                }}
+              >
+                Explore prompts
+                <ArrowRight className="w-5 h-5 transition-transform duration-300 rotate-0 group-hover:-rotate-[35deg]" strokeWidth={2.5} />
+              </span>
             </div>
           </button>
         </div>

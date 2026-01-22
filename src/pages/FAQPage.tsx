@@ -41,7 +41,7 @@ const FAQ_ITEMS = [
 
 export default function FAQPage() {
     useEffect(() => {
-        document.title = 'FAQ – AI Image Prompts'
+        document.title = 'FAQ | Better Prompts, Better Art'
         updateCanonical('/faq')
         window.scrollTo(0, 0)
     }, [])

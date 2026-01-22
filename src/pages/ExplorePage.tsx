@@ -11,7 +11,7 @@ import { fetchPromptsByStatus, generateSlug, type PromptRecord } from '@/lib/ser
 import { savePrompt, unsavePrompt, getSavedPromptIds } from '@/lib/services/savedPrompts'
 import { logDiscoveryEvent } from '@/lib/services/discoveryEvents'
 import { useToast } from '@/contexts/ToastContext'
-import { getRatingSettings, upsertPromptRating, removePromptRating } from '@/lib/services/ratings'
+import { getRatingSettings, upsertPromptRating, removePromptRating, getUserRatings } from '@/lib/services/ratings'
 import { updateCanonical } from '@/lib/seo'
 import { fetchUniqueCategories, fetchPopularTags } from '@/lib/services/categories'
 import { getAspectRatioClass } from '@/lib/utils'
@@ -56,6 +56,7 @@ interface PromptCardProps {
   isSignedIn: boolean;
   onClearRating: (prompt: PromptRecord) => void;
   onTagClick: (tag: string) => void;
+  userRating: number | null;
 }
 
 const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
@@ -72,10 +73,13 @@ const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
   isSignedIn,
   onClearRating,
   onTagClick,
+  userRating,
 }, ref) => {
   const isCopied = copiedId === prompt.id;
   const avg = typeof prompt.rating_avg === 'number' ? prompt.rating_avg : null;
   const count = prompt.rating_count ?? 0;
+  // Use user's own rating for heart display if they've rated, otherwise show aggregate
+  const displayRating = userRating !== null ? userRating : avg;
 
   return (
     <motion.div
@@ -121,7 +125,7 @@ const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
 
         {/* Category Tag - Absolute positioned */}
         <div className="absolute top-3 left-3 z-20 pointer-events-auto">
-          <span className="bg-[#F8BE00] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <span className="bg-[#FFDE1A] border-2 border-black text-black text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             {prompt.category}
           </span>
         </div>
@@ -136,7 +140,7 @@ const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
               onSaveToggle(prompt.id)
             }}
             className={`p-2.5 rounded-full border-2 transition-all duration-200 relative z-50 cursor-pointer hover:scale-110 active:scale-95 ${isSaved
-              ? 'bg-[#F8BE00] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+              ? 'bg-[#FFDE1A] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
               : 'bg-black/80 backdrop-blur-md border-white/40 text-white hover:bg-black'
               }`}
             style={{ pointerEvents: 'auto', zIndex: 9999 }}
@@ -161,7 +165,7 @@ const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
         {/* Prompt Teaser */}
         <div className="p-4 flex-grow bg-gray-50 dark:bg-zinc-950">
           <div className="relative">
-            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#F8BE00] opacity-50"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#FFDE1A] opacity-50"></div>
             <p className="pl-3 text-sm font-mono text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed">
               {prompt.prompt}
             </p>
@@ -190,7 +194,8 @@ const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
             <div className="inline-flex items-center gap-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1">
               {Array.from({ length: 5 }).map((_, i) => {
                 const value = i + 1;
-                const filled = avg !== null ? avg >= value - 0.25 : false;
+                // Use displayRating (user's rating if they rated, otherwise avg) for filling hearts
+                const filled = displayRating !== null ? displayRating >= value - 0.25 : false;
                 return (
                   <button
                     key={value}
@@ -214,7 +219,8 @@ const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
               <span className="font-medium">
                 {avg !== null ? avg.toFixed(1) : '–'} • {count} rating{count === 1 ? '' : 's'}
               </span>
-              {count > 0 && (!requireLoginForRatings || isSignedIn) && (
+              {/* Only show Clear button if user has rated this prompt */}
+              {userRating !== null && (!requireLoginForRatings || isSignedIn) && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -308,6 +314,7 @@ export default function ExplorePage() {
   const [requireLoginForRatings, setRequireLoginForRatings] = useState(true)
   const [ratingSubmittingId, setRatingSubmittingId] = useState<string | null>(null)
   const anonIdRef = useRef<string | null>(null)
+  const [userRatings, setUserRatings] = useState<Map<string, number>>(new Map())
   const [showUnsaveConfirm, setShowUnsaveConfirm] = useState<{ promptId: string; title: string } | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [displayedCount, setDisplayedCount] = useState(20) // Number of prompts to display initially
@@ -316,7 +323,7 @@ export default function ExplorePage() {
   const ITEMS_PER_PAGE = 20
 
   useEffect(() => {
-    document.title = 'Explore AI Image Prompts – Browse Free Prompt Library'
+    document.title = 'Explore Prompts | Better Prompts, Better Art'
     updateCanonical('/explore')
 
     const loadPrompts = async () => {
@@ -408,6 +415,36 @@ export default function ExplorePage() {
 
     loadSavedPrompts()
   }, [isLoaded, isSignedIn, user?.id])
+
+  // Load user's ratings
+  useEffect(() => {
+    const loadUserRatings = async () => {
+      // Wait until we know if login is required
+      if (requireLoginForRatings && (!isLoaded || !isSignedIn || !user?.id)) {
+        // If login required but user not signed in, clear ratings
+        if (isLoaded && !isSignedIn) {
+          setUserRatings(new Map())
+        }
+        return
+      }
+
+      try {
+        const options: { userId?: string; ipHash?: string } = {}
+        if (requireLoginForRatings && user?.id) {
+          options.userId = user.id
+        } else if (!requireLoginForRatings && anonIdRef.current) {
+          options.ipHash = anonIdRef.current
+        }
+
+        const ratings = await getUserRatings(options)
+        setUserRatings(ratings)
+      } catch (err) {
+        console.error('Failed to load user ratings:', err)
+      }
+    }
+
+    loadUserRatings()
+  }, [isLoaded, isSignedIn, user?.id, requireLoginForRatings])
 
   // Sync localSearchQuery with URL params (for URL sharing support)
   useEffect(() => {
@@ -807,6 +844,13 @@ export default function ExplorePage() {
         ),
       )
 
+      // Update user ratings map
+      setUserRatings(prev => {
+        const newMap = new Map(prev)
+        newMap.set(prompt.id, rating)
+        return newMap
+      })
+
       toast.success('Thanks for rating this prompt.')
     } catch (err) {
       console.error('Failed to rate prompt:', err)
@@ -856,10 +900,17 @@ export default function ExplorePage() {
         ),
       )
 
+      // Remove from user ratings map
+      setUserRatings(prev => {
+        const newMap = new Map(prev)
+        newMap.delete(prompt.id)
+        return newMap
+      })
+
       toast.success('Your rating was removed.')
     } catch (err) {
       console.error('Failed to remove rating:', err)
-      toast.error('We couldn’t remove your rating. Please try again.')
+      toast.error("We couldn't remove your rating. Please try again.")
     } finally {
       setRatingSubmittingId(null)
     }
@@ -961,7 +1012,7 @@ export default function ExplorePage() {
                       <button
                         onClick={() => handleCategoryChange('All')}
                         className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border-2 ${(categoryFilter === 'All' || !categoryFilter)
-                          ? 'bg-[#F8BE00] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                          ? 'bg-[#FFDE1A] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                           : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500'
                           }`}
                       >
@@ -972,7 +1023,7 @@ export default function ExplorePage() {
                           key={cat}
                           onClick={() => handleCategoryChange(cat)}
                           className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border-2 ${categoryFilter === cat
-                            ? 'bg-[#F8BE00] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                            ? 'bg-[#FFDE1A] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                             : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500'
                             }`}
                         >
@@ -987,7 +1038,7 @@ export default function ExplorePage() {
               {/* Results Grid */}
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-32">
-                  <div className="w-16 h-16 border-4 border-black dark:border-white border-t-[#F8BE00] rounded-full animate-spin mb-6" />
+                  <div className="w-16 h-16 border-4 border-black dark:border-white border-t-[#FFDE1A] rounded-full animate-spin mb-6" />
                   <p className="text-xl font-mono text-gray-500 animate-pulse">Loading prompts…</p>
                 </div>
               ) : filteredPrompts.length === 0 ? (
@@ -1001,7 +1052,7 @@ export default function ExplorePage() {
                   </p>
                   <button
                     onClick={clearFilters}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#F8BE00] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FFDE1A] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                   >
                     <X size={18} className="stroke-[3px]" />
                     Clear filters
@@ -1039,6 +1090,7 @@ export default function ExplorePage() {
                           isSignedIn={!!user?.id}
                           onClearRating={handleClearRating}
                           onTagClick={handleTagClick}
+                          userRating={userRatings.get(prompt.id) ?? null}
                         />
                       ))}
                     </AnimatePresence>
@@ -1049,7 +1101,7 @@ export default function ExplorePage() {
                     <div ref={loadMoreRef} className="flex justify-center items-center py-8">
                       {isLoadingMore && (
                         <div className="flex flex-col items-center gap-3">
-                          <div className="w-12 h-12 border-4 border-black dark:border-white border-t-[#F8BE00] rounded-full animate-spin" />
+                          <div className="w-12 h-12 border-4 border-black dark:border-white border-t-[#FFDE1A] rounded-full animate-spin" />
                           <p className="text-sm font-mono text-gray-500 dark:text-gray-400">Loading more prompts...</p>
                         </div>
                       )}

@@ -142,6 +142,22 @@ Blog posts/articles.
 - `created_at` (timestamptz)
 - `updated_at` (timestamptz)
 - `scheduled_at` (timestamptz, nullable) - Scheduled publication time
+- `show_toc` (boolean) - Show table of contents (default: false)
+
+**RLS:** Enabled
+
+---
+
+### `reusable_blocks`
+Reusable content blocks for power-user editorial features.
+
+**Columns:**
+- `id` (uuid, primary key) - Unique identifier
+- `name` (text) - Block name for identification
+- `content` (text) - HTML content of the block
+- `block_type` (text) - Block type (default: 'html')
+- `created_at` (timestamptz) - Creation timestamp
+- `updated_at` (timestamptz) - Last update timestamp
 
 **RLS:** Enabled
 
@@ -205,6 +221,80 @@ Analytics for how users discover prompts.
 - `created_at` (timestamptz)
 
 **RLS:** Disabled
+
+---
+
+## Link Tracking System
+
+### `tracked_links`
+Stores trackable short links with UTM parameters for campaign tracking and analytics.
+
+**Columns:**
+- `id` (uuid, primary key) - Unique identifier
+- `slug` (text, unique) - URL-friendly short identifier (e.g., "x7k2m9")
+- `destination` (text) - Target URL to redirect to
+- `utm_source` (text, nullable) - UTM source parameter (e.g., "google", "newsletter")
+- `utm_medium` (text, nullable) - UTM medium parameter (e.g., "cpc", "email")
+- `utm_campaign` (text, nullable) - UTM campaign parameter (e.g., "spring_sale")
+- `utm_content` (text, nullable) - UTM content parameter (e.g., "banner_ad")
+- `title` (text, nullable) - Human-readable link name
+- `description` (text, nullable) - Link description/notes
+- `created_by` (uuid) - Foreign key to `auth.users(id)`
+- `created_at` (timestamptz) - Creation timestamp
+- `updated_at` (timestamptz) - Last update timestamp
+- `is_active` (boolean) - Whether link is active (default: true)
+
+**Indexes:**
+- `idx_tracked_links_slug` - For fast slug lookups
+- `idx_tracked_links_created_by` - For filtering by owner
+- `idx_tracked_links_is_active` - For filtering active links
+
+**RLS Policies:**
+- Users can only view/manage their own links (`created_by = auth.uid()`)
+- Public can view active links (for redirect endpoint)
+
+**RLS:** Enabled
+
+---
+
+### `link_clicks`
+Stores click events for tracked links, enabling analytics.
+
+**Columns:**
+- `id` (bigserial, primary key) - Unique identifier (auto-incrementing)
+- `link_id` (uuid) - Foreign key to `tracked_links(id)` with CASCADE delete
+- `clicked_at` (timestamptz) - When the click occurred
+- `ip` (inet, nullable) - Visitor IP address
+- `user_agent` (text, nullable) - Browser/client user agent string
+- `referrer` (text, nullable) - HTTP referrer URL
+- `country` (text, nullable) - Visitor country (from IP geolocation)
+- `device_type` (text, nullable) - Device type: 'mobile', 'tablet', 'desktop', 'unknown'
+
+**Indexes:**
+- `idx_link_clicks_link_id` - For aggregating clicks per link
+- `idx_link_clicks_clicked_at` - For time-based queries
+
+**RLS Policies:**
+- Link owners can view clicks for their links
+- Public/authenticated can insert clicks (for tracking endpoint)
+
+**RLS:** Enabled
+
+---
+
+### Link Tracking Flow
+
+1. **Create Link**: Admin creates a tracked link via `/admin/links`
+2. **Share Link**: Link is shared as `https://yourdomain.com/l/{slug}`
+3. **Track Click**: Vercel routes `/l/{slug}` to Supabase Edge Function `track-link`
+4. **Log & Redirect**: Edge Function logs click data and returns 302 redirect to destination
+5. **View Analytics**: Admin views click analytics in the dashboard
+
+**Edge Function:** `track-link` (Supabase Edge Functions)
+- Extracts slug from URL
+- Validates link exists and is active
+- Logs click with IP, user agent, referrer, device type
+- Returns 302 redirect to destination URL
 
 ---
 

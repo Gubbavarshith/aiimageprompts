@@ -10,7 +10,7 @@ import { fetchRelatedPromptsWithFallback } from '../lib/services/relatedPrompts'
 import { logDiscoveryEvent } from '../lib/services/discoveryEvents'
 import { useToast } from '../contexts/ToastContext'
 import { savePrompt, unsavePrompt, getSavedPromptIds } from '../lib/services/savedPrompts'
-import { getRatingSettings, upsertPromptRating, removePromptRating } from '../lib/services/ratings'
+import { getRatingSettings, upsertPromptRating, removePromptRating, getUserRatings } from '../lib/services/ratings'
 import { updateMetaTags } from '../lib/seo'
 import { getAspectRatioClass } from '../lib/utils'
 
@@ -67,7 +67,7 @@ const RelatedPromptCard = ({ prompt, onNavigate }: RelatedPromptCardProps) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <div className="absolute top-2 left-2">
-          <span className="bg-[#F8BE00] border-2 border-black text-black text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <span className="bg-[#FFDE1A] border-2 border-black text-black text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             {prompt.category}
           </span>
         </div>
@@ -96,6 +96,7 @@ export default function PromptPage() {
   const [requireLoginForRatings, setRequireLoginForRatings] = useState(true)
   const [ratingSubmittingId, setRatingSubmittingId] = useState<string | null>(null)
   const anonIdRef = useRef<string | null>(null)
+  const [userRating, setUserRating] = useState<number | null>(null)
 
   // Clerk auth
   const { isSignedIn, isLoaded } = useAuth()
@@ -133,12 +134,12 @@ export default function PromptPage() {
         const promptSlug = generateSlug(data.title)
         const pageUrl = `/prompt/${promptSlug}`
         updateMetaTags({
-          title: `${data.title} | AI Image Prompts`,
-          description: data.prompt.substring(0, 160) + (data.prompt.length > 160 ? '...' : ''),
+          title: `${data.title} | Better Prompts, Better Art`,
+          description: `Better Prompts, Better Art. ${data.prompt.substring(0, 140)}${data.prompt.length > 140 ? '...' : ''}`,
           canonical: pageUrl,
           og: {
-            title: data.title,
-            description: data.prompt.substring(0, 160) + (data.prompt.length > 160 ? '...' : ''),
+            title: `${data.title} | Better Prompts, Better Art`,
+            description: `Better Prompts, Better Art. ${data.prompt.substring(0, 140)}${data.prompt.length > 140 ? '...' : ''}`,
             url: pageUrl,
             image: data.preview_image_url || undefined,
             type: 'article',
@@ -146,8 +147,8 @@ export default function PromptPage() {
           },
           twitter: {
             card: 'summary_large_image',
-            title: data.title,
-            description: data.prompt.substring(0, 160) + (data.prompt.length > 160 ? '...' : ''),
+            title: `${data.title} | Better Prompts, Better Art`,
+            description: `Better Prompts, Better Art. ${data.prompt.substring(0, 140)}${data.prompt.length > 140 ? '...' : ''}`,
             image: data.preview_image_url || undefined,
           },
         })
@@ -198,6 +199,37 @@ export default function PromptPage() {
       window.localStorage.setItem('aiimageprompts_rating_anon_id', newId)
     }
   }, [])
+
+  // Load user's rating for this prompt
+  useEffect(() => {
+    const loadUserRating = async () => {
+      if (!prompt) return
+      
+      // If login required but user not signed in, clear rating
+      if (requireLoginForRatings && (!isLoaded || !isSignedIn || !user?.id)) {
+        if (isLoaded && !isSignedIn) {
+          setUserRating(null)
+        }
+        return
+      }
+
+      try {
+        const options: { userId?: string; ipHash?: string } = {}
+        if (requireLoginForRatings && user?.id) {
+          options.userId = user.id
+        } else if (!requireLoginForRatings && anonIdRef.current) {
+          options.ipHash = anonIdRef.current
+        }
+
+        const ratings = await getUserRatings(options)
+        setUserRating(ratings.get(prompt.id) ?? null)
+      } catch (err) {
+        console.error('Failed to load user rating:', err)
+      }
+    }
+
+    loadUserRating()
+  }, [prompt, isLoaded, isSignedIn, user?.id, requireLoginForRatings])
 
   const handleCopyPrompt = async () => {
     if (!prompt) return
@@ -352,6 +384,7 @@ export default function PromptPage() {
 
       const updated = await upsertPromptRating(options)
       setPrompt(prev => prev ? { ...prev, rating_avg: updated.rating_avg, rating_count: updated.rating_count } : null)
+      setUserRating(rating)
 
       toast.success('Thanks for rating this prompt.')
     } catch (err) {
@@ -394,6 +427,7 @@ export default function PromptPage() {
 
       const updated = await removePromptRating(options)
       setPrompt(prev => prev ? { ...prev, rating_avg: updated.rating_avg, rating_count: updated.rating_count } : null)
+      setUserRating(null)
 
       toast.success('Your rating was removed.')
     } catch (err) {
@@ -424,7 +458,7 @@ export default function PromptPage() {
         <FloatingNavbar />
         <main className="flex items-center justify-center min-h-[80vh]">
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-10 h-10 animate-spin text-[#F8BE00]" />
+            <Loader2 className="w-10 h-10 animate-spin text-[#FFDE1A]" />
             <p className="text-sm font-medium text-gray-400">Loading prompt...</p>
           </div>
         </main>
@@ -448,7 +482,7 @@ export default function PromptPage() {
             </p>
             <Link
               to="/explore"
-              className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-[#F8BE00] text-black font-bold hover:bg-black hover:text-[#F8BE00] transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-[#FFDE1A] text-black font-bold hover:bg-black hover:text-[#F8BE00] transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Explore
@@ -462,6 +496,8 @@ export default function PromptPage() {
 
   const avg = typeof prompt.rating_avg === 'number' ? prompt.rating_avg : null
   const count = prompt.rating_count ?? 0
+  // Use user's own rating for heart display if they've rated, otherwise show aggregate
+  const displayRating = userRating !== null ? userRating : avg
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans transition-colors duration-300 bg-grid-black/[0.02] dark:bg-grid-white/[0.02]">
@@ -496,7 +532,7 @@ export default function PromptPage() {
                       anonId: anonIdRef.current || null,
                     }).catch(err => console.error('Failed to log discovery event:', err))
                   }}
-                  className="bg-[#F8BE00] border-2 border-black text-black text-xs font-bold px-4 py-2 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] inline-block hover:bg-black hover:text-[#F8BE00] transition-colors"
+                  className="bg-[#FFDE1A] border-2 border-black text-black text-xs font-bold px-4 py-2 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] inline-block hover:bg-black hover:text-[#F8BE00] transition-colors"
                 >
                   {prompt.category}
                 </Link>
@@ -630,7 +666,8 @@ export default function PromptPage() {
                   <div className="inline-flex items-center gap-1">
                     {Array.from({ length: 5 }).map((_, i) => {
                       const value = i + 1
-                      const filled = avg !== null ? avg >= value - 0.25 : false
+                      // Use displayRating (user's rating if they rated, otherwise avg) for filling hearts
+                      const filled = displayRating !== null ? displayRating >= value - 0.25 : false
                       return (
                         <button
                           key={value}
@@ -652,7 +689,8 @@ export default function PromptPage() {
                     <span className="font-medium">
                       {avg !== null ? avg.toFixed(1) : '–'} • {count} rating{count === 1 ? '' : 's'}
                     </span>
-                    {count > 0 && (!requireLoginForRatings || isSignedIn) && (
+                    {/* Only show Clear button if user has rated this prompt */}
+                    {userRating !== null && (!requireLoginForRatings || isSignedIn) && (
                       <button
                         type="button"
                         onClick={handleClearRating}
@@ -681,7 +719,7 @@ export default function PromptPage() {
                   disabled={isTogglingSave}
                   className={`w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl border-2 border-black dark:border-white font-bold transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] disabled:opacity-50 ${
                     isSaved
-                      ? 'bg-[#F8BE00] text-black'
+                      ? 'bg-[#FFDE1A] text-black'
                       : 'bg-white dark:bg-black text-black dark:text-white hover:bg-[#F8BE00] hover:text-black dark:hover:bg-[#F8BE00] dark:hover:text-black'
                   }`}
                 >

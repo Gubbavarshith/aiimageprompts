@@ -7,7 +7,7 @@ import { updateCanonical } from '@/lib/seo'
 
 export default function GuidelinesPage() {
     useEffect(() => {
-        document.title = 'Guidelines | AI Image Prompts'
+        document.title = 'Guidelines | Better Prompts, Better Art'
         updateCanonical('/guidelines')
         window.scrollTo(0, 0)
     }, [])

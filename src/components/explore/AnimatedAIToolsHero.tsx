@@ -183,7 +183,7 @@ export const AnimatedAIToolsHero = () => {
             transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-gray-200 dark:border-zinc-800 pointer-events-auto"
           >
-            <Sparkles size={12} className="text-[#F8BE00] fill-[#F8BE00]" />
+            <Sparkles size={12} className="text-[#FFDE1A] fill-[#FFDE1A]" />
             <span className="text-[11px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em]">
               Powering Next-Gen Creativity
             </span>

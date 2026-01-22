@@ -7,7 +7,7 @@ import { updateCanonical } from '@/lib/seo'
 
 export default function TermsPage() {
   useEffect(() => {
-    document.title = 'Terms of Use – AI Image Prompts'
+    document.title = 'Terms of Use | Better Prompts, Better Art'
     updateCanonical('/terms')
     window.scrollTo(0, 0)
   }, [])

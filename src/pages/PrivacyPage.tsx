@@ -7,7 +7,7 @@ import { updateCanonical } from '@/lib/seo'
 
 export default function PrivacyPage() {
   useEffect(() => {
-    document.title = 'Privacy Policy – AI Image Prompts'
+    document.title = 'Privacy Policy | Better Prompts, Better Art'
     updateCanonical('/privacy')
     window.scrollTo(0, 0)
   }, [])

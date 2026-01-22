@@ -165,7 +165,7 @@ export default function TagsPage() {
         </div>
         <button
           onClick={() => setShowAliasModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#FFDE1A] hover:bg-[#ffe64d] text-black font-bold rounded-xl transition-colors text-sm shadow-[0_0_20px_-5px_#FFDE1A] active:scale-95"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#FFDE1A] hover:bg-[#F8BE00] text-black font-bold rounded-xl transition-colors text-sm shadow-[0_0_20px_-5px_#FFDE1A] active:scale-95"
         >
           <span>Add Alias</span>
         </button>
@@ -445,7 +445,7 @@ export default function TagsPage() {
                   <button
                     onClick={handleCreateAlias}
                     disabled={isCreatingAlias || !newAlias.trim() || !newCanonical.trim()}
-                    className="px-5 py-2.5 rounded-xl bg-[#FFDE1A] text-black text-sm font-semibold shadow-[0_0_15px_-5px_#FFDE1A] hover:bg-[#ffe64d] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 rounded-xl bg-[#FFDE1A] text-black text-sm font-semibold shadow-[0_0_15px_-5px_#FFDE1A] hover:bg-[#F8BE00] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {isCreatingAlias ? 'Creating...' : 'Create Alias'}
                   </button>

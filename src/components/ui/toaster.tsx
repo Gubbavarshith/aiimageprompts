@@ -13,8 +13,8 @@ const toastStyles: Record<ToastType, { bg: string; border: string; icon: string;
   success: {
     bg: 'bg-white dark:bg-black',
     border: 'border-2 border-black dark:border-white',
-    icon: 'text-[#F8BE00]',
-    accent: 'bg-[#F8BE00]',
+    icon: 'text-[#FFDE1A]',
+    accent: 'bg-[#FFDE1A]',
   },
   error: {
     bg: 'bg-white dark:bg-black',

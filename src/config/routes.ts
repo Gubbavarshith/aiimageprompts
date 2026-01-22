@@ -65,6 +65,11 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
     priority: '0.5',
     changefreq: 'monthly',
   },
+  {
+    path: '/donate',
+    priority: '0.5',
+    changefreq: 'monthly',
+  },
   
   // Low priority - legal pages
   {
@@ -79,6 +84,11 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   },
   {
     path: '/refund',
+    priority: '0.4',
+    changefreq: 'yearly',
+  },
+  {
+    path: '/cookies',
     priority: '0.4',
     changefreq: 'yearly',
   },

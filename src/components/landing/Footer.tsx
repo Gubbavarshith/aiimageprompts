@@ -93,18 +93,18 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/explore?category=portraits" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
-                  Portrait prompts
+                <Link to="/blog" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Blog
                 </Link>
               </li>
               <li>
-                <Link to="/explore?category=landscapes" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
-                  Landscape prompts
+                <Link to="/submit" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Submit a prompt
                 </Link>
               </li>
               <li>
-                <Link to="/explore?category=anime" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
-                  Anime-style prompts
+                <Link to="/donate" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
+                  Support us
                 </Link>
               </li>
             </ul>
@@ -122,21 +122,6 @@ export const Footer = () => {
               <li>
                 <Link to="/contact" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
                   Contact
-                </Link>
-              </li>
-              <li>
-                <Link to="/terms" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
-                  Terms of use
-                </Link>
-              </li>
-              <li>
-                <Link to="/privacy" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
-                  Privacy policy
-                </Link>
-              </li>
-              <li>
-                <Link to="/refund" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors text-sm">
-                  Refund policy
                 </Link>
               </li>
               <li>
@@ -192,6 +177,9 @@ export const Footer = () => {
             </Link>
             <Link to="/terms" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
               Terms
+            </Link>
+            <Link to="/cookies" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
+              Cookies
             </Link>
             <Link to="/refund" className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
               Refund

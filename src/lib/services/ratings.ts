@@ -217,3 +217,46 @@ export async function removePromptRating({
   }
 }
 
+type GetUserRatingsOptions = {
+  userId?: string | null
+  ipHash?: string | null
+}
+
+/**
+ * Fetch all ratings for a user (by user_id or ip_hash).
+ * Returns a map of prompt_id -> rating value.
+ */
+export async function getUserRatings({
+  userId,
+  ipHash,
+}: GetUserRatingsOptions): Promise<Map<string, number>> {
+  if (!isSupabaseReady()) {
+    return new Map()
+  }
+
+  const match: Record<string, string> = {}
+  if (userId) {
+    match.user_id = userId
+  } else if (ipHash) {
+    match.ip_hash = ipHash
+  } else {
+    return new Map()
+  }
+
+  const { data, error } = await supabase
+    .from(RATINGS_TABLE)
+    .select('prompt_id, rating')
+    .match(match)
+
+  if (error) {
+    console.error('Error fetching user ratings:', error)
+    return new Map()
+  }
+
+  const ratingsMap = new Map<string, number>()
+  for (const row of data || []) {
+    ratingsMap.set(row.prompt_id, row.rating)
+  }
+
+  return ratingsMap
+}

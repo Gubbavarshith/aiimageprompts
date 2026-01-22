@@ -177,7 +177,7 @@ export function ExploreSidebar({
                           : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white bg-white/50 dark:bg-zinc-800/50'
                         }`}
                     >
-                      <div className={`w-1.5 h-1.5 rounded-full mr-2 transition-colors ${(selectedCategory === 'All' || !selectedCategory) ? 'bg-[#F8BE00]' : 'bg-gray-300 dark:bg-zinc-700 group-hover:bg-[#F8BE00]'
+                      <div className={`w-1.5 h-1.5 rounded-full mr-2 transition-colors ${(selectedCategory === 'All' || !selectedCategory) ? 'bg-[#FFDE1A]' : 'bg-gray-300 dark:bg-zinc-700 group-hover:bg-[#F8BE00]'
                         }`} />
                       All Categories
                     </motion.button>
@@ -192,7 +192,7 @@ export function ExploreSidebar({
                             : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-zinc-800 hover:text-black dark:hover:text-white bg-white/50 dark:bg-zinc-800/50'
                           }`}
                       >
-                        <div className={`w-1.5 h-1.5 flex-shrink-0 rounded-full mr-2 transition-colors ${selectedCategory === cat ? 'bg-[#F8BE00]' : 'bg-gray-300 dark:bg-zinc-700 group-hover:bg-[#F8BE00]'
+                        <div className={`w-1.5 h-1.5 flex-shrink-0 rounded-full mr-2 transition-colors ${selectedCategory === cat ? 'bg-[#FFDE1A]' : 'bg-gray-300 dark:bg-zinc-700 group-hover:bg-[#F8BE00]'
                           }`} />
                         <span className="truncate">{cat}</span>
                       </motion.button>
@@ -233,7 +233,7 @@ export function ExploreSidebar({
                         key={tagItem.tag}
                         onClick={() => onTagClick(tagItem.tag)}
                         className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-200 ${isActive
-                            ? 'bg-[#F8BE00] text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                            ? 'bg-[#FFDE1A] text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                             : 'bg-white dark:bg-zinc-900 text-gray-600 dark:text-gray-400 border-black/10 dark:border-white/10 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]'
                           }`}
                       >

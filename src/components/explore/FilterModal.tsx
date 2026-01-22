@@ -106,7 +106,7 @@ export function FilterModal({
                 {activeTab === 'categories' && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-[#F8BE00]"
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-[#FFDE1A]"
                   />
                 )}
               </button>
@@ -125,7 +125,7 @@ export function FilterModal({
                 {activeTab === 'tags' && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-[#F8BE00]"
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-[#FFDE1A]"
                   />
                 )}
               </button>
@@ -166,7 +166,7 @@ export function FilterModal({
                           <div
                             className={`w-1.5 h-1.5 rounded-full mr-2 transition-colors ${
                               selectedCategory === 'All' || !selectedCategory
-                                ? 'bg-[#F8BE00]'
+                                ? 'bg-[#FFDE1A]'
                                 : 'bg-gray-300 dark:bg-zinc-700 group-hover:bg-[#F8BE00]'
                             }`}
                           />
@@ -222,7 +222,7 @@ export function FilterModal({
                               onClick={() => handleTagSelect(tagItem.tag)}
                               className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-200 ${
                                 isActive
-                                  ? 'bg-[#F8BE00] text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                                  ? 'bg-[#FFDE1A] text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                                   : 'bg-white dark:bg-zinc-900 text-gray-600 dark:text-gray-400 border-black/10 dark:border-white/10 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]'
                               }`}
                             >

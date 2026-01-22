@@ -33,7 +33,7 @@ export function StarRating({ value, count, disabled, onRate }: StarRatingProps) 
                 className={
                   'transition-colors ' +
                   (filled
-                    ? 'text-[#F8BE00]'
+                    ? 'text-[#FFDE1A]'
                     : 'text-zinc-300 dark:text-zinc-700')
                 }
               >

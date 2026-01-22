@@ -11,7 +11,7 @@ const BuyMeACoffee = () => {
     if (isHidden) return null
 
     return (
-        <div className="fixed bottom-6 left-6 z-50 animate-fade-in">
+        <div className="fixed bottom-6 left-[5rem] z-50 animate-fade-in">
             <a
                 href="https://www.buymeacoffee.com/aiimageprompts"
                 target="_blank"
@@ -25,7 +25,7 @@ const BuyMeACoffee = () => {
                     width="217"
                     height="60"
                     decoding="async"
-                    className="h-12 w-auto drop-shadow-lg"
+                    className="h-9 w-auto drop-shadow-lg"
                     loading="lazy"
                 />
             </a>

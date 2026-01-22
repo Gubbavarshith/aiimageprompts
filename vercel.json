@@ -10,6 +10,10 @@
       "destination": "/api/sitemap.xml"
     },
     {
+      "source": "/l/:slug",
+      "destination": "https://hfncjkqzflreyfxvobxx.supabase.co/functions/v1/track-link/:slug"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

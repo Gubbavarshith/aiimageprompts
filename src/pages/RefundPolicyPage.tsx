@@ -7,7 +7,7 @@ import { updateCanonical } from '@/lib/seo'
 
 export default function RefundPolicyPage() {
   useEffect(() => {
-    document.title = 'Refund & Cancellation Policy – AI Image Prompts'
+    document.title = 'Refund & Cancellation Policy | Better Prompts, Better Art'
     updateCanonical('/refund')
     window.scrollTo(0, 0)
   }, [])

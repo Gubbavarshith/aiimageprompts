@@ -18,21 +18,27 @@ import {
   TagIcon,
   HashtagIcon,
   ArrowUpTrayIcon,
+  LinkIcon,
+  ChartBarIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useTheme } from '../components/use-theme'
 import { supabase, isSupabaseReady } from '../lib/supabaseClient'
 import { fetchPromptsForReview } from '../lib/services/prompts'
 import { fetchEmailSubscriptions } from '../lib/services/emailSubscriptions'
+import { getUnreadContactMessagesCount } from '../lib/services/contactMessages'
 import FloatingActionMenu from '../components/ui/floating-action-menu'
 import { useAdmin } from '../contexts/AdminContext'
 import PromptFormModal from '../components/admin/PromptFormModal'
 
 export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [userEmail, setUserEmail] = useState<string>('')
   const [reviewCount, setReviewCount] = useState(0)
   const [subscriptionsCount, setSubscriptionsCount] = useState(0)
+  const [contactMessagesCount, setContactMessagesCount] = useState(0)
   const location = useLocation()
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
@@ -88,16 +94,19 @@ export default function AdminLayout() {
     if (!isSupabaseReady()) {
       setReviewCount(0)
       setSubscriptionsCount(0)
+      setContactMessagesCount(0)
       return
     }
 
     try {
-      const [reviewPrompts, subscriptions] = await Promise.all([
+      const [reviewPrompts, subscriptions, contactCount] = await Promise.all([
         fetchPromptsForReview().catch(() => []),
         fetchEmailSubscriptions().catch(() => []),
+        getUnreadContactMessagesCount().catch(() => 0),
       ])
       setReviewCount(reviewPrompts.length)
       setSubscriptionsCount(subscriptions.length)
+      setContactMessagesCount(contactCount)
     } catch (error) {
       console.error('Error fetching counts:', error)
     }
@@ -115,9 +124,12 @@ export default function AdminLayout() {
     { name: 'Prompts', href: '/admin/prompts', icon: PhotoIcon, count: null },
     { name: 'Bulk', href: '/admin/bulk', icon: ArrowUpTrayIcon, count: null },
     { name: 'Review', href: '/admin/review', icon: ClipboardDocumentCheckIcon, count: reviewCount },
+    { name: 'Links', href: '/admin/links', icon: LinkIcon, count: null },
+    { name: 'Google Analytics', href: '/admin/google-analytics', icon: ChartBarIcon, count: null },
     { name: 'Explore Hero', href: '/admin/explore-hero', icon: PhotoIcon, count: null },
     { name: 'Blogs', href: '/admin/blogs', icon: DocumentTextIcon, count: null },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: EnvelopeIcon, count: subscriptionsCount },
+    { name: 'Contact', href: '/admin/contact', icon: ChatBubbleLeftRightIcon, count: contactMessagesCount },
     { name: 'Categories', href: '/admin/categories', icon: TagIcon, count: null },
     { name: 'Tags', href: '/admin/tags', icon: HashtagIcon, count: null },
     { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon, count: null },
@@ -161,8 +173,9 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#0c0c0e] border-r border-zinc-200 dark:border-white/5 flex flex-col transition-all duration-300 ease-in-out lg:translate-x-0",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#0c0c0e] border-r border-zinc-200 dark:border-white/5 flex flex-col transition-all duration-300 ease-in-out",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          isSidebarCollapsed && "lg:-translate-x-full"
         )}
       >
         {/* Logo */}
@@ -176,13 +189,27 @@ export default function AdminLayout() {
               <span className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase">Admin Panel</span>
             </div>
           </div>
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            aria-label="Close sidebar"
-            className="ml-auto lg:hidden text-zinc-500 hover:text-black dark:hover:text-white"
-          >
-            <XMarkIcon className="w-6 h-6" />
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              aria-label={isSidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+              className="hidden lg:flex items-center justify-center w-8 h-8 text-zinc-500 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+              title={isSidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+            >
+              {/* Panel icon - left and right sections */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </button>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              aria-label="Close sidebar"
+              className="lg:hidden text-zinc-500 hover:text-black dark:hover:text-white"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* Navigation */}
@@ -278,8 +305,11 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="lg:pl-72 flex flex-col min-h-screen transition-all duration-300">
-        {/* Top Header Mobile */}
+      <main className={cn(
+        "flex flex-col min-h-screen transition-all duration-300",
+        isSidebarCollapsed ? "lg:pl-0" : "lg:pl-72"
+      )}>
+        {/* Mobile Header - Only visible on mobile */}
         <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-md border-b border-zinc-200 dark:border-white/5 flex items-center px-4 lg:hidden">
           <button
             onClick={() => setIsSidebarOpen(true)}
@@ -288,16 +318,46 @@ export default function AdminLayout() {
           >
             <Bars3Icon className="w-6 h-6" />
           </button>
-          <span className="ml-4 font-bold">Admin Panel</span>
+          <span className="ml-2 font-bold">Admin Panel</span>
         </header>
+
+        {/* Desktop Sidebar Toggle - Only visible when sidebar is collapsed */}
+        <AnimatePresence>
+          {isSidebarCollapsed && (
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={() => setIsSidebarCollapsed(false)}
+              aria-label="Show sidebar"
+              className="hidden lg:flex fixed left-4 top-6 z-40 items-center justify-center w-10 h-10 bg-white dark:bg-[#0c0c0e] text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 rounded-xl border-2 border-zinc-200 dark:border-white/10 shadow-lg hover:shadow-xl hover:border-[#FFDE1A] dark:hover:border-[#FFDE1A] transition-all duration-200 group"
+              title="Show sidebar"
+            >
+              <svg 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="group-hover:scale-110 transition-transform"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         <div className="flex-1 p-4 lg:p-8 max-w-7xl mx-auto w-full">
           <Outlet />
         </div>
       </main>
 
-      {/* Floating Action Menu */}
-      <FloatingActionMenu options={floatingMenuOptions} />
+      {/* Floating Action Menu - Hidden on Blog Editor page to focus on writing */}
+      {!location.pathname.includes('/admin/blogs/') && (
+        <FloatingActionMenu options={floatingMenuOptions} />
+      )}
 
       {/* Global Prompt Form Modal */}
       <PromptFormModal

@@ -16,6 +16,7 @@ export type BlogPost = {
   metaTitle?: string
   metaDescription?: string
   scheduledAt?: string
+  showToc?: boolean // NEW: Optional Table of Contents toggle
 }
 
 // Helper function to map database row to BlogPost type
@@ -35,6 +36,7 @@ const mapRowToBlogPost = (row: any): BlogPost => ({
   metaTitle: row.meta_title || undefined,
   metaDescription: row.meta_description || undefined,
   scheduledAt: row.scheduled_at || undefined,
+  showToc: row.show_toc || false, // NEW: Table of Contents toggle
 })
 
 // Helper function to map BlogPost to database row
@@ -53,6 +55,7 @@ const mapBlogPostToRow = (post: Partial<BlogPost>): any => ({
   meta_title: post.metaTitle || null,
   meta_description: post.metaDescription || null,
   scheduled_at: post.scheduledAt || null,
+  show_toc: post.showToc ?? false, // NEW: Table of Contents toggle
 })
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {
@@ -323,6 +326,7 @@ export async function updateBlogPost(payload: UpdateBlogPostPayload): Promise<Bl
     if (payload.metaTitle !== undefined) updateData.meta_title = payload.metaTitle || null
     if (payload.metaDescription !== undefined) updateData.meta_description = payload.metaDescription || null
     if (payload.scheduledAt !== undefined) updateData.scheduled_at = payload.scheduledAt || null
+    if (payload.showToc !== undefined) updateData.show_toc = payload.showToc // NEW: Table of Contents toggle
     if (slug !== existingPost.slug) updateData.slug = slug
     updateData.read_time = readTime
 

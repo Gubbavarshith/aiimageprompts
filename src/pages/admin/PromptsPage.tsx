@@ -309,7 +309,7 @@ export default function PromptsPage() {
 
         <button
           onClick={handleNewPrompt}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#FFDE1A] hover:bg-[#ffe64d] text-black font-bold rounded-xl transition-colors text-sm shadow-[0_0_20px_-5px_#FFDE1A] active:scale-95"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#FFDE1A] hover:bg-[#F8BE00] text-black font-bold rounded-xl transition-colors text-sm shadow-[0_0_20px_-5px_#FFDE1A] active:scale-95"
         >
           <PlusIcon className="w-5 h-5" />
           <span>New Prompt</span>

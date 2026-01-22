@@ -8,7 +8,7 @@ import { updateCanonical } from '@/lib/seo'
 
 export default function AboutPage() {
     useEffect(() => {
-        document.title = 'About – AI Image Prompts'
+        document.title = 'About | Better Prompts, Better Art'
         updateCanonical('/about')
         window.scrollTo(0, 0)
     }, [])
@@ -53,13 +53,13 @@ export default function AboutPage() {
                         className="max-w-3xl"
                     >
                         <motion.h1 variants={fadeIn} className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-8 leading-[1.1]">
-                            A better way to write prompts
+                            Better Prompts,
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFDE1A] to-yellow-600">
-                                {' '}for AI image models.
+                                {' '}Better Art
                             </span>
                         </motion.h1>
                         <motion.p variants={fadeIn} className="text-xl text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                            Aiimageprompts is a curated playground for image model prompts—built for people who care about craft, not copy‑pasted boilerplate.
+                            Master the art of AI generation. Thousands of pro-level prompts ready for your next masterpiece. A curated playground for image model prompts—built for people who care about craft, not copy‑pasted boilerplate.
                         </motion.p>
                     </motion.div>
                 </div>
@@ -258,7 +258,7 @@ export default function AboutPage() {
                     </p>
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4">
                         <Link to="/explore">
-                            <button className="px-8 py-4 bg-[#FFDE1A] hover:bg-[#ffe64d] text-black font-bold rounded-full text-lg transition-all hover:scale-105 shadow-[0_0_30px_-10px_#FFDE1A] flex items-center gap-2">
+                            <button className="px-8 py-4 bg-[#FFDE1A] hover:bg-[#F8BE00] text-black font-bold rounded-full text-lg transition-all hover:scale-105 shadow-[0_0_30px_-10px_#FFDE1A] flex items-center gap-2">
                                 Explore prompts <ArrowRight size={20} />
                             </button>
                         </Link>

@@ -4,13 +4,13 @@ import { Home, ArrowLeft } from 'lucide-react'
 
 export default function NotFoundPage() {
   useEffect(() => {
-    document.title = 'Page Not Found – AI Image Prompts'
+    document.title = 'Page Not Found | Better Prompts, Better Art'
   }, [])
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans flex items-center justify-center transition-colors duration-300">
       <div className="text-center px-4">
-        <h1 className="text-[150px] md:text-[200px] font-bold leading-none tracking-tighter text-[#F8BE00]">
+        <h1 className="text-[150px] md:text-[200px] font-bold leading-none tracking-tighter text-[#FFDE1A]">
           404
         </h1>
         <h2 className="text-2xl md:text-3xl font-bold mb-4 -mt-4">
@@ -23,7 +23,7 @@ export default function NotFoundPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             to="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#F8BE00] text-black font-bold rounded-full hover:bg-black hover:text-[#F8BE00] border border-black transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#FFDE1A] text-black font-bold rounded-full hover:bg-black hover:text-[#F8BE00] border border-black transition-colors"
           >
             <Home size={18} />
             Go to homepage
