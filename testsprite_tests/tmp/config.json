@@ -1,0 +1,16 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
+  "executionArgs": {
+    "projectName": "aiimageprompts",
+    "projectPath": "c:\\Users\\User\\OneDrive\\Desktop\\aiimageprompts",
+    "testIds": [],
+    "additionalInstruction": "",
+    "envs": {
+      "API_KEY": "sk-user-pQurBWmMluCib6tE20k9Npe7rsSlhEPXTV25Twor6zByu6LA8p7IcJeHVCjFlqIG1j8PRpY0LTg9Om4m7wZHPizjkS87R5sTDPXv60Tte12gALoj3pJxnhh6uXiCWAWnEyg"
+    }
+  },
+  "proxy": "http://d8c41c64-cb99-4c26-b737-a27108e14aee:AsnKBR3lLMUvLNdH8U8AOmR4NqU4uBfp@tun.testsprite.com:8080"
+}

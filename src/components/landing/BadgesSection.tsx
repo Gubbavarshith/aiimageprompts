@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 
 export type BadgeItem = {
   id: string;
@@ -34,7 +34,7 @@ const badges: BadgeItem[] = [
   // Add more badges here as needed
 ];
 
-const badgeVariants = {
+const badgeVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1,
@@ -42,7 +42,7 @@ const badgeVariants = {
     transition: {
       duration: 0.5,
       delay: i * 0.1,
-      ease: [0.22, 1, 0.36, 1]
+      ease: [0.22, 1, 0.36, 1] as any
     }
   })
 };

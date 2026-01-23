@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": 1,
+  "brand": {
+    "name": "AI Image Prompts",
+    "oneLineStory": "A curated workshop for image-makers: prompts as craft, not spam.",
+    "voice": {
+      "keywords": ["editorial", "confident", "human", "craft-focused", "anti-generic"],
+      "do": [
+        "Use specific language and concrete nouns.",
+        "Prefer short, decisive headings.",
+        "Treat prompts as a creative practice (not 'AI hype')."
+      ],
+      "avoid": [
+        "Buzzwordy startup tone",
+        "Over-promising (e.g., 'best ever', 'guaranteed')",
+        "Generic UI copy"
+      ]
+    }
+  },
+  "designIntent": {
+    "northStar": "A bold, tactile editorial interface with high contrast and a single sharp accent.",
+    "avoidList": [
+      "purple/indigo gradients on white",
+      "generic 'startup' cards",
+      "overused fonts (Inter/Roboto/system-ui/Space Grotesk)"
+    ]
+  },
+  "typography": {
+    "pairing": {
+      "display": "Fraunces",
+      "text": "Atkinson Hyperlegible",
+      "mono": "IBM Plex Mono"
+    },
+    "scale": {
+      "h1": "clamp(2.25rem, 3vw, 3.25rem)",
+      "h2": "clamp(1.75rem, 2.2vw, 2.5rem)",
+      "h3": "clamp(1.25rem, 1.6vw, 1.75rem)",
+      "body": "1rem",
+      "small": "0.925rem"
+    },
+    "rules": [
+      "Use the display face sparingly for hero headings and section titles.",
+      "Body text stays highly readable; never compress line-height below 1.4.",
+      "Prefer sentence-case headings; avoid ALL CAPS unless used as a small label."
+    ]
+  },
+  "color": {
+    "mode": "darkEditorial",
+    "palette": {
+      "ink": "#0B0E14",
+      "charcoal": "#131826",
+      "paper": "#F3F0E7",
+      "fog": "#A9B0C3",
+      "accent": "#FF3B2F",
+      "accent2": "#37D3A6",
+      "warning": "#F7B955"
+    },
+    "usage": {
+      "background": "ink",
+      "surface": "charcoal",
+      "textPrimary": "paper",
+      "textSecondary": "fog",
+      "accent": "accent"
+    },
+    "accessibility": {
+      "minimumContrast": "WCAG AA",
+      "notes": "Accent should be used as a highlight, not as a body-text color."
+    }
+  },
+  "backgrounds": {
+    "preferred": [
+      "subtle grain/noise overlay",
+      "soft radial glow behind hero content",
+      "thin editorial grid lines at low opacity"
+    ],
+    "avoid": ["flat solid #fff pages", "loud multi-color gradients"]
+  },
+  "motion": {
+    "principles": [
+      "One signature motion per page (entrance rhythm), not many micro-animations.",
+      "Respect prefers-reduced-motion.",
+      "Use easing that feels intentional (no bouncy defaults)."
+    ],
+    "defaults": {
+      "durationMs": 220,
+      "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)"
+    }
+  },
+  "components": {
+    "buttons": {
+      "shape": "slightly sharp (2-6px radius), not pill",
+      "style": "high-contrast, tactile hover, clear focus ring"
+    },
+    "cards": {
+      "style": "editorial slabs with subtle border + depth, avoid 'template card' look",
+      "detail": "use a thin top rule or corner mark to create identity"
+    }
+  },
+  "seo": {
+    "titleStyle": "benefit + specificity (no fluff)",
+    "metaDescriptionStyle": "plainspoken, concrete, under 155 chars when possible"
+  }
+}
+

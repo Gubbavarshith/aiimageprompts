@@ -7,13 +7,52 @@ import { useToast } from '@/contexts/ToastContext'
 import { updateCanonical } from '@/lib/seo'
 import { createContactMessage } from '@/lib/services/contactMessages'
 import { isSupabaseReady } from '@/lib/supabaseClient'
+import { getUserLocation, type LocationData } from '@/lib/utils/location'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '', honeypot: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [emailTouched, setEmailTouched] = useState(false)
   const toast = useToast()
+
+  // Email validation function
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  // Handle email input change with validation
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setFormData({ ...formData, email: value })
+    
+    if (emailTouched) {
+      if (value.trim() === '') {
+        setEmailError(null)
+      } else if (!validateEmail(value)) {
+        setEmailError('Please enter a valid email address')
+      } else {
+        setEmailError(null)
+      }
+    }
+  }
+
+  // Handle email blur to mark as touched
+  const handleEmailBlur = () => {
+    setEmailTouched(true)
+    setFocusedField(null)
+    
+    if (formData.email.trim() === '') {
+      setEmailError(null)
+    } else if (!validateEmail(formData.email)) {
+      setEmailError('Please enter a valid email address')
+    } else {
+      setEmailError(null)
+    }
+  }
 
   useEffect(() => {
     document.title = 'Contact | Better Prompts, Better Art'
@@ -24,6 +63,14 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isSubmitting) return
+    
+    // Validate email before submission
+    setEmailTouched(true)
+    if (!validateEmail(formData.email)) {
+      setEmailError('Please enter a valid email address')
+      return
+    }
+    
     setIsSubmitting(true)
     
     try {
@@ -31,6 +78,8 @@ export default function ContactPage() {
       if (formData.honeypot) {
         setSubmitted(true)
         setFormData({ name: '', email: '', message: '', honeypot: '' })
+        setEmailError(null)
+        setEmailTouched(false)
         setIsSubmitting(false)
         return
       }
@@ -40,17 +89,34 @@ export default function ContactPage() {
         throw new Error('Database is not configured. Please try again later.')
       }
 
+      // Fetch user location data (non-blocking)
+      let locationData: LocationData
+      try {
+        locationData = await getUserLocation()
+      } catch (locationError) {
+        console.warn('Failed to fetch location data:', locationError)
+        // Continue without location data
+        locationData = {}
+      }
+
       const result = await createContactMessage({
         name: formData.name,
         email: formData.email,
         message: formData.message,
         user_agent: navigator.userAgent,
+        ip_address: locationData.ip_address,
+        country: locationData.country,
+        region: locationData.region,
+        city: locationData.city,
+        timezone: locationData.timezone,
       })
 
       if (result.success) {
         setSubmitted(true)
         setFormData({ name: '', email: '', message: '', honeypot: '' })
-        toast.success('Message sent. We'll get back to you soon.')
+        setEmailError(null)
+        setEmailTouched(false)
+        toast.success("Message sent. We'll get back to you soon.")
       } else {
         throw new Error(result.error || 'Failed to send message')
       }
@@ -180,13 +246,24 @@ export default function ContactPage() {
                             type="email"
                             required
                             value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            onChange={handleEmailChange}
                             onFocus={() => setFocusedField('email')}
-                            onBlur={() => setFocusedField(null)}
-                            className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-1 focus:ring-[#FFDE1A] outline-none transition-all"
+                            onBlur={handleEmailBlur}
+                            className={`w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border outline-none transition-all ${
+                              emailError 
+                                ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500' 
+                                : 'border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-1 focus:ring-[#FFDE1A]'
+                            }`}
                             placeholder="you@example.com"
+                            aria-invalid={emailError ? 'true' : 'false'}
+                            aria-describedby={emailError ? 'email-error' : undefined}
                           />
                         </div>
+                        {emailError && (
+                          <p id="email-error" className="text-sm text-red-500 ml-1 mt-1" role="alert">
+                            {emailError}
+                          </p>
+                        )}
                       </div>
                     </div>
 

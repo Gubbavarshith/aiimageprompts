@@ -1,0 +1,533 @@
+[
+  {
+    "id": "TC001",
+    "title": "Landing Page Load and Content Verification",
+    "description": "Verify that the landing page loads successfully and displays hero section, featured prompts, testimonials, and call-to-action sections correctly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the landing page URL"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the hero section is visible with expected text and images"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify featured prompts are displayed with preview images, titles, and categories"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that the testimonials section is present and populated"
+      },
+      {
+        "type": "assertion",
+        "description": "Check the presence and functionality of call-to-action buttons"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Explore Page Search and Filter Functionality",
+    "description": "Ensure the Explore page search and filtering features return accurate and relevant prompt results based on category, tag, style, subject, and mood queries.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the Explore page"
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid search keyword into the search input"
+      },
+      {
+        "type": "action",
+        "description": "Apply multiple filters such as category, tag, and mood"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the prompt grid updates and displays results matching the search and filter criteria"
+      },
+      {
+        "type": "action",
+        "description": "Clear filters and verify that all prompts are displayed again"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the filters handle edge cases such as no matching results gracefully"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Prompt Detail Page Display and Copy Functionality",
+    "description": "Validate that the prompt detail page correctly displays full prompt text, preview images, and that the one-click copy to clipboard function works without requiring signup.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "From the Explore page, select a prompt to navigate to its detail page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the full prompt text is displayed accurately"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that preview images load properly and correspond to the prompt"
+      },
+      {
+        "type": "action",
+        "description": "Click the one-click copy button"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the prompt text is copied to clipboard and a confirmation toast notification appears"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure this functionality works without user authentication"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "User Sign-up and Login Flow",
+    "description": "Verify user sign-up and login flows function correctly, including successful authentication and redirection to protected pages.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the sign-up page"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid registration information and submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm account creation success and automatic login"
+      },
+      {
+        "type": "action",
+        "description": "Log out of the application"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the login page and enter valid credentials"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm successful login and access to authenticated user features"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access an admin-only route as a normal user"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied or redirected appropriately"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Saved Prompts Management for Authenticated Users",
+    "description": "Ensure authenticated users can save prompts, search within saved prompts, and remove prompts from their favorites collection.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as an authenticated user"
+      },
+      {
+        "type": "action",
+        "description": "On the Explore page, save a prompt to favorites"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the Saved Prompts page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the saved prompt appears in the list"
+      },
+      {
+        "type": "action",
+        "description": "Use the search function to find the saved prompt"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm search results match query against saved prompts"
+      },
+      {
+        "type": "action",
+        "description": "Remove a saved prompt from the collection"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the prompt is removed and no longer appears in saved list"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Prompt Submission Form Validation and Workflow",
+    "description": "Validate that the prompt submission form enforces input validation, submits data correctly, and that prompts appear in admin review queue requiring approval before public display.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the Submit Prompt page"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit the form with missing required fields"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appropriate validation errors are displayed preventing submission"
+      },
+      {
+        "type": "action",
+        "description": "Complete the form with valid prompt information and submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm submission success message and form reset"
+      },
+      {
+        "type": "action",
+        "description": "Log in as admin user and navigate to the prompt review queue"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the newly submitted prompt is listed for review"
+      },
+      {
+        "type": "action",
+        "description": "Approve the submitted prompt"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the prompt status updates to published and appears publicly"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Blog Post Management Workflow",
+    "description": "Ensure admins can create, edit, schedule, and publish blog posts using the rich text editor with SEO metadata without errors.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as admin and navigate to blog management"
+      },
+      {
+        "type": "action",
+        "description": "Create a new blog post with title, body content via rich text editor, SEO metadata, and publish date"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the blog post saves successfully as a draft or scheduled post"
+      },
+      {
+        "type": "action",
+        "description": "Edit an existing blog post and update content and SEO metadata"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that updates are saved and displayed correctly"
+      },
+      {
+        "type": "action",
+        "description": "Publish the blog post"
+      },
+      {
+        "type": "assertion",
+        "description": "Check the blog post is visible on the public blog page with accurate content and metadata"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Admin Dashboard Prompt, Category, and Tag Management",
+    "description": "Verify admin users can create, edit, and delete prompts, categories, and tags with immediate data consistency and updated analytics.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as admin and open the Admin Dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Create a new prompt with full required metadata"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the prompt is added and visible in prompt listings"
+      },
+      {
+        "type": "action",
+        "description": "Edit an existing category's metadata including icon, color, and description"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify changes are saved and reflected in both admin and public interfaces"
+      },
+      {
+        "type": "action",
+        "description": "Modify tags including alias normalization to merge duplicates"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure tags are consistently normalized across prompts"
+      },
+      {
+        "type": "action",
+        "description": "Delete a prompt and confirm removal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify prompt no longer appears publicly or in admin listings"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Discovery Events and Link Tracking Analytics",
+    "description": "Validate that prompt discovery event tracking and short link analytics collect, store, and display data correctly within the admin interface and Google Analytics integration.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "As a user, discover prompts via search, filters, and related prompts"
+      },
+      {
+        "type": "action",
+        "description": "Click on tracked short links with UTM parameters"
+      },
+      {
+        "type": "action",
+        "description": "Log in as admin and navigate to the analytics dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that discovery events are logged and visible with accurate counts and details"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm link click metrics are accurate and UTM parameters are recorded"
+      },
+      {
+        "type": "assertion",
+        "description": "Check Google Analytics data is fetched and displayed correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Theme Switching and System Preference Detection",
+    "description": "Test that the dark/light theme switching honors user system preference and allows manual toggling with immediate UI updates.",
+    "category": "functional",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set system theme preference to dark mode"
+      },
+      {
+        "type": "action",
+        "description": "Load the website and observe initial theme"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the site loads in dark theme matching system preference"
+      },
+      {
+        "type": "action",
+        "description": "Use the theme toggle switch to change to light theme"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm theme switches to light mode instantly"
+      },
+      {
+        "type": "action",
+        "description": "Toggle back to dark theme manually"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI updates reflect dark mode without page reload"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Cookie Consent Banner Display and Preference Persistence",
+    "description": "Verify that the cookie consent banner is displayed according to GDPR rules and stores user consent preferences correctly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Clear browser cookies and local storage"
+      },
+      {
+        "type": "action",
+        "description": "Load the website in a GDPR jurisdiction simulated environment"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the cookie consent banner is visible"
+      },
+      {
+        "type": "action",
+        "description": "Accept or decline cookie consent"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that consent preference is stored and banner is dismissed"
+      },
+      {
+        "type": "action",
+        "description": "Reload the page"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that the cookie consent banner does not reappear after preference is set"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Contact Form Submission and Admin Message Management",
+    "description": "Ensure that users can submit inquiries via the contact form with location tracking and that admins can view and manage these messages.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the Contact page"
+      },
+      {
+        "type": "action",
+        "description": "Fill in required contact form fields with valid data and submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm submission success notification is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Log in as admin and go to Contact Messages management"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the newly submitted message appears with correct details including location"
+      },
+      {
+        "type": "action",
+        "description": "Mark a message as read or delete it"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm updated message status or removal from list"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Navigation Responsiveness and Accessibility Compliance",
+    "description": "Verify navigation elements function smoothly across devices and meet WCAG accessibility standards.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Browse main navigation on desktop, tablet, and mobile viewports"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm navigation menus open and close smoothly with animations"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify keyboard navigation and focus states are present and visually clear"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that screen readers announce navigation items correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Legal Pages Accessibility and Content Accuracy",
+    "description": "Ensure legal pages (terms of service, privacy policy, cookie policy, refund policy) load correctly, display up-to-date policy content, and are accessible.",
+    "category": "functional",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to each legal page from the footer links"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify each page loads without error and displays the complete content"
+      },
+      {
+        "type": "assertion",
+        "description": "Check pages are accessible with appropriate headings and readable for screen readers"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm links within legal content, if any, function correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "FAQ and Guidelines Pages Content and Navigation",
+    "description": "Validate that FAQ and Guidelines pages are available, display relevant information clearly, and navigation between questions or sections works correctly.",
+    "category": "functional",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the FAQ page"
+      },
+      {
+        "type": "assertion",
+        "description": "Check FAQ entries are displayed with expandable answers"
+      },
+      {
+        "type": "action",
+        "description": "Use the floating FAQ button and verify it opens the FAQ content overlay"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm toggling FAQ answers expands and collapses correctly"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the Guidelines page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the submission guidelines content is complete and readable"
+      }
+    ]
+  }
+]

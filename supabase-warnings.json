@@ -1,0 +1,705 @@
+[
+    {
+      "name": "function_search_path_mutable",
+      "title": "Function Search Path Mutable",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects functions where the search_path parameter is not set.",
+      "detail": "Function \\`public.update_blog_posts_updated_at\\` has a role mutable search_path",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "metadata": {
+        "name": "update_blog_posts_updated_at",
+        "type": "function",
+        "schema": "public"
+      },
+      "cache_key": "function_search_path_mutable_public_update_blog_posts_updated_at_64a735a0e1b5287bb7624d7e50512309"
+    },
+    {
+      "name": "function_search_path_mutable",
+      "title": "Function Search Path Mutable",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects functions where the search_path parameter is not set.",
+      "detail": "Function \\`public.update_contact_messages_updated_at\\` has a role mutable search_path",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "metadata": {
+        "name": "update_contact_messages_updated_at",
+        "type": "function",
+        "schema": "public"
+      },
+      "cache_key": "function_search_path_mutable_public_update_contact_messages_updated_at_ce195772454f63b8c9d7882cca558d46"
+    },
+    {
+      "name": "function_search_path_mutable",
+      "title": "Function Search Path Mutable",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects functions where the search_path parameter is not set.",
+      "detail": "Function \\`public.update_bulk_upload_drafts_updated_at\\` has a role mutable search_path",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "metadata": {
+        "name": "update_bulk_upload_drafts_updated_at",
+        "type": "function",
+        "schema": "public"
+      },
+      "cache_key": "function_search_path_mutable_public_update_bulk_upload_drafts_updated_at_ce195772454f63b8c9d7882cca558d46"
+    },
+    {
+      "name": "function_search_path_mutable",
+      "title": "Function Search Path Mutable",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects functions where the search_path parameter is not set.",
+      "detail": "Function \\`public.update_tracked_links_updated_at\\` has a role mutable search_path",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "metadata": {
+        "name": "update_tracked_links_updated_at",
+        "type": "function",
+        "schema": "public"
+      },
+      "cache_key": "function_search_path_mutable_public_update_tracked_links_updated_at_301a884953d37769916294bb60562e05"
+    },
+    {
+      "name": "function_search_path_mutable",
+      "title": "Function Search Path Mutable",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects functions where the search_path parameter is not set.",
+      "detail": "Function \\`public.update_updated_at_column\\` has a role mutable search_path",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "metadata": {
+        "name": "update_updated_at_column",
+        "type": "function",
+        "schema": "public"
+      },
+      "cache_key": "function_search_path_mutable_public_update_updated_at_column_06bcf30ac3d0a7f279a54cbf228a7bec"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.app_settings` has an RLS policy `app_settings_update_all` for `UPDATE` that allows unrestricted access (both USING and WITH CHECK are always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "app_settings",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "UPDATE",
+        "with_check": "true",
+        "policy_name": "app_settings_update_all",
+        "permissive_using": true,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_app_settings_app_settings_update_all"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.app_settings` has an RLS policy `app_settings_write_all` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "app_settings",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "app_settings_write_all",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_app_settings_app_settings_write_all"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.blog_posts` has an RLS policy `Admins can delete blog posts` for `DELETE` that allows unrestricted access (USING clause is always true). This effectively bypasses row-level security for authenticated.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "blog_posts",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "authenticated"
+        ],
+        "schema": "public",
+        "command": "DELETE",
+        "with_check": null,
+        "policy_name": "Admins can delete blog posts",
+        "permissive_using": true,
+        "permissive_with_check": false
+      },
+      "cache_key": "rls_policy_always_true_public_blog_posts_Admins can delete blog posts"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.blog_posts` has an RLS policy `Admins can insert blog posts` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for authenticated.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "blog_posts",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "authenticated"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "Admins can insert blog posts",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_blog_posts_Admins can insert blog posts"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.blog_posts` has an RLS policy `Admins can update blog posts` for `UPDATE` that allows unrestricted access (both USING and WITH CHECK are always true). This effectively bypasses row-level security for authenticated.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "blog_posts",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "authenticated"
+        ],
+        "schema": "public",
+        "command": "UPDATE",
+        "with_check": "true",
+        "policy_name": "Admins can update blog posts",
+        "permissive_using": true,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_blog_posts_Admins can update blog posts"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.bulk_upload_drafts` has an RLS policy `Allow authenticated users to manage bulk upload drafts` for `ALL` that allows unrestricted access (both USING and WITH CHECK are always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "bulk_upload_drafts",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "ALL",
+        "with_check": "true",
+        "policy_name": "Allow authenticated users to manage bulk upload drafts",
+        "permissive_using": true,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_bulk_upload_drafts_Allow authenticated users to manage bulk upload drafts"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.contact_messages` has an RLS policy `Authenticated users can delete contact messages` for `DELETE` that allows unrestricted access (USING clause is always true). This effectively bypasses row-level security for authenticated.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "contact_messages",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "authenticated"
+        ],
+        "schema": "public",
+        "command": "DELETE",
+        "with_check": null,
+        "policy_name": "Authenticated users can delete contact messages",
+        "permissive_using": true,
+        "permissive_with_check": false
+      },
+      "cache_key": "rls_policy_always_true_public_contact_messages_Authenticated users can delete contact messages"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.contact_messages` has an RLS policy `Authenticated users can update contact messages` for `UPDATE` that allows unrestricted access (both USING and WITH CHECK are always true). This effectively bypasses row-level security for authenticated.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "contact_messages",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "authenticated"
+        ],
+        "schema": "public",
+        "command": "UPDATE",
+        "with_check": "true",
+        "policy_name": "Authenticated users can update contact messages",
+        "permissive_using": true,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_contact_messages_Authenticated users can update contact messages"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.contact_messages` has an RLS policy `Public can insert contact messages` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "contact_messages",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "Public can insert contact messages",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_contact_messages_Public can insert contact messages"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.email_subscriptions` has an RLS policy `Allow admins to delete subscriptions` for `DELETE` that allows unrestricted access (USING clause is always true). This effectively bypasses row-level security for authenticated.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "email_subscriptions",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "authenticated"
+        ],
+        "schema": "public",
+        "command": "DELETE",
+        "with_check": null,
+        "policy_name": "Allow admins to delete subscriptions",
+        "permissive_using": true,
+        "permissive_with_check": false
+      },
+      "cache_key": "rls_policy_always_true_public_email_subscriptions_Allow admins to delete subscriptions"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.email_subscriptions` has an RLS policy `Allow public to subscribe` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for anon, authenticated.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "email_subscriptions",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "anon",
+          "authenticated"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "Allow public to subscribe",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_email_subscriptions_Allow public to subscribe"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.explore_hero_tools` has an RLS policy `Admin only manage explore hero tools` for `ALL` that allows unrestricted access (both USING and WITH CHECK are always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "explore_hero_tools",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "ALL",
+        "with_check": "true",
+        "policy_name": "Admin only manage explore hero tools",
+        "permissive_using": true,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_explore_hero_tools_Admin only manage explore hero tools"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.link_clicks` has an RLS policy `Authenticated can insert clicks` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for authenticated.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "link_clicks",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "authenticated"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "Authenticated can insert clicks",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_link_clicks_Authenticated can insert clicks"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.link_clicks` has an RLS policy `Public can insert clicks` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for anon.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "link_clicks",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "anon"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "Public can insert clicks",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_link_clicks_Public can insert clicks"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.prompt_discovery_events` has an RLS policy `Public insert prompt_discovery_events` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "prompt_discovery_events",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "Public insert prompt_discovery_events",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_prompt_discovery_events_Public insert prompt_discovery_events"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.prompt_ratings` has an RLS policy `prompt_ratings_delete_all` for `DELETE` that allows unrestricted access (USING clause is always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "prompt_ratings",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "DELETE",
+        "with_check": null,
+        "policy_name": "prompt_ratings_delete_all",
+        "permissive_using": true,
+        "permissive_with_check": false
+      },
+      "cache_key": "rls_policy_always_true_public_prompt_ratings_prompt_ratings_delete_all"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.prompt_ratings` has an RLS policy `prompt_ratings_insert_all` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "prompt_ratings",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "prompt_ratings_insert_all",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_prompt_ratings_prompt_ratings_insert_all"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.prompt_ratings` has an RLS policy `prompt_ratings_update_all` for `UPDATE` that allows unrestricted access (both USING and WITH CHECK are always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "prompt_ratings",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "UPDATE",
+        "with_check": "true",
+        "policy_name": "prompt_ratings_update_all",
+        "permissive_using": true,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_prompt_ratings_prompt_ratings_update_all"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.prompts` has an RLS policy `Anyone insert prompts` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for anon, authenticated.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "prompts",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "anon",
+          "authenticated"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "Anyone insert prompts",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_prompts_Anyone insert prompts"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.reusable_blocks` has an RLS policy `Admin can manage reusable blocks` for `ALL` that allows unrestricted access (both USING and WITH CHECK are always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "reusable_blocks",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "ALL",
+        "with_check": "true",
+        "policy_name": "Admin can manage reusable blocks",
+        "permissive_using": true,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_reusable_blocks_Admin can manage reusable blocks"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.saved_prompts` has an RLS policy `Allow authenticated users to delete saved prompts` for `DELETE` that allows unrestricted access (USING clause is always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "saved_prompts",
+        "qual": "true",
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "DELETE",
+        "with_check": null,
+        "policy_name": "Allow authenticated users to delete saved prompts",
+        "permissive_using": true,
+        "permissive_with_check": false
+      },
+      "cache_key": "rls_policy_always_true_public_saved_prompts_Allow authenticated users to delete saved prompts"
+    },
+    {
+      "name": "rls_policy_always_true",
+      "title": "RLS Policy Always True",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects RLS policies that use overly permissive expressions like \\`USING (true)\\` or \\`WITH CHECK (true)\\` for UPDATE, DELETE, or INSERT operations. SELECT policies with \\`USING (true)\\` are intentionally excluded as this pattern is often used deliberately for public read access.",
+      "detail": "Table `public.saved_prompts` has an RLS policy `Allow authenticated users to insert saved prompts` for `INSERT` that allows unrestricted access (WITH CHECK clause is always true). This effectively bypasses row-level security for -.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy",
+      "metadata": {
+        "name": "saved_prompts",
+        "qual": null,
+        "type": "table",
+        "roles": [
+          "-"
+        ],
+        "schema": "public",
+        "command": "INSERT",
+        "with_check": "true",
+        "policy_name": "Allow authenticated users to insert saved prompts",
+        "permissive_using": false,
+        "permissive_with_check": true
+      },
+      "cache_key": "rls_policy_always_true_public_saved_prompts_Allow authenticated users to insert saved prompts"
+    },
+    {
+      "name": "auth_leaked_password_protection",
+      "title": "Leaked Password Protection Disabled",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Leaked password protection is currently disabled.",
+      "detail": "Supabase Auth prevents the use of compromised passwords by checking against HaveIBeenPwned.org. Enable this feature to enhance security.",
+      "cache_key": "auth_leaked_password_protection",
+      "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection",
+      "metadata": {
+        "type": "auth",
+        "entity": "Auth"
+      }
+    }
+  ]

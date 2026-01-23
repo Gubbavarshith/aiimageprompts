@@ -44,3 +44,10 @@ secrets/
 *.sln
 *.sw?
 
+# Local AI agent configuration (not for GitHub)
+.agent/
+.agents/
+.cursor/
+.claude/
+cloud.cursor.vscode
+

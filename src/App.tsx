@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 // Import LandingPage directly (critical for LCP)
 import LandingPage from './pages/LandingPage'
@@ -71,7 +72,7 @@ function App() {
   }, [])
 
   const content = (
-    <>
+    <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* 
@@ -88,25 +89,25 @@ function App() {
           {/* Maintenance Route */}
           <Route path="/maintenance" element={<MaintenancePage />} />
 
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/submit" element={<SubmitPromptPage />} />
-          <Route path="/saved" element={<SavedPromptsPage />} />
+          {/* Public Routes - Wrapped in ErrorBoundary for better error isolation */}
+          <Route path="/" element={<ErrorBoundary><LandingPage /></ErrorBoundary>} />
+          <Route path="/explore" element={<ErrorBoundary><ExplorePage /></ErrorBoundary>} />
+          <Route path="/submit" element={<ErrorBoundary><SubmitPromptPage /></ErrorBoundary>} />
+          <Route path="/saved" element={<ErrorBoundary><SavedPromptsPage /></ErrorBoundary>} />
           {/* Profile route redirects to home - Clerk handles profile via UserButton */}
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/refund" element={<RefundPolicyPage />} />
-          <Route path="/cookies" element={<CookiesPolicyPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/guidelines" element={<GuidelinesPage />} />
-          <Route path="/donate" element={<DonatePage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/blog/:slug" element={<BlogPostPage />} />
-          <Route path="/prompt/:slug" element={<PromptPage />} />
+          <Route path="/profile" element={<ErrorBoundary><ProfilePage /></ErrorBoundary>} />
+          <Route path="/terms" element={<ErrorBoundary><TermsPage /></ErrorBoundary>} />
+          <Route path="/privacy" element={<ErrorBoundary><PrivacyPage /></ErrorBoundary>} />
+          <Route path="/refund" element={<ErrorBoundary><RefundPolicyPage /></ErrorBoundary>} />
+          <Route path="/cookies" element={<ErrorBoundary><CookiesPolicyPage /></ErrorBoundary>} />
+          <Route path="/contact" element={<ErrorBoundary><ContactPage /></ErrorBoundary>} />
+          <Route path="/about" element={<ErrorBoundary><AboutPage /></ErrorBoundary>} />
+          <Route path="/faq" element={<ErrorBoundary><FAQPage /></ErrorBoundary>} />
+          <Route path="/guidelines" element={<ErrorBoundary><GuidelinesPage /></ErrorBoundary>} />
+          <Route path="/donate" element={<ErrorBoundary><DonatePage /></ErrorBoundary>} />
+          <Route path="/blog" element={<ErrorBoundary><BlogPage /></ErrorBoundary>} />
+          <Route path="/blog/:slug" element={<ErrorBoundary><BlogPostPage /></ErrorBoundary>} />
+          <Route path="/prompt/:slug" element={<ErrorBoundary><PromptPage /></ErrorBoundary>} />
 
           {/* Unified Auth Route - wildcard to catch Clerk sub-routes like /auth/verify-email-address */}
           <Route path="/auth/*" element={<AuthPage />} />
@@ -157,7 +158,7 @@ function App() {
         <CookieConsent />
       </Suspense>
       <WelcomeModal />
-    </>
+    </ErrorBoundary>
   )
 
   // Show content immediately, wrap with MaintenanceGuard after first paint

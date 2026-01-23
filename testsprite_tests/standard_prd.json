@@ -1,0 +1,378 @@
+{
+  "meta": {
+    "project": "AI Image Prompts Website",
+    "date": "2026-01-21",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "AI Image Prompts is a free, public web platform offering a vast library of curated AI image generation prompts with preview images. It is designed for AI artists, designers, content creators, and enthusiasts to browse, copy, save, and submit high-quality prompts seamlessly without signup friction. The site also includes educational content, community features, and a robust administrative backend for content and analytics management.",
+  "core_goals": [
+    "Provide frictionless access to a comprehensive library of AI image generation prompts with preview images to inspire and aid AI creators.",
+    "Enable efficient discovery through powerful search, filters, categories, and tags to find relevant prompts quickly.",
+    "Support authenticated users with personalized features like saving favorite prompts and submitting new prompts to the community.",
+    "Offer educational blog content and resources about AI art and prompt engineering to foster user engagement and knowledge.",
+    "Maintain strong administrative capabilities for content moderation, analytics, category/tag management, and system settings.",
+    "Ensure high performance, accessibility, and responsive design with modern technologies and SEO best practices."
+  ],
+  "key_features": [
+    "Landing Page with hero section, featured prompts, testimonials, and call-to-action to explore the prompt library.",
+    "Explore Page with advanced search, multiple filters, category/tag navigation, and a grid display of prompts with preview images.",
+    "Prompt Detail Page showing full prompt text, preview images, one-click copy functionality, prompt ratings, related prompts, and discovery tracking analytics.",
+    "Authentication via Clerk supporting anonymous browsing, user sign-up, login, and admin access with protected routes.",
+    "Saved Prompts feature allowing authenticated users to bookmark and manage favorite prompts with search capabilities.",
+    "Prompt Submission form enabling community members to submit new prompts for admin review and approval.",
+    "Comprehensive Blog System with rich text editing, SEO metadata, scheduling, and content management.",
+    "Admin Dashboard for managing prompts, categories, tags, blog posts, bulk uploads, email subscriptions, analytics integrations, and application settings including maintenance mode.",
+    "Category and Tag Management with metadata including icons, colors, descriptions, and tag alias normalization for consistent discovery.",
+    "Short Link Tracking and analytics system supporting URL shortening, UTM parameters, and click monitoring.",
+    "Discovery Events Tracking for analytics on how prompts are found and engaged with by users.",
+    "Dark/Light Theme support with system preference detection.",
+    "Cookie Consent banner for GDPR compliance.",
+    "Contact form for user inquiries with location tracking and admin message management.",
+    "Donation page integration with Buy Me a Coffee to support the project.",
+    "FAQ and Guidelines pages for user assistance and community standards guidance.",
+    "Legal pages covering terms of service, privacy policy, cookie policy, and refund policy."
+  ],
+  "user_flow_summary": [
+    "A visitor lands on the Landing Page to learn about the platform and accesses featured prompts or navigates to explore the prompt library.",
+    "Users browse prompts on the Explore Page, use search and filtering options, and click prompts to view detailed pages with full prompt info and copy prompts instantly.",
+    "Authenticated users can save favorite prompts to their personal collection and manage these via the Saved Prompts page.",
+    "Community users submit new prompt ideas through the Submit Prompt form, which are then reviewed by admin users in the admin interface before publishing.",
+    "Admin users log into a protected Admin Dashboard to manage all aspects of content including prompts, categories, tags, blog posts, and monitor analytics and system settings.",
+    "Users access educational content via the Blog, About, FAQ, and Guidelines pages for information and support.",
+    "Visitors can contact support through the Contact form; donations can be made on the Donate page to help fund the platform."
+  ],
+  "validation_criteria": [
+    "Prompts must display preview images, titles, categories, and tags correctly and enable one-click copying to clipboard with no signup required for public users.",
+    "Search and filter functionality on the Explore Page must return accurate and relevant prompt results efficiently for various style, subject, mood, and category queries.",
+    "Authentication system must securely support anonymous browsing, user login/signup via Clerk, and restrict admin routes to authorized users.",
+    "Saved prompts must be correctly persisted per user and allow management such as searching and removing favorites.",
+    "Prompt submissions must include validation of input data and send new prompts for review; admin approval is required before making prompts public.",
+    "Blog post creation and editing must support rich text editing, SEO metadata, scheduling, and publishing workflows without errors.",
+    "Admin dashboard features must allow creation, editing, and deletion of prompts, categories, tags, and blog posts with immediate data consistency and analytics updates.",
+    "Analytics tracking for prompt discovery and link clicks must collect, store, and display data correctly in admin interfaces including Google Analytics integration.",
+    "Theme switching between dark and light modes must honor user system preferences and enable manual toggling.",
+    "Cookie consent banner must display based on GDPR rules and store user preferences appropriately.",
+    "Navigation throughout the website must be smooth and responsive across devices and accessible according to WCAG guidelines.",
+    "Legal pages must be accessible and display up-to-date policies relevant to user privacy and platform terms."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "TypeScript",
+      "React",
+      "Vite",
+      "Tailwind CSS",
+      "Supabase",
+      "Clerk",
+      "React Router DOM",
+      "Framer Motion",
+      "TipTap",
+      "Three.js"
+    ],
+    "features": [
+      {
+        "name": "Landing Page",
+        "description": "Main landing page with hero section, featured prompts, testimonials, and call-to-action sections",
+        "files": [
+          "src/pages/LandingPage.tsx",
+          "src/components/landing/HeroSection.tsx",
+          "src/components/landing/FeaturedPrompts.tsx",
+          "src/components/landing/TestimonialsSection.tsx",
+          "src/components/landing/BadgesSection.tsx",
+          "src/components/landing/SubmitPromptSection.tsx",
+          "src/components/landing/SEOContentSection.tsx",
+          "src/components/landing/FloatingNavbar.tsx",
+          "src/components/landing/Footer.tsx"
+        ]
+      },
+      {
+        "name": "Explore Page",
+        "description": "Main prompt discovery page with search, filters, category/tag navigation, and prompt grid display",
+        "files": [
+          "src/pages/ExplorePage.tsx",
+          "src/components/explore/ExploreSidebar.tsx",
+          "src/components/explore/FilterModal.tsx",
+          "src/components/explore/AnimatedAIToolsHero.tsx"
+        ]
+      },
+      {
+        "name": "Prompt Detail Page",
+        "description": "Individual prompt view with copy functionality, ratings, related prompts, and discovery tracking",
+        "files": [
+          "src/pages/PromptPage.tsx"
+        ]
+      },
+      {
+        "name": "Authentication",
+        "description": "User authentication using Clerk with protected routes and admin access control",
+        "files": [
+          "src/pages/AuthPage.tsx",
+          "src/pages/LoginPage.tsx",
+          "src/components/ProtectedRoute.tsx",
+          "src/lib/authHelpers.ts"
+        ]
+      },
+      {
+        "name": "Saved Prompts",
+        "description": "User's saved/favorited prompts with search and management functionality",
+        "files": [
+          "src/pages/SavedPromptsPage.tsx",
+          "src/lib/services/savedPrompts.ts"
+        ]
+      },
+      {
+        "name": "Prompt Ratings",
+        "description": "Star rating system for prompts with anonymous and authenticated user support",
+        "files": [
+          "src/components/StarRating.tsx",
+          "src/lib/services/ratings.ts"
+        ]
+      },
+      {
+        "name": "Prompt Submission",
+        "description": "Public form for submitting new prompts with validation and status tracking",
+        "files": [
+          "src/pages/SubmitPromptPage.tsx"
+        ]
+      },
+      {
+        "name": "Admin Dashboard",
+        "description": "Admin panel for managing prompts, categories, tags, blog posts, and analytics",
+        "files": [
+          "src/pages/admin/DashboardPage.tsx",
+          "src/pages/admin/PromptsPage.tsx",
+          "src/pages/admin/ReviewPromptsPage.tsx",
+          "src/pages/admin/CategoriesPage.tsx",
+          "src/pages/admin/TagsPage.tsx",
+          "src/pages/admin/BulkUploadPage.tsx",
+          "src/pages/admin/SettingsPage.tsx",
+          "src/layouts/AdminLayout.tsx",
+          "src/pages/admin/AdminLoginPage.tsx",
+          "src/contexts/AdminContext.tsx"
+        ]
+      },
+      {
+        "name": "Admin Prompt Management",
+        "description": "Admin tools for creating, editing, deleting, and managing prompt status",
+        "files": [
+          "src/components/admin/PromptFormModal.tsx",
+          "src/components/admin/PromptAnalyticsChart.tsx",
+          "src/lib/services/prompts.ts",
+          "src/lib/services/promptAnalytics.ts"
+        ]
+      },
+      {
+        "name": "Category Management",
+        "description": "Category metadata management with icons, colors, descriptions, and featured status",
+        "files": [
+          "src/lib/services/categories.ts",
+          "src/lib/services/categoryMeta.ts"
+        ]
+      },
+      {
+        "name": "Tag Management",
+        "description": "Tag alias system for normalizing and merging tags across prompts",
+        "files": [
+          "src/lib/services/categoryMeta.ts"
+        ]
+      },
+      {
+        "name": "Blog System",
+        "description": "Blog post management with rich text editor, SEO metadata, and scheduling",
+        "files": [
+          "src/pages/BlogPage.tsx",
+          "src/pages/BlogPostPage.tsx",
+          "src/pages/admin/AdminBlogListPage.tsx",
+          "src/pages/admin/AdminBlogEditorPage.tsx",
+          "src/components/admin/RichTextEditor.tsx",
+          "src/lib/services/blogs.ts"
+        ]
+      },
+      {
+        "name": "Contact Form",
+        "description": "Public contact form with location tracking and admin message management",
+        "files": [
+          "src/pages/ContactPage.tsx",
+          "src/pages/admin/ContactMessagesPage.tsx",
+          "src/lib/services/contactMessages.ts"
+        ]
+      },
+      {
+        "name": "Email Subscriptions",
+        "description": "Newsletter subscription system with location tracking",
+        "files": [
+          "src/pages/admin/SubscriptionsPage.tsx",
+          "src/lib/services/emailSubscriptions.ts"
+        ]
+      },
+      {
+        "name": "Discovery Events Tracking",
+        "description": "Analytics system for tracking how users discover prompts",
+        "files": [
+          "src/lib/services/discoveryEvents.ts",
+          "src/lib/services/relatedPrompts.ts"
+        ]
+      },
+      {
+        "name": "Bulk Upload",
+        "description": "CSV-based bulk prompt upload with validation and draft management",
+        "files": [
+          "src/lib/services/bulkUpload.ts",
+          "src/lib/services/bulkUploadDrafts.ts"
+        ]
+      },
+      {
+        "name": "Link Tracking",
+        "description": "Short link creation and analytics with UTM parameter support",
+        "files": [
+          "src/pages/admin/LinksPage.tsx",
+          "src/components/admin/LinkCreator.tsx",
+          "src/components/admin/LinkManager.tsx",
+          "src/components/admin/LinkAnalytics.tsx",
+          "src/lib/services/trackedLinks.ts"
+        ]
+      },
+      {
+        "name": "Explore Hero Tools",
+        "description": "Featured AI tools display on explore page with affiliate links",
+        "files": [
+          "src/pages/admin/ExploreHeroToolsAdminPage.tsx",
+          "src/lib/services/exploreHeroTools.ts"
+        ]
+      },
+      {
+        "name": "Google Analytics Integration",
+        "description": "Google Analytics data fetching and display in admin panel",
+        "files": [
+          "src/pages/admin/GoogleAnalyticsPage.tsx",
+          "src/lib/services/googleAnalytics.ts"
+        ]
+      },
+      {
+        "name": "Reusable Blocks",
+        "description": "Reusable content blocks for blog posts and editorial content",
+        "files": [
+          "src/lib/services/reusableBlocks.ts"
+        ]
+      },
+      {
+        "name": "Theme System",
+        "description": "Dark/light theme switching with system preference detection",
+        "files": [
+          "src/components/theme-provider.tsx",
+          "src/components/ui/ThemeSwitch.tsx",
+          "src/components/use-theme.ts"
+        ]
+      },
+      {
+        "name": "UI Components",
+        "description": "Reusable shadcn/ui components including buttons, cards, inputs, and forms",
+        "files": [
+          "src/components/ui/button.tsx",
+          "src/components/ui/card.tsx",
+          "src/components/ui/input.tsx",
+          "src/components/ui/textarea.tsx",
+          "src/components/ui/label.tsx",
+          "src/components/ui/checkbox.tsx",
+          "src/components/ui/switch.tsx",
+          "src/components/ui/alert.tsx",
+          "src/components/ui/toaster.tsx",
+          "src/components/ui/floating-action-menu.tsx"
+        ]
+      },
+      {
+        "name": "Toast Notifications",
+        "description": "Toast notification system for user feedback",
+        "files": [
+          "src/contexts/ToastContext.tsx",
+          "src/hooks/use-toast.ts"
+        ]
+      },
+      {
+        "name": "SEO Utilities",
+        "description": "SEO metadata generation and sitemap management",
+        "files": [
+          "src/lib/seo.ts",
+          "src/config/routes.ts",
+          "api/sitemap.xml.ts"
+        ]
+      },
+      {
+        "name": "Legal Pages",
+        "description": "Terms of service, privacy policy, cookie policy, refund policy pages",
+        "files": [
+          "src/pages/TermsPage.tsx",
+          "src/pages/PrivacyPage.tsx",
+          "src/pages/CookiesPolicyPage.tsx",
+          "src/pages/RefundPolicyPage.tsx"
+        ]
+      },
+      {
+        "name": "Utility Functions",
+        "description": "Common utility functions for class merging, sanitization, and location services",
+        "files": [
+          "src/lib/utils.ts",
+          "src/lib/utils/location.ts"
+        ]
+      },
+      {
+        "name": "Maintenance Mode",
+        "description": "Maintenance page and guard component for system maintenance",
+        "files": [
+          "src/pages/MaintenancePage.tsx",
+          "src/components/MaintenanceGuard.tsx"
+        ]
+      },
+      {
+        "name": "Cookie Consent",
+        "description": "Cookie consent banner for GDPR compliance",
+        "files": [
+          "src/components/CookieConsent.tsx"
+        ]
+      },
+      {
+        "name": "Welcome Modal",
+        "description": "Welcome modal for first-time visitors",
+        "files": [
+          "src/components/modals/WelcomeModal.tsx"
+        ]
+      },
+      {
+        "name": "FAQ System",
+        "description": "FAQ page and floating FAQ button",
+        "files": [
+          "src/pages/FAQPage.tsx",
+          "src/components/FAQButton.tsx"
+        ]
+      },
+      {
+        "name": "Donation",
+        "description": "Donation page with Buy Me a Coffee integration",
+        "files": [
+          "src/pages/DonatePage.tsx",
+          "src/components/BuyMeACoffee.tsx"
+        ]
+      },
+      {
+        "name": "Profile Page",
+        "description": "User profile page for viewing and editing user information",
+        "files": [
+          "src/pages/ProfilePage.tsx"
+        ]
+      },
+      {
+        "name": "About Page",
+        "description": "About page with information about the platform",
+        "files": [
+          "src/pages/AboutPage.tsx"
+        ]
+      },
+      {
+        "name": "Guidelines Page",
+        "description": "Prompt submission guidelines page",
+        "files": [
+          "src/pages/GuidelinesPage.tsx"
+        ]
+      }
+    ]
+  }
+}

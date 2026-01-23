@@ -50,17 +50,32 @@ export type PromptChangePayload = RealtimePostgresChangesPayload<PromptRecord>
 
 export async function fetchPrompts() {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select('*')
-    .order('created_at', { ascending: false })
+  
+  try {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching prompts:', error)
-    throw new Error(`Failed to fetch prompts: ${error.message}`)
+    if (error) {
+      console.error('Error fetching prompts:', error)
+      throw new Error(`Failed to fetch prompts: ${error.message}`)
+    }
+
+    // Validate response is an array
+    if (!Array.isArray(data)) {
+      console.error('Invalid response format: expected array, got', typeof data)
+      throw new Error('Invalid response format from server')
+    }
+
+    return (data || []) as PromptRecord[]
+  } catch (err) {
+    // Re-throw known errors, wrap unknown errors
+    if (err instanceof Error) {
+      throw err
+    }
+    throw new Error('An unexpected error occurred while fetching prompts')
   }
-
-  return (data || []) as PromptRecord[]
 }
 
 export async function fetchFeaturedPrompts(limit = 10) {
@@ -87,23 +102,44 @@ export async function fetchFeaturedPrompts(limit = 10) {
  */
 export async function fetchPromptsByStatus(status: 'Published' | 'Pending' | 'Draft' | 'Rejected' | 'Review' | 'all' = 'all') {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
-  let query = supabase
-    .from(TABLE_NAME)
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  if (status !== 'all') {
-    query = query.eq('status', status)
+  
+  // Validate status parameter
+  const validStatuses = ['Published', 'Pending', 'Draft', 'Rejected', 'Review', 'all']
+  if (!validStatuses.includes(status)) {
+    throw new Error(`Invalid status: ${status}. Must be one of: ${validStatuses.join(', ')}`)
   }
+  
+  try {
+    let query = supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .order('created_at', { ascending: false })
 
-  const { data, error } = await query
+    if (status !== 'all') {
+      query = query.eq('status', status)
+    }
 
-  if (error) {
-    console.error('Error fetching prompts by status:', error)
-    throw new Error(`Failed to fetch prompts: ${error.message}`)
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching prompts by status:', error)
+      throw new Error(`Failed to fetch prompts: ${error.message}`)
+    }
+
+    // Validate response is an array
+    if (!Array.isArray(data)) {
+      console.error('Invalid response format: expected array, got', typeof data)
+      throw new Error('Invalid response format from server')
+    }
+
+    return (data || []) as PromptRecord[]
+  } catch (err) {
+    // Re-throw known errors, wrap unknown errors
+    if (err instanceof Error) {
+      throw err
+    }
+    throw new Error('An unexpected error occurred while fetching prompts')
   }
-
-  return (data || []) as PromptRecord[]
 }
 
 /**

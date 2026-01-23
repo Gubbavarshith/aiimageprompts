@@ -304,11 +304,19 @@ export default function ExplorePage() {
   const { user } = useUser()
   const toast = useToast()
 
-  // Local state for immediate UI feedback
-  const [localSearchQuery, setLocalSearchQuery] = useState(searchParams.get('q') || '')
+  // Sync local state with URL params on mount and when URL changes
+  const urlSearchQuery = searchParams.get('q') || ''
   const categoryFilter = searchParams.get('category') || 'All'
   const tagFilter = searchParams.get('tag') || null
+  
+  // Local state for immediate UI feedback
+  const [localSearchQuery, setLocalSearchQuery] = useState(urlSearchQuery)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Sync local search query with URL params when URL changes externally (e.g., browser back/forward)
+  useEffect(() => {
+    setLocalSearchQuery(urlSearchQuery)
+  }, [urlSearchQuery])
   const [sharePrompt, setSharePrompt] = useState<PromptRecord | null>(null)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [requireLoginForRatings, setRequireLoginForRatings] = useState(true)
@@ -484,20 +492,29 @@ export default function ExplorePage() {
 
   const hasMore = displayedCount < filteredPrompts.length
 
-  // Intersection Observer for infinite scroll
+  // Intersection Observer for infinite scroll - optimized with requestAnimationFrame
   useEffect(() => {
     if (!hasMore || isLoadingMore) return
+
+    let rafId: number | null = null
+    let timeoutId: NodeJS.Timeout | null = null
 
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries
         if (entry.isIntersecting && !isLoadingMore) {
-          setIsLoadingMore(true)
-          // Simulate slight delay for smooth UX
-          setTimeout(() => {
-            setDisplayedCount(prev => Math.min(prev + ITEMS_PER_PAGE, filteredPrompts.length))
-            setIsLoadingMore(false)
-          }, 300)
+          // Use requestAnimationFrame for better performance
+          rafId = requestAnimationFrame(() => {
+            setIsLoadingMore(true)
+            // Use setTimeout for smooth UX but with smaller delay
+            timeoutId = setTimeout(() => {
+              setDisplayedCount(prev => {
+                const nextCount = Math.min(prev + ITEMS_PER_PAGE, filteredPrompts.length)
+                setIsLoadingMore(false)
+                return nextCount
+              })
+            }, 150) // Reduced delay for better responsiveness
+          })
         }
       },
       {
@@ -515,6 +532,12 @@ export default function ExplorePage() {
     return () => {
       if (currentRef) {
         observer.unobserve(currentRef)
+      }
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId)
+      }
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId)
       }
     }
   }, [hasMore, isLoadingMore, filteredPrompts.length])
@@ -924,16 +947,16 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans transition-colors duration-300 bg-grid-black/[0.02] dark:bg-grid-white/[0.02]">
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans transition-colors duration-300 bg-grid-black/[0.02] dark:bg-grid-white/[0.02] overflow-x-hidden">
       <FloatingNavbar />
 
-      <main className="pb-20">
+      <main className="pb-20 max-w-full overflow-x-hidden">
         {/* Animated AI Tools Hero Section */}
         <AnimatedAIToolsHero />
 
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 max-w-full overflow-x-hidden">
 
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 relative items-start">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 relative items-start max-w-full">
 
             {/* Desktop Sidebar */}
             <div className="hidden lg:block sticky top-24 z-30">
@@ -986,7 +1009,8 @@ export default function ExplorePage() {
                         onFocus={() => setIsSearchFocused(true)}
                         onBlur={() => setIsSearchFocused(false)}
                         placeholder="Search..."
-                        className="w-full h-12 pl-3 pr-12 bg-transparent border-none outline-none focus:outline-none text-base font-bold placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-black dark:text-white"
+                        aria-label="Search prompts"
+                        className="w-full h-12 pl-3 pr-12 bg-transparent border-none outline-none focus:outline-none focus:ring-2 focus:ring-[#FFDE1A] focus:ring-offset-2 rounded-lg text-base font-bold placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-black dark:text-white"
                       />
                       {localSearchQuery && (
                         <button
@@ -998,7 +1022,19 @@ export default function ExplorePage() {
                               return newParams
                             }, { replace: true })
                           }}
-                          className="absolute right-3 p-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              setLocalSearchQuery('')
+                              setSearchParams(prev => {
+                                const newParams = new URLSearchParams(prev)
+                                newParams.delete('q')
+                                return newParams
+                              }, { replace: true })
+                            }
+                          }}
+                          aria-label="Clear search"
+                          className="absolute right-3 p-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#FFDE1A] focus:ring-offset-2 transition-colors"
                         >
                           <X size={14} strokeWidth={3} />
                         </button>
@@ -1007,14 +1043,23 @@ export default function ExplorePage() {
                   </div>
 
                   {/* Row 2: Filters - Horizontal Scroll */}
-                  <div className="w-full overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
+                  <div className="w-full overflow-x-auto no-scrollbar -mx-4 px-4 pb-2" role="tablist" aria-label="Category filters">
                     <div className="flex gap-3 min-w-max">
                       <button
                         onClick={() => handleCategoryChange('All')}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border-2 ${(categoryFilter === 'All' || !categoryFilter)
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleCategoryChange('All')
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border-2 focus:outline-none focus:ring-2 focus:ring-[#FFDE1A] focus:ring-offset-2 ${(categoryFilter === 'All' || !categoryFilter)
                           ? 'bg-[#FFDE1A] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                          : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500'
+                          : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500 hover:border-gray-300 dark:hover:border-zinc-700'
                           }`}
+                        role="tab"
+                        aria-selected={categoryFilter === 'All' || !categoryFilter}
+                        aria-label={`Filter by All categories`}
                       >
                         All
                       </button>
@@ -1022,10 +1067,19 @@ export default function ExplorePage() {
                         <button
                           key={cat}
                           onClick={() => handleCategoryChange(cat)}
-                          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border-2 ${categoryFilter === cat
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleCategoryChange(cat)
+                            }
+                          }}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border-2 focus:outline-none focus:ring-2 focus:ring-[#FFDE1A] focus:ring-offset-2 ${categoryFilter === cat
                             ? 'bg-[#FFDE1A] border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                            : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500'
+                            : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500 hover:border-gray-300 dark:hover:border-zinc-700'
                             }`}
+                          role="tab"
+                          aria-selected={categoryFilter === cat}
+                          aria-label={`Filter by ${cat} category`}
                         >
                           {cat}
                         </button>
@@ -1052,7 +1106,14 @@ export default function ExplorePage() {
                   </p>
                   <button
                     onClick={clearFilters}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FFDE1A] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        clearFilters()
+                      }
+                    }}
+                    aria-label="Clear all filters"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FFDE1A] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-[#FFDE1A] focus:ring-offset-2"
                   >
                     <X size={18} className="stroke-[3px]" />
                     Clear filters
@@ -1071,7 +1132,7 @@ export default function ExplorePage() {
 
                   <motion.div
                     layout
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8 pb-20"
+                    className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 pb-20 w-full"
                   >
                     <AnimatePresence mode='popLayout'>
                       {displayedPrompts.map((prompt, index) => (

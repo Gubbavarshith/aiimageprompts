@@ -9,6 +9,10 @@ export interface ContactMessage {
   message: string
   ip_address?: string | null
   user_agent?: string | null
+  country?: string | null
+  region?: string | null
+  city?: string | null
+  timezone?: string | null
   status: ContactMessageStatus
   created_at: string
   updated_at: string
@@ -20,6 +24,10 @@ export interface CreateContactMessagePayload {
   message: string
   ip_address?: string
   user_agent?: string
+  country?: string
+  region?: string
+  city?: string
+  timezone?: string
 }
 
 /**
@@ -68,6 +76,10 @@ export async function createContactMessage(
           message: trimmedMessage,
           ip_address: payload.ip_address || null,
           user_agent: payload.user_agent || null,
+          country: payload.country || null,
+          region: payload.region || null,
+          city: payload.city || null,
+          timezone: payload.timezone || null,
           status: 'new',
         },
       ])
