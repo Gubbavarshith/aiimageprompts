@@ -8,6 +8,15 @@
   :root {
     --brand-yellow: #FFDE1A;
     --brand-yellow-hover: #F8BE00;
+    --brand-ink: #0B0E14;
+    --brand-charcoal: #131826;
+    --brand-paper: #F3F0E7;
+    --brand-fog: #A9B0C3;
+    --brand-accent: #FF3B2F;
+    --brand-accent-soft: #37D3A6;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-text: 'Atkinson Hyperlegible', 'DM Sans', 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', Consolas, monospace;
   }
 }
 
@@ -189,84 +198,167 @@
 
 /* Blog Post Content Styling (for rendered HTML) */
 .blog-content {
-  @apply text-zinc-800 dark:text-zinc-200;
+  color: #1b2233;
+  font-family: var(--font-text);
 }
 
 .blog-content h1 {
-  @apply text-4xl font-bold mt-8 mb-4;
+  margin-top: 2.2rem;
+  margin-bottom: 1rem;
+  color: #111827;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.1vw, 3rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.012em;
 }
 
 .blog-content h2 {
-  @apply text-3xl font-bold mt-6 mb-3;
+  margin-top: 2.15rem;
+  margin-bottom: 1rem;
+  color: #111827;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.008em;
 }
 
 .blog-content h3 {
-  @apply text-2xl font-semibold mt-4 mb-2;
+  margin-top: 1.8rem;
+  margin-bottom: 0.75rem;
+  color: #1f2937;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 1.5vw, 1.55rem);
+  font-weight: 560;
+  line-height: 1.25;
 }
 
 .blog-content h4 {
-  @apply text-xl font-semibold mt-4 mb-2;
+  margin-top: 1.5rem;
+  margin-bottom: 0.65rem;
+  color: #334155;
+  font-size: 1.06rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .blog-content h5 {
-  @apply text-lg font-semibold mt-3 mb-2;
+  margin-top: 1.25rem;
+  margin-bottom: 0.55rem;
+  color: #334155;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .blog-content h6 {
-  @apply text-base font-semibold mt-3 mb-2;
+  margin-top: 1rem;
+  margin-bottom: 0.55rem;
+  color: #475569;
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: 0.015em;
 }
 
 .blog-content p {
-  @apply mb-4 leading-relaxed;
+  margin-bottom: 1.05rem;
+  color: #334155;
+  line-height: 1.82;
 }
 
 .blog-content ul,
 .blog-content ol {
-  @apply mb-4 ml-6;
+  margin-bottom: 1.1rem;
+  margin-left: 1.35rem;
+  color: #334155;
 }
 
 .blog-content ul {
-  @apply list-disc;
+  list-style-type: disc;
 }
 
 .blog-content ol {
-  @apply list-decimal;
+  list-style-type: decimal;
 }
 
 .blog-content li {
-  @apply mb-2;
+  margin-bottom: 0.55rem;
+  padding-left: 0.2rem;
+  line-height: 1.68;
 }
 
 .blog-content blockquote {
-  @apply border-l-4 border-[#FFDE1A] pl-4 italic my-4 text-zinc-600 dark:text-zinc-400;
+  margin: 1.5rem 0;
+  border-left: 3px solid #f8be00;
+  border-radius: 0.2rem;
+  background: linear-gradient(90deg, rgba(248, 190, 0, 0.17), rgba(248, 190, 0, 0.04));
+  padding: 1rem 1rem 1rem 1.2rem;
+  color: #1f2937;
+  font-family: var(--font-display);
+  font-size: 1.06rem;
+  font-style: normal;
+  line-height: 1.62;
 }
 
 .blog-content code {
-  @apply bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded font-mono text-sm;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(241, 245, 249, 0.85);
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.35rem;
+  color: #8b6800;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
 }
 
 .blog-content pre {
-  @apply bg-zinc-100 dark:bg-zinc-800 p-4 rounded-lg overflow-x-auto my-4;
+  margin: 1.45rem 0;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.9rem;
+  background: #f8fafc;
+  padding: 1rem;
+  overflow-x: auto;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.15);
 }
 
 .blog-content pre code {
-  @apply bg-transparent p-0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #1e293b;
 }
 
 .blog-content img {
-  @apply rounded-lg max-w-full h-auto my-4;
+  margin: 1.1rem 0;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 1rem;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.15);
+  transition: transform 380ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 380ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.blog-content figure:hover img {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 24px 52px rgba(15, 23, 42, 0.2);
 }
 
 .blog-content figure {
-  @apply my-6;
+  margin: 1.45rem 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+  padding-top: 0.7rem;
 }
 
 .blog-content figure img {
-  @apply my-0;
+  margin: 0;
 }
 
 .blog-content figcaption {
-  @apply text-sm text-zinc-500 dark:text-zinc-400 text-center mt-2 italic;
+  margin-top: 0.55rem;
+  color: #64748b;
+  font-size: 0.8rem;
+  text-align: center;
+  letter-spacing: 0.01em;
 }
 
 /* Image alignment styles */
@@ -308,22 +400,33 @@
 }
 
 .blog-content a {
-  @apply text-blue-600 dark:text-blue-400 underline;
+  color: #7a5c00;
+  text-decoration-color: rgba(122, 92, 0, 0.45);
+  text-underline-offset: 0.17em;
+  transition: color 220ms cubic-bezier(0.2, 0.8, 0.2, 1), text-decoration-color 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.blog-content a:hover {
+  color: #5e4700;
+  text-decoration-color: rgba(94, 71, 0, 0.72);
 }
 
 .blog-content hr {
-  border-top-width: 2px;
-  border-color: #e4e4e7;
+  border-top-width: 1px;
+  border-color: rgba(148, 163, 184, 0.45);
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
 
 .dark .blog-content hr {
-  border-color: #3f3f46;
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .blog-content mark {
-  @apply bg-yellow-200 dark:bg-yellow-900 px-1 rounded;
+  border-radius: 0.2rem;
+  background: rgba(247, 185, 85, 0.2);
+  padding-inline: 0.25rem;
+  color: #ffe9b9;
 }
 
 .blog-content strong {
@@ -351,21 +454,22 @@
 .blog-content h3,
 .blog-content h4 {
   position: relative;
-  scroll-margin-top: 6rem;
+  scroll-margin-top: 7rem;
 }
 
 /* Anchor link styling */
 .blog-content .anchor-link {
   position: absolute;
-  left: -1.5rem;
+  left: -1.25rem;
+  top: 0.04rem;
   opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-  color: #FFDE1A;
-  font-size: 0.875rem;
-  font-weight: bold;
+  transition: opacity 0.22s ease-in-out;
+  color: #a88300;
+  font-size: 0.82rem;
+  font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.18rem;
 }
 
 .blog-content h2:hover .anchor-link,
@@ -375,7 +479,88 @@
 }
 
 .blog-content .anchor-link:hover {
-  color: #F8BE00;
+  color: #6d5100;
+}
+
+.dark .blog-content {
+  color: var(--brand-paper);
+}
+
+.dark .blog-content h1,
+.dark .blog-content h2 {
+  color: var(--brand-paper);
+}
+
+.dark .blog-content h3 {
+  color: #e4e9f6;
+}
+
+.dark .blog-content h4,
+.dark .blog-content h5 {
+  color: #d7deef;
+}
+
+.dark .blog-content h6 {
+  color: #cbd4e7;
+}
+
+.dark .blog-content p,
+.dark .blog-content ul,
+.dark .blog-content ol {
+  color: #d8dfee;
+}
+
+.dark .blog-content blockquote {
+  border-left-color: #ffde1a;
+  background: linear-gradient(90deg, rgba(255, 222, 26, 0.2), rgba(255, 222, 26, 0.04));
+  color: #e8edf7;
+}
+
+.dark .blog-content code {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(11, 14, 20, 0.74);
+  color: #ffde1a;
+}
+
+.dark .blog-content pre {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0d111a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.dark .blog-content pre code {
+  color: #dae2f1;
+}
+
+.dark .blog-content img {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 18px 45px rgba(5, 7, 14, 0.42);
+}
+
+.dark .blog-content figure:hover img {
+  box-shadow: 0 26px 60px rgba(5, 7, 14, 0.54);
+}
+
+.dark .blog-content figure {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.dark .blog-content figcaption {
+  color: #9ea8bf;
+}
+
+.dark .blog-content a {
+  color: #ffde1a;
+  text-decoration-color: rgba(255, 222, 26, 0.48);
+}
+
+.dark .blog-content a:hover {
+  color: #ffe96f;
+  text-decoration-color: rgba(255, 233, 111, 0.78);
+}
+
+.dark .blog-content .anchor-link:hover {
+  color: #ffe96f;
 }
 
 /* ============================================================================
@@ -421,6 +606,75 @@
 
 .blog-content [style*="text-align: justify"] {
   @apply text-justify;
+}
+
+/* ============================================================================
+   FAQ ANSWER CONTENT STYLES (for rendered Markdown in FAQ cards)
+   ============================================================================ */
+
+.faq-answer p {
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+}
+
+.faq-answer p:last-child {
+  margin-bottom: 0;
+}
+
+.faq-answer ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.faq-answer ul li {
+  margin-bottom: 0.35rem;
+  padding-left: 0.15rem;
+  line-height: 1.65;
+}
+
+.faq-answer ul li::marker {
+  color: rgba(161, 161, 170, 0.6);
+}
+
+.dark .faq-answer ul li::marker {
+  color: rgba(161, 161, 170, 0.4);
+}
+
+.faq-answer strong {
+  font-weight: 600;
+  color: #18181b;
+}
+
+.dark .faq-answer strong {
+  color: #e4e4e7;
+}
+
+.faq-answer ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.faq-answer ol li {
+  margin-bottom: 0.35rem;
+  padding-left: 0.15rem;
+  line-height: 1.65;
+}
+
+.faq-answer code {
+  background: rgba(241, 245, 249, 0.6);
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.82em;
+  font-family: var(--font-mono);
+}
+
+.dark .faq-answer code {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fbbf24;
 }
 
 @layer base {

@@ -51,3 +51,24 @@ secrets/
 .claude/
 cloud.cursor.vscode
 
+# Local/offline SEO + research workflow (not part of website deploy)
+seo-pipeline/
+blog-info/
+conductor/
+suggestions/
+testsprite_tests/
+test_dataforseo.py
+TestSprite.html
+dummy
+supabase-warnings.json
+__pycache__/
+*.pyc
+
+# Vendor / reference tree (not used by the Vite app; also excluded from Vercel via .vercelignore)
+awesome-gpt-image-2/
+
+# Keep website blog markdown and required prerender build script tracked
+!src/content/blog/
+!src/content/blog/*.md
+!scripts/prerender-blog.mjs
+

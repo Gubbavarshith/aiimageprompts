@@ -4,12 +4,31 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, Heart, Zap, ShieldCheck } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
-import { updateCanonical } from '@/lib/seo'
+import { updateMetaTags } from '@/lib/seo'
 
 export default function DonatePage() {
   useEffect(() => {
-    document.title = 'Support the Project | Better Prompts, Better Art'
-    updateCanonical('/donate')
+    const title = 'Support AI Image Prompts | Donate'
+    const description = 'Support AI Image Prompts to help keep the free AI image prompt library open and improve creator tools for everyone.'
+    updateMetaTags({
+      title,
+      description,
+      canonical: '/donate',
+      og: {
+        title,
+        description,
+        url: '/donate',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        image: '/og-image.png',
+      },
+    })
     window.scrollTo(0, 0)
   }, [])
 

@@ -4,7 +4,7 @@ import { Mail, Send, MessageSquare, Twitter, Github, CircleCheck } from 'lucide-
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
 import { useToast } from '@/contexts/ToastContext'
-import { updateCanonical } from '@/lib/seo'
+import { updateMetaTags } from '@/lib/seo'
 import { createContactMessage } from '@/lib/services/contactMessages'
 import { isSupabaseReady } from '@/lib/supabaseClient'
 import { getUserLocation, type LocationData } from '@/lib/utils/location'
@@ -55,8 +55,27 @@ export default function ContactPage() {
   }
 
   useEffect(() => {
-    document.title = 'Contact | Better Prompts, Better Art'
-    updateCanonical('/contact')
+    const title = 'Contact AI Image Prompts | Better Prompts, Better Art'
+    const description = 'Contact AI Image Prompts for support, feedback, and collaboration inquiries about AI image prompt workflows and tools.'
+    updateMetaTags({
+      title,
+      description,
+      canonical: '/contact',
+      og: {
+        title,
+        description,
+        url: '/contact',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        image: '/og-image.png',
+      },
+    })
     window.scrollTo(0, 0)
   }, [])
 

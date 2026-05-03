@@ -1151,6 +1151,65 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
 
   if (!isOpen || !rowData || !formData) return null
 
+  const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> => {
+    return await new Promise<T>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        reject(new Error(timeoutMessage))
+      }, timeoutMs)
+
+      promise
+        .then((result) => {
+          window.clearTimeout(timeout)
+          resolve(result)
+        })
+        .catch((error) => {
+          window.clearTimeout(timeout)
+          reject(error)
+        })
+    })
+  }
+
+  const normalizeImageUrl = (url: string): string | null => {
+    if (!url.trim()) return null
+    try {
+      const parsed = new URL(url.trim())
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        return null
+      }
+      return parsed.toString()
+    } catch {
+      return null
+    }
+  }
+
+  const getUploadErrorMessage = (error: unknown): string => {
+    if (error instanceof Error && error.message) return error.message
+    if (typeof error === 'object' && error !== null) {
+      const maybeMessage = (error as { message?: unknown }).message
+      if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+        return maybeMessage
+      }
+    }
+    return 'Unexpected upload error'
+  }
+
+  const fileToDataUrl = async (file: File): Promise<string> => {
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (typeof reader.result === 'string' && reader.result.length > 0) {
+          resolve(reader.result)
+          return
+        }
+        reject(new Error('Failed to read image file'))
+      }
+      reader.onerror = () => {
+        reject(new Error('Failed to read image file'))
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
   const handleImageUpload = async (file: File) => {
     const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
     if (!validImageTypes.includes(file.type)) {
@@ -1166,52 +1225,173 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
     setIsUploadingImage(true)
     setImageError(null)
 
-    try {
-      if (!isSupabaseReady()) {
-        throw new Error('Supabase is not configured.')
+    const uploadWithRetry = async (retries = 2): Promise<{ publicUrl: string; detectedRatio: string }> => {
+      try {
+        if (!isSupabaseReady()) {
+          throw new Error('Supabase is not configured.')
+        }
+
+        const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+        // Match the known-good submit flow first, then fall back.
+        const candidateDirectories = ['user-submissions', 'admin-uploads']
+
+        let publicUrl: string | null = null
+        let lastError: Error | null = null
+
+        for (const directory of candidateDirectories) {
+          const filePath = `${directory}/${fileName}`
+          try {
+            const { data: uploadData, error: uploadError } = await withTimeout(
+              supabase.storage
+                .from('prompt-images')
+                .upload(filePath, file, {
+                  cacheControl: '3600',
+                  upsert: false,
+                  contentType: file.type,
+                }),
+              12000,
+              `Image upload timed out in "${directory}".`
+            )
+
+            if (uploadError) {
+              lastError = new Error(uploadError.message || 'Upload failed')
+              const lower = uploadError.message.toLowerCase()
+              const isRecoverable =
+                lower.includes('permission') ||
+                lower.includes('policy') ||
+                lower.includes('unauthorized') ||
+                lower.includes('timeout') ||
+                lower.includes('network') ||
+                lower.includes('fetch')
+
+              if (isRecoverable) {
+                continue
+              }
+              throw uploadError
+            }
+
+            if (!uploadData) {
+              lastError = new Error('Upload failed: No data returned')
+              continue
+            }
+
+            const { data: urlData } = supabase.storage.from('prompt-images').getPublicUrl(filePath)
+            if (!urlData?.publicUrl) {
+              lastError = new Error('Failed to get image URL')
+              continue
+            }
+
+            publicUrl = urlData.publicUrl
+            break
+          } catch (directoryError) {
+            const message = getUploadErrorMessage(directoryError).toLowerCase()
+            const isRecoverable =
+              message.includes('timeout') ||
+              message.includes('network') ||
+              message.includes('fetch') ||
+              message.includes('permission') ||
+              message.includes('policy') ||
+              message.includes('unauthorized')
+            lastError = new Error(getUploadErrorMessage(directoryError))
+            if (isRecoverable) {
+              continue
+            }
+            throw directoryError
+          }
+        }
+
+        if (!publicUrl) {
+          throw lastError ?? new Error('Upload failed due to storage permissions')
+        }
+
+        const detectedRatio = await withTimeout(
+          detectImageRatioFromSource(file),
+          7000,
+          'Image ratio detection timed out. Using default ratio.'
+        ).catch(() => '4:3')
+
+        return { publicUrl, detectedRatio }
+      } catch (err) {
+        const message = getUploadErrorMessage(err).toLowerCase()
+        const isNetworkError =
+          message.includes('network') ||
+          message.includes('timeout') ||
+          message.includes('fetch') ||
+          message.includes('failed to fetch')
+
+        if (isNetworkError && retries > 0) {
+          const delay = (3 - retries) * 1000
+          await new Promise((resolve) => window.setTimeout(resolve, delay))
+          return uploadWithRetry(retries - 1)
+        }
+
+        throw err
       }
+    }
 
-      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
-      const filePath = `admin-uploads/${fileName}`
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('prompt-images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: file.type
-        })
-
-      if (uploadError) throw uploadError
-      if (!uploadData) throw new Error('Upload failed: No data returned')
-
-      const { data: urlData } = supabase.storage.from('prompt-images').getPublicUrl(filePath)
-      if (!urlData?.publicUrl) throw new Error('Failed to get image URL')
-
-      // Auto-detect image ratio
-      const detectedRatio = await detectImageRatioFromSource(file)
+    try {
+      const { publicUrl, detectedRatio } = await uploadWithRetry()
       
       setFormData((prev: any) => ({
         ...prev,
-        preview_image_url: urlData.publicUrl,
-        preview_image: urlData.publicUrl,
-        image_ratio: detectedRatio
+        preview_image_url: publicUrl,
+        preview_image: publicUrl,
+        image_ratio: detectedRatio,
       }))
       toast.success('Image uploaded successfully')
     } catch (err: any) {
-      const errorMessage = err?.message || err?.error || 'Unknown error'
+      const errorMessage = getUploadErrorMessage(err)
+      const lowerError = errorMessage.toLowerCase()
+      const canFallbackToInline =
+        lowerError.includes('timeout') ||
+        lowerError.includes('network') ||
+        lowerError.includes('fetch') ||
+        lowerError.includes('permission') ||
+        lowerError.includes('policy') ||
+        lowerError.includes('unauthorized')
+
+      if (canFallbackToInline) {
+        try {
+          const inlineDataUrl = await fileToDataUrl(file)
+          const detectedRatio = await withTimeout(
+            detectImageRatioFromSource(file),
+            7000,
+            'Image ratio detection timed out. Using default ratio.'
+          ).catch(() => '4:3')
+
+          setFormData((prev: any) => ({
+            ...prev,
+            preview_image_url: inlineDataUrl,
+            preview_image: inlineDataUrl,
+            image_ratio: detectedRatio,
+          }))
+
+          setImageError('Supabase upload failed. Using inline image fallback for this prompt.')
+          toast.success('Image accepted using fallback mode')
+          return
+        } catch (fallbackError) {
+          const fallbackMessage = getUploadErrorMessage(fallbackError)
+          setImageError(`Upload failed and fallback failed: ${fallbackMessage}`)
+          toast.error(`Failed to process image: ${fallbackMessage}`)
+          return
+        }
+      }
+
       setImageError(errorMessage)
       toast.error(`Failed to upload image: ${errorMessage}`)
     } finally {
       setIsUploadingImage(false)
+      if (imageInputRef.current) {
+        imageInputRef.current.value = ''
+      }
     }
   }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      handleImageUpload(file)
+      void handleImageUpload(file)
     }
     // Reset input so same file can be selected again
     if (imageInputRef.current) {
@@ -1238,7 +1418,7 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
 
     const file = e.dataTransfer.files?.[0]
     if (file && file.type.startsWith('image/')) {
-      handleImageUpload(file)
+      void handleImageUpload(file)
     } else {
       setImageError('Please drop a valid image file')
     }
@@ -1435,9 +1615,36 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
             <input
               type="url"
               value={formData.preview_image_url || formData.preview_image || ''}
-              onChange={(e) => {
-                setFormData({ ...formData, preview_image_url: e.target.value, preview_image: e.target.value })
+              onChange={async (e) => {
+                const nextValue = e.target.value
+                setFormData({ ...formData, preview_image_url: nextValue, preview_image: nextValue })
+
+                if (!nextValue.trim()) {
+                  setImageError(null)
+                  return
+                }
+
+                const normalizedUrl = normalizeImageUrl(nextValue)
+                if (!normalizedUrl) {
+                  setImageError('Please enter a valid direct image URL (http/https).')
+                  return
+                }
+
                 setImageError(null)
+                const detectedRatio = await withTimeout(
+                  detectImageRatioFromSource(normalizedUrl),
+                  7000,
+                  'URL image check timed out. Ratio kept unchanged.'
+                ).catch(() => null)
+
+                if (detectedRatio) {
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    image_ratio: detectedRatio,
+                    preview_image_url: normalizedUrl,
+                    preview_image: normalizedUrl,
+                  }))
+                }
               }}
               placeholder="Paste direct image URL..."
               className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50"

@@ -3,12 +3,31 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, RefreshCw, CreditCard, Clock, CheckCircle, XCircle, Mail } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
-import { updateCanonical } from '@/lib/seo'
+import { updateMetaTags } from '@/lib/seo'
 
 export default function RefundPolicyPage() {
   useEffect(() => {
-    document.title = 'Refund & Cancellation Policy | Better Prompts, Better Art'
-    updateCanonical('/refund')
+    const title = 'Refund and Cancellation Policy | AI Image Prompts'
+    const description = 'Refund and cancellation terms for AI Image Prompts subscriptions, billing errors, and support contact options.'
+    updateMetaTags({
+      title,
+      description,
+      canonical: '/refund',
+      og: {
+        title,
+        description,
+        url: '/refund',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        image: '/og-image.png',
+      },
+    })
     window.scrollTo(0, 0)
   }, [])
 

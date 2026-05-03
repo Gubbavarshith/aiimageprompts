@@ -1,12 +1,11 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, Clock, ArrowRight, Search, Filter, Tag, Mail, Loader2 } from 'lucide-react'
+import { Calendar, Clock, ArrowRight, Search, Filter, Tag, Mail } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { FloatingNavbar } from '../components/landing/FloatingNavbar'
 import { Footer } from '../components/landing/Footer'
-import { fetchBlogPosts, getBlogCategories, formatDate, type BlogPost } from '../lib/services/blogs'
-import { useToast } from '../contexts/ToastContext'
-import { updateCanonical } from '../lib/seo'
+import { getPublishedBlogPosts, getBlogCategories, formatDate, type BlogPost } from '../lib/services/blogs'
+import { updateMetaTags } from '../lib/seo'
 
 // --- Components ---
 
@@ -130,32 +129,34 @@ const StandardCard = ({ post, index }: { post: BlogPost; index: number }) => {
 // --- Main Page ---
 
 const BlogPage = () => {
-    const [posts, setPosts] = useState<BlogPost[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const [posts] = useState<BlogPost[]>(() => getPublishedBlogPosts())
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedCategory, setSelectedCategory] = useState<string>('All')
-    const toast = useToast()
 
     useEffect(() => {
-        document.title = 'Blog | Better Prompts, Better Art'
-        updateCanonical('/blog')
+        const title = 'AI Image Prompts Blog | Better Prompts, Better Art'
+        const description = 'Read weekly updates, guides, and prompt engineering insights for AI image generation. Learn better prompting for Midjourney, DALL-E, and Stable Diffusion.'
+        updateMetaTags({
+            title,
+            description,
+            canonical: '/blog',
+            og: {
+                title,
+                description,
+                url: '/blog',
+                image: '/og-image.png',
+                type: 'website',
+                siteName: 'AI Image Prompts',
+            },
+            twitter: {
+                card: 'summary_large_image',
+                title,
+                description,
+                image: '/og-image.png',
+            },
+        })
         window.scrollTo(0, 0)
     }, [])
-
-    useEffect(() => {
-        const load = async () => {
-            try {
-                setIsLoading(true)
-                const data = await fetchBlogPosts()
-                setPosts(data)
-            } catch (err) {
-                toast.error('Failed to load blog posts')
-            } finally {
-                setIsLoading(false)
-            }
-        }
-        load()
-    }, [toast])
 
     const categories = useMemo(() => ['All', ...getBlogCategories(posts || [])], [posts])
     const filteredPosts = useMemo(() => {
@@ -222,44 +223,37 @@ const BlogPage = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-24 gap-4">
-                            <Loader2 className="w-8 h-8 animate-spin text-[#FFDE1A]" />
-                            <p className="text-sm font-medium text-zinc-400">Loading insights...</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-12">
-                            {/* Featured Post (Only on main view) */}
-                            {featuredPost && (
-                                <FeaturedCard post={featuredPost} />
-                            )}
+                    <div className="space-y-12">
+                        {/* Featured Post (Only on main view) */}
+                        {featuredPost && (
+                            <FeaturedCard post={featuredPost} />
+                        )}
 
-                            {/* Grid Layout */}
-                            {gridPosts.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    <AnimatePresence mode="popLayout">
-                                        {gridPosts.map((post, idx) => (
-                                            <StandardCard key={post.id} post={post} index={idx} />
-                                        ))}
-                                    </AnimatePresence>
+                        {/* Grid Layout */}
+                        {gridPosts.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <AnimatePresence mode="popLayout">
+                                    {gridPosts.map((post, idx) => (
+                                        <StandardCard key={post.id} post={post} index={idx} />
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        ) : (
+                            <div className="text-center py-20 bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border border-zinc-100 dark:border-zinc-800">
+                                <div className="w-16 h-16 bg-white dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-zinc-100 dark:border-zinc-700">
+                                    <Filter className="w-6 h-6 text-zinc-400" />
                                 </div>
-                            ) : (
-                                <div className="text-center py-20 bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border border-zinc-100 dark:border-zinc-800">
-                                    <div className="w-16 h-16 bg-white dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-zinc-100 dark:border-zinc-700">
-                                        <Filter className="w-6 h-6 text-zinc-400" />
-                                    </div>
-                                    <h3 className="text-lg font-bold text-zinc-900 dark:text-white">No articles found</h3>
-                                    <p className="text-zinc-500 mb-6">Try adjusting your search or filters.</p>
-                                    <button
-                                        onClick={() => { setSearchQuery(''); setSelectedCategory('All') }}
-                                        className="text-sm font-bold text-[#FFDE1A] hover:underline"
-                                    >
-                                        Clear all filters
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                                <h3 className="text-lg font-bold text-zinc-900 dark:text-white">No articles found</h3>
+                                <p className="text-zinc-500 mb-6">Try adjusting your search or filters.</p>
+                                <button
+                                    onClick={() => { setSearchQuery(''); setSelectedCategory('All') }}
+                                    className="text-sm font-bold text-[#FFDE1A] hover:underline"
+                                >
+                                    Clear all filters
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
                     {/* Newsletter */}
                     <div className="mt-24 border-t border-zinc-200 dark:border-zinc-800 pt-16">

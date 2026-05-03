@@ -3,20 +3,46 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { SignIn, SignUp, useAuth } from '@clerk/clerk-react'
 import { motion } from 'framer-motion'
 
-import { X } from 'lucide-react'
+import { X, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { updateMetaTags } from '@/lib/seo'
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in')
   const navigate = useNavigate()
   const location = useLocation()
   const { isSignedIn } = useAuth()
+  
+  // Check if Clerk is properly configured
+  const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+  const isClerkConfigured = clerkKey && clerkKey.length > 0 && clerkKey !== 'placeholder'
 
   // Detect if we're on a Clerk sub-route (like verify-email-address)
   const isClerkSubRoute = location.pathname !== '/auth' && location.pathname.startsWith('/auth/')
 
   // If signed in and on base auth route (not sub-routes), redirect to home immediately
   useEffect(() => {
+    updateMetaTags({
+      title: 'Sign In | AI Image Prompts',
+      description: 'Sign in or create an account for AI Image Prompts.',
+      canonical: '/auth',
+      robots: 'noindex, follow',
+      og: {
+        title: 'Sign In | AI Image Prompts',
+        description: 'Sign in or create an account for AI Image Prompts.',
+        url: '/auth',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'Sign In | AI Image Prompts',
+        description: 'Sign in or create an account for AI Image Prompts.',
+        image: '/og-image.png',
+      },
+    })
+
     if (isSignedIn && location.pathname === '/auth') {
       navigate('/', { replace: true })
     }
@@ -107,33 +133,83 @@ export default function AuthPage() {
           )}
 
           {/* Clerk Components */}
-          <motion.div
-            layout
-            className="w-full flex justify-center"
-          >
-            {isClerkSubRoute ? (
-              <SignUp
-                routing="path"
-                path="/auth"
-                signInUrl="/auth"
-                afterSignUpUrl="/"
-              />
-            ) : mode === 'sign-in' ? (
-              <SignIn
-                routing="path"
-                path="/auth"
-                signUpUrl="/auth"
-                afterSignInUrl="/"
-              />
-            ) : (
-              <SignUp
-                routing="path"
-                path="/auth"
-                signInUrl="/auth"
-                afterSignUpUrl="/"
-              />
-            )}
-          </motion.div>
+          {!isClerkConfigured ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center"
+            >
+              <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-white mb-2">Clerk Not Configured</h3>
+              <p className="text-white/70 text-sm mb-4">
+                Please set VITE_CLERK_PUBLISHABLE_KEY in your .env.local file and restart the dev server
+              </p>
+              <Button onClick={() => navigate('/')} variant="outline" className="bg-white text-black hover:bg-gray-100">
+                Go Home
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div
+              layout
+              className="w-full flex justify-center"
+            >
+              {isClerkSubRoute ? (
+                <SignUp
+                  routing="virtual"
+                  signInUrl="/auth"
+                  afterSignUpUrl="/"
+                  appearance={{
+                    elements: {
+                      rootBox: "mx-auto w-full",
+                      card: "bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl",
+                      headerTitle: "text-black dark:text-white",
+                      headerSubtitle: "text-gray-600 dark:text-gray-400",
+                      socialButtonsBlockButton: "bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-200 dark:border-gray-700",
+                      formButtonPrimary: "bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200",
+                      formFieldInput: "bg-white dark:bg-gray-900 text-black dark:text-white border-gray-200 dark:border-gray-700",
+                      footerActionLink: "text-black dark:text-white",
+                    }
+                  }}
+                />
+              ) : mode === 'sign-in' ? (
+                <SignIn
+                  routing="virtual"
+                  signUpUrl="/auth"
+                  afterSignInUrl="/"
+                  appearance={{
+                    elements: {
+                      rootBox: "mx-auto w-full",
+                      card: "bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl",
+                      headerTitle: "text-black dark:text-white",
+                      headerSubtitle: "text-gray-600 dark:text-gray-400",
+                      socialButtonsBlockButton: "bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-200 dark:border-gray-700",
+                      formButtonPrimary: "bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200",
+                      formFieldInput: "bg-white dark:bg-gray-900 text-black dark:text-white border-gray-200 dark:border-gray-700",
+                      footerActionLink: "text-black dark:text-white",
+                    }
+                  }}
+                />
+              ) : (
+                <SignUp
+                  routing="virtual"
+                  signInUrl="/auth"
+                  afterSignUpUrl="/"
+                  appearance={{
+                    elements: {
+                      rootBox: "mx-auto w-full",
+                      card: "bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl",
+                      headerTitle: "text-black dark:text-white",
+                      headerSubtitle: "text-gray-600 dark:text-gray-400",
+                      socialButtonsBlockButton: "bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-200 dark:border-gray-700",
+                      formButtonPrimary: "bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200",
+                      formFieldInput: "bg-white dark:bg-gray-900 text-black dark:text-white border-gray-200 dark:border-gray-700",
+                      footerActionLink: "text-black dark:text-white",
+                    }
+                  }}
+                />
+              )}
+            </motion.div>
+          )}
         </motion.div>
       </main>
     </div>

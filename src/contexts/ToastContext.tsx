@@ -31,10 +31,26 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const addToast = useCallback((message: string, type: ToastType = 'info', duration = 3000) => {
+    // Prevent duplicate toasts with the same message and type
+    setToasts(prev => {
+      const isDuplicate = prev.some(t => t.message === message && t.type === type)
+      if (isDuplicate) {
+        return prev
+      }
+      return prev
+    })
+
+    // Check again after state update to prevent race conditions
     const id = `toast-${++toastCounter}`
     const newToast: Toast = { id, message, type, duration }
     
-    setToasts(prev => [...prev, newToast])
+    setToasts(prev => {
+      const isDuplicate = prev.some(t => t.message === message && t.type === type)
+      if (isDuplicate) {
+        return prev
+      }
+      return [...prev, newToast]
+    })
 
     if (duration > 0) {
       setTimeout(() => {

@@ -1,10 +1,30 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Home, ArrowLeft } from 'lucide-react'
+import { updateMetaTags } from '@/lib/seo'
 
 export default function NotFoundPage() {
   useEffect(() => {
-    document.title = 'Page Not Found | Better Prompts, Better Art'
+    updateMetaTags({
+      title: 'Page Not Found | AI Image Prompts',
+      description: 'The requested page could not be found.',
+      canonical: '/404',
+      robots: 'noindex, follow',
+      og: {
+        title: 'Page Not Found | AI Image Prompts',
+        description: 'The requested page could not be found.',
+        url: '/404',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'Page Not Found | AI Image Prompts',
+        description: 'The requested page could not be found.',
+        image: '/og-image.png',
+      },
+    })
   }, [])
 
   return (

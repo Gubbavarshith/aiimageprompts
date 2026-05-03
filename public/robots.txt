@@ -5,8 +5,19 @@ Allow: /refund
 Disallow: /admin/
 Disallow: /auth/
 Disallow: /saved
-Disallow: /submit
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
 
 # Sitemap
-Sitemap: https://aiimageprompts.xyz/sitemap.xml
+Sitemap: https://www.aiimageprompts.xyz/sitemap.xml
 

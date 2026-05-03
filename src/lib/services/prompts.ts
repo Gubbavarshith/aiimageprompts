@@ -78,13 +78,14 @@ export async function fetchPrompts() {
   }
 }
 
+/** Published prompts for the landing strip: newest first (not view-based). */
 export async function fetchFeaturedPrompts(limit = 10) {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .select('*')
     .eq('status', 'Published')
-    .order('views', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(limit)
 
   if (error) {

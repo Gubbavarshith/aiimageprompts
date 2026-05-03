@@ -6,10 +6,6 @@
   "devCommand": "npm run dev",
   "rewrites": [
     {
-      "source": "/sitemap.xml",
-      "destination": "/api/sitemap.xml"
-    },
-    {
       "source": "/l/:slug",
       "destination": "https://hfncjkqzflreyfxvobxx.supabase.co/functions/v1/track-link/:slug"
     },
@@ -43,6 +39,19 @@
     },
     {
       "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, stale-while-revalidate=86400"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
+        }
+      ]
+    },
+    {
+      "source": "/api/sitemap.xml",
       "headers": [
         {
           "key": "Cache-Control",

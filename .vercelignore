@@ -1,0 +1,55 @@
+# Files and folders here are kept in Git when needed locally, but are not uploaded to
+# Vercel for production builds (smaller deploy, no research/offline tooling on the server).
+
+# --- Local research, SEO automation, offline pipelines ---
+seo-pipeline/
+blog-info/
+conductor/
+suggestions/
+testsprite_tests/
+
+# --- Vendor / reference repo (not part of this app) ---
+awesome-gpt-image-2/
+
+# --- Bulk / seed data (admin uploads use user-provided files; not bundled) ---
+csv-data/
+
+# --- Supabase project files (deploy DB/edge separately; not used by `vite build`) ---
+supabase/
+
+# --- Root & tooling docs / notes (site copy lives under src/content/) ---
+AGENTS.md
+API_FEATURE_REMOVAL.md
+COMPREHENSIVE_FREE_FEATURES.md
+DESIGN.md
+ENV_VARIABLES_NEEDED.md
+README.md
+SITEMAP_GUIDE.md
+SUPABASE_TABLES.md
+report.md
+test.md
+info.md
+project-info.md
+website-info.md
+
+# --- Authoring / pipeline-only markdown under src/content (not imported by the app) ---
+src/content/gsc-seo-rules.md
+src/content/blog/README.md
+
+# --- Keep website blog content + required build script in deployment ---
+!src/content/blog/
+!src/content/blog/*.md
+!scripts/prerender-blog.mjs
+
+# --- Misc local artifacts ---
+TestSprite.html
+dummy
+test_dataforseo.py
+supabase-warnings.json
+
+# --- Dev-only Node scripts (`npm run build` only needs prerender-blog.mjs) ---
+scripts/new-blog.mjs
+scripts/prepare-awesome-gpt-image-2-bulk.mjs
+
+# ESLint is not part of the production build
+eslint.config.mjs

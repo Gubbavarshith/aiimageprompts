@@ -1,4 +1,6 @@
-import { supabase } from '../supabaseClient'
+import { marked } from 'marked'
+
+export type BlogPostStatus = 'Published' | 'Draft' | 'Scheduled'
 
 export type BlogPost = {
   id: string
@@ -11,360 +13,216 @@ export type BlogPost = {
   category: string
   imageUrl: string
   tags: string[]
-  status: 'Published' | 'Draft' | 'Scheduled'
+  status: BlogPostStatus
   slug: string
   metaTitle?: string
   metaDescription?: string
   scheduledAt?: string
-  showToc?: boolean // NEW: Optional Table of Contents toggle
+  showToc?: boolean
 }
 
-// Helper function to map database row to BlogPost type
-const mapRowToBlogPost = (row: any): BlogPost => ({
-  id: row.id,
-  title: row.title,
-  excerpt: row.excerpt,
-  content: row.content,
-  author: row.author,
-  date: row.date,
-  readTime: row.read_time,
-  category: row.category,
-  imageUrl: row.image_url || '',
-  tags: row.tags || [],
-  status: row.status,
-  slug: row.slug,
-  metaTitle: row.meta_title || undefined,
-  metaDescription: row.meta_description || undefined,
-  scheduledAt: row.scheduled_at || undefined,
-  showToc: row.show_toc || false, // NEW: Table of Contents toggle
-})
+type BlogFrontmatter = {
+  title?: unknown
+  excerpt?: unknown
+  author?: unknown
+  date?: unknown
+  category?: unknown
+  imageUrl?: unknown
+  tags?: unknown
+  status?: unknown
+  slug?: unknown
+  metaTitle?: unknown
+  metaDescription?: unknown
+  scheduledAt?: unknown
+  showToc?: unknown
+}
 
-// Helper function to map BlogPost to database row
-const mapBlogPostToRow = (post: Partial<BlogPost>): any => ({
-  title: post.title,
-  slug: post.slug,
-  excerpt: post.excerpt,
-  content: post.content,
-  author: post.author,
-  date: post.date,
-  read_time: post.readTime,
-  category: post.category,
-  image_url: post.imageUrl || null,
-  tags: post.tags || [],
-  status: post.status,
-  meta_title: post.metaTitle || null,
-  meta_description: post.metaDescription || null,
-  scheduled_at: post.scheduledAt || null,
-  show_toc: post.showToc ?? false, // NEW: Table of Contents toggle
-})
+const BLOG_FILES = import.meta.glob('/src/content/blog/*.md', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+}) as Record<string, string>
+
+function isValidStatus(value: unknown): value is BlogPostStatus {
+  return value === 'Published' || value === 'Draft' || value === 'Scheduled'
+}
+
+function normalizeSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function generateAnchorId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/<[^>]*>/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+function addAnchorIdsToContent(html: string): string {
+  return html.replace(/<h([2-4])(?:\s+id="([^"]*)")?[^>]*>(.*?)<\/h\1>/gi, (match, level, existingId, text) => {
+    if (existingId) return match
+    const id = generateAnchorId(String(text))
+    return id ? `<h${level} id="${id}">${text}</h${level}>` : match
+  })
+}
+
+function asString(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value.trim() : fallback
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
+}
+
+function parseFrontmatterValue(rawValue: string): unknown {
+  const value = rawValue.trim()
+  if (!value) return ''
+
+  if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+    return value.slice(1, -1)
+  }
+
+  if (value === 'true') return true
+  if (value === 'false') return false
+
+  if (value.startsWith('[') && value.endsWith(']')) {
+    const inner = value.slice(1, -1).trim()
+    if (!inner) return []
+    return inner
+      .split(',')
+      .map((item) => item.trim())
+      .map((item) => item.replace(/^['"]|['"]$/g, ''))
+      .filter(Boolean)
+  }
+
+  return value
+}
+
+function parseMarkdownWithFrontmatter(raw: string): { frontmatter: BlogFrontmatter; content: string } {
+  if (!raw.startsWith('---')) {
+    return { frontmatter: {}, content: raw }
+  }
+
+  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/)
+  if (!match) {
+    return { frontmatter: {}, content: raw }
+  }
+
+  const frontmatterRaw = match[1]
+  const content = match[2]
+  const frontmatter: BlogFrontmatter = {}
+
+  for (const line of frontmatterRaw.split(/\r?\n/)) {
+    const trimmedLine = line.trim()
+    if (!trimmedLine || trimmedLine.startsWith('#')) continue
+
+    const separatorIndex = trimmedLine.indexOf(':')
+    if (separatorIndex <= 0) continue
+
+    const key = trimmedLine.slice(0, separatorIndex).trim()
+    const value = trimmedLine.slice(separatorIndex + 1).trim()
+    ;(frontmatter as Record<string, unknown>)[key] = parseFrontmatterValue(value)
+  }
+
+  return { frontmatter, content }
+}
+
+function parseBlogFile(path: string, raw: string): BlogPost | null {
+  const { frontmatter, content } = parseMarkdownWithFrontmatter(raw)
+
+  const title = asString(frontmatter.title)
+  const slugFromFrontmatter = asString(frontmatter.slug)
+  const slugFromFile = path.split('/').pop()?.replace(/\.md$/, '') || ''
+  const slug = normalizeSlug(slugFromFrontmatter || slugFromFile)
+  const date = asString(frontmatter.date)
+
+  if (!title || !slug || !date) {
+    console.error(`Skipping invalid blog markdown file: ${path}`)
+    return null
+  }
+
+  const rawHtml = marked.parse(content, { async: false })
+  const htmlContent = typeof rawHtml === 'string' ? rawHtml : ''
+  const contentWithAnchors = addAnchorIdsToContent(htmlContent)
+
+  const status = isValidStatus(frontmatter.status) ? frontmatter.status : 'Published'
+
+  return {
+    id: slug,
+    title,
+    excerpt: asString(frontmatter.excerpt),
+    content: contentWithAnchors,
+    author: asString(frontmatter.author, 'Editorial'),
+    date,
+    readTime: calculateReadTime(contentWithAnchors),
+    category: asString(frontmatter.category, 'News'),
+    imageUrl: asString(frontmatter.imageUrl),
+    tags: asStringArray(frontmatter.tags),
+    status,
+    slug,
+    metaTitle: asString(frontmatter.metaTitle) || undefined,
+    metaDescription: asString(frontmatter.metaDescription) || undefined,
+    scheduledAt: asString(frontmatter.scheduledAt) || undefined,
+    showToc: typeof frontmatter.showToc === 'boolean' ? frontmatter.showToc : false,
+  }
+}
+
+function getAllBlogPosts(): BlogPost[] {
+  return Object.entries(BLOG_FILES)
+    .map(([path, raw]) => parseBlogFile(path, raw))
+    .filter((post): post is BlogPost => post !== null)
+}
+
+export function getPublishedBlogPosts(): BlogPost[] {
+  return getAllBlogPosts()
+    .filter((post) => post.status === 'Published')
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+}
+
+export function getPublishedBlogPostBySlug(slug: string): BlogPost | null {
+  const normalizedSlug = normalizeSlug(slug)
+  return getPublishedBlogPosts().find((post) => post.slug === normalizedSlug) || null
+}
 
 export async function fetchBlogPosts(): Promise<BlogPost[]> {
-  try {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('status', 'Published')
-      .order('date', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching blog posts:', error)
-      throw new Error('Failed to fetch blog posts')
-    }
-
-    return (data || []).map(mapRowToBlogPost)
-  } catch (error) {
-    console.error('Error fetching blog posts:', error)
-    throw new Error('Failed to fetch blog posts')
-  }
+  return getPublishedBlogPosts()
 }
 
 export async function fetchBlogPostBySlug(slug: string): Promise<BlogPost | null> {
-  try {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('slug', slug)
-      .eq('status', 'Published')
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No rows returned
-        return null
-      }
-      console.error('Error fetching blog post:', error)
-      throw new Error('Failed to fetch blog post')
-    }
-
-    return data ? mapRowToBlogPost(data) : null
-  } catch (error) {
-    console.error('Error fetching blog post:', error)
-    throw new Error('Failed to fetch blog post')
-  }
-}
-
-export async function fetchBlogPostById(id: string): Promise<BlogPost | null> {
-  try {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('id', id)
-      .eq('status', 'Published')
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No rows returned
-        return null
-      }
-      console.error('Error fetching blog post:', error)
-      throw new Error('Failed to fetch blog post')
-    }
-
-    return data ? mapRowToBlogPost(data) : null
-  } catch (error) {
-    console.error('Error fetching blog post:', error)
-    throw new Error('Failed to fetch blog post')
-  }
+  return getPublishedBlogPostBySlug(slug)
 }
 
 export function getBlogCategories(posts: BlogPost[]): string[] {
-  const categories = new Set(posts.map(post => post.category))
+  const categories = new Set(posts.map((post) => post.category))
   return Array.from(categories).sort()
 }
 
 export function formatDate(dateString: string): string {
   const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   })
 }
 
 export function calculateReadTime(content: string): string {
   const wordsPerMinute = 200
-  // Strip HTML tags for accurate word count
   const textContent = content.replace(/<[^>]*>/g, ' ')
-  const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length
+  const wordCount = textContent.split(/\s+/).filter((word) => word.length > 0).length
   const minutes = Math.ceil(wordCount / wordsPerMinute)
   return `${minutes} min read`
-}
-
-// Admin functions - fetch all posts including drafts
-export async function fetchAllBlogPosts(): Promise<BlogPost[]> {
-  try {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .order('date', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching all blog posts:', error)
-      throw new Error('Failed to fetch blog posts')
-    }
-
-    return (data || []).map(mapRowToBlogPost)
-  } catch (error) {
-    console.error('Error fetching all blog posts:', error)
-    throw new Error('Failed to fetch blog posts')
-  }
-}
-
-export async function fetchBlogPostByIdForAdmin(id: string): Promise<BlogPost | null> {
-  try {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No rows returned
-        return null
-      }
-      console.error('Error fetching blog post:', error)
-      throw new Error('Failed to fetch blog post')
-    }
-
-    return data ? mapRowToBlogPost(data) : null
-  } catch (error) {
-    console.error('Error fetching blog post:', error)
-    throw new Error('Failed to fetch blog post')
-  }
-}
-
-// Generate slug from title
-export function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
-}
-
-// Check if slug exists (excluding a specific post ID)
-async function slugExists(slug: string, excludeId?: string): Promise<boolean> {
-  try {
-    let query = supabase
-      .from('blog_posts')
-      .select('id')
-      .eq('slug', slug)
-      .limit(1)
-
-    if (excludeId) {
-      query = query.neq('id', excludeId)
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      console.error('Error checking slug:', error)
-      return false
-    }
-
-    return (data?.length || 0) > 0
-  } catch (error) {
-    console.error('Error checking slug:', error)
-    return false
-  }
-}
-
-// Generate unique slug
-async function generateUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
-  let finalSlug = baseSlug
-  let counter = 1
-
-  while (await slugExists(finalSlug, excludeId)) {
-    finalSlug = `${baseSlug}-${counter}`
-    counter++
-  }
-
-  return finalSlug
-}
-
-// Create new blog post
-export type CreateBlogPostPayload = Omit<BlogPost, 'id' | 'date' | 'readTime' | 'slug'> & {
-  slug?: string
-}
-
-export async function createBlogPost(payload: CreateBlogPostPayload): Promise<BlogPost> {
-  try {
-    const slug = payload.slug || generateSlug(payload.title)
-    const readTime = calculateReadTime(payload.content)
-    const date = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
-
-    // Generate unique slug
-    const finalSlug = await generateUniqueSlug(slug)
-
-    const rowData = mapBlogPostToRow({
-      ...payload,
-      slug: finalSlug,
-      readTime,
-      date,
-    })
-
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .insert(rowData)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating blog post:', error)
-      throw new Error('Failed to create blog post')
-    }
-
-    return mapRowToBlogPost(data)
-  } catch (error) {
-    console.error('Error creating blog post:', error)
-    throw new Error('Failed to create blog post')
-  }
-}
-
-// Update existing blog post
-export type UpdateBlogPostPayload = Partial<Omit<BlogPost, 'id' | 'date' | 'readTime'>> & {
-  id: string
-}
-
-export async function updateBlogPost(payload: UpdateBlogPostPayload): Promise<BlogPost> {
-  try {
-    // Fetch existing post to get current values
-    const { data: existingData, error: fetchError } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('id', payload.id)
-      .single()
-
-    if (fetchError || !existingData) {
-      throw new Error('Blog post not found')
-    }
-
-    const existingPost = mapRowToBlogPost(existingData)
-    const updatedContent = payload.content !== undefined ? payload.content : existingPost.content
-    const readTime = calculateReadTime(updatedContent)
-    
-    // Generate new slug if title changed
-    let slug = existingPost.slug
-    if (payload.title && payload.title !== existingPost.title) {
-      const baseSlug = generateSlug(payload.title)
-      slug = await generateUniqueSlug(baseSlug, payload.id)
-    }
-
-    const updateData: any = {}
-    if (payload.title !== undefined) updateData.title = payload.title
-    if (payload.excerpt !== undefined) updateData.excerpt = payload.excerpt
-    if (payload.content !== undefined) updateData.content = payload.content
-    if (payload.author !== undefined) updateData.author = payload.author
-    if (payload.category !== undefined) updateData.category = payload.category
-    if (payload.imageUrl !== undefined) updateData.image_url = payload.imageUrl || null
-    if (payload.tags !== undefined) updateData.tags = payload.tags || []
-    if (payload.status !== undefined) updateData.status = payload.status
-    if (payload.metaTitle !== undefined) updateData.meta_title = payload.metaTitle || null
-    if (payload.metaDescription !== undefined) updateData.meta_description = payload.metaDescription || null
-    if (payload.scheduledAt !== undefined) updateData.scheduled_at = payload.scheduledAt || null
-    if (payload.showToc !== undefined) updateData.show_toc = payload.showToc // NEW: Table of Contents toggle
-    if (slug !== existingPost.slug) updateData.slug = slug
-    updateData.read_time = readTime
-
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .update(updateData)
-      .eq('id', payload.id)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error updating blog post:', error)
-      throw new Error('Failed to update blog post')
-    }
-
-    return mapRowToBlogPost(data)
-  } catch (error) {
-    console.error('Error updating blog post:', error)
-    throw new Error('Failed to update blog post')
-  }
-}
-
-// Delete blog post
-export async function deleteBlogPost(id: string): Promise<void> {
-  try {
-    const { error } = await supabase
-      .from('blog_posts')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error deleting blog post:', error)
-      throw new Error('Failed to delete blog post')
-    }
-  } catch (error) {
-    console.error('Error deleting blog post:', error)
-    throw new Error('Failed to delete blog post')
-  }
 }
 
 // Get available categories

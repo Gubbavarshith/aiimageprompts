@@ -147,16 +147,16 @@ export const FeaturedPrompts = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-6">
           <div className="relative">
             <span className="absolute -top-6 left-0 text-[#FFDE1A] font-mono text-sm font-bold tracking-widest uppercase">
-              // Weekly Selection
+              // Recently added
             </span>
             <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-black dark:text-white tracking-tight">
-              Featured <br />
+              Latest <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFDE1A] to-yellow-600">
                 Generations
               </span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-xl leading-relaxed">
-              Curated selection of high-fidelity prompts. Copy the code, create the art.
+              New publishes from the catalog—fresh prompts as they land. Copy and create.
             </p>
           </div>
 
@@ -188,7 +188,7 @@ export const FeaturedPrompts = () => {
           </div>
         ) : (
           <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 rounded-xl border-2 border-dashed border-gray-200 dark:border-zinc-800">
-            <p className="text-xl text-gray-500 dark:text-gray-400 font-mono">No featured prompts available yet.</p>
+            <p className="text-xl text-gray-500 dark:text-gray-400 font-mono">No published prompts yet.</p>
           </div>
         )}
 

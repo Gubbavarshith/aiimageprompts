@@ -8,11 +8,12 @@ import { Footer } from '@/components/landing/Footer'
 import { AnimatedAIToolsHero } from '@/components/explore/AnimatedAIToolsHero'
 import { ExploreSidebar } from '@/components/explore/ExploreSidebar'
 import { fetchPromptsByStatus, generateSlug, type PromptRecord } from '@/lib/services/prompts'
+import { isSupabaseReady } from '@/lib/supabaseClient'
 import { savePrompt, unsavePrompt, getSavedPromptIds } from '@/lib/services/savedPrompts'
 import { logDiscoveryEvent } from '@/lib/services/discoveryEvents'
 import { useToast } from '@/contexts/ToastContext'
 import { getRatingSettings, upsertPromptRating, removePromptRating, getUserRatings } from '@/lib/services/ratings'
-import { updateCanonical } from '@/lib/seo'
+import { updateMetaTags } from '@/lib/seo'
 import { fetchUniqueCategories, fetchPopularTags } from '@/lib/services/categories'
 import { getAspectRatioClass } from '@/lib/utils'
 
@@ -331,10 +332,36 @@ export default function ExplorePage() {
   const ITEMS_PER_PAGE = 20
 
   useEffect(() => {
-    document.title = 'Explore Prompts | Better Prompts, Better Art'
-    updateCanonical('/explore')
+    const title = 'Explore AI Image Prompts Library | Better Prompts, Better Art'
+    const description = 'Browse curated AI image prompts by style, category, and tags. Discover prompt ideas for Midjourney, DALL-E, and Stable Diffusion.'
+    updateMetaTags({
+      title,
+      description,
+      canonical: '/explore',
+      og: {
+        title,
+        description,
+        url: '/explore',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        image: '/og-image.png',
+      },
+    })
 
     const loadPrompts = async () => {
+      // Check if Supabase is configured before attempting to fetch
+      if (!isSupabaseReady()) {
+        console.error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env.local')
+        setIsLoading(false)
+        return
+      }
+
       try {
         // Fetch only published prompts
         const data = await fetchPromptsByStatus('Published')
@@ -377,7 +404,8 @@ export default function ExplorePage() {
     loadPrompts()
     loadCategories()
     loadTags()
-  }, [toast])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run once on mount
 
   // Sync selectedTag with URL params
   useEffect(() => {

@@ -3,12 +3,31 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, CircleCheck, CircleX, TriangleAlert } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
-import { updateCanonical } from '@/lib/seo'
+import { updateMetaTags } from '@/lib/seo'
 
 export default function GuidelinesPage() {
     useEffect(() => {
-        document.title = 'Guidelines | Better Prompts, Better Art'
-        updateCanonical('/guidelines')
+        const title = 'Community Guidelines | AI Image Prompts'
+        const description = 'Read community guidelines for safe and responsible use of AI Image Prompts, including allowed and prohibited content.'
+        updateMetaTags({
+            title,
+            description,
+            canonical: '/guidelines',
+            og: {
+                title,
+                description,
+                url: '/guidelines',
+                image: '/og-image.png',
+                type: 'website',
+                siteName: 'AI Image Prompts',
+            },
+            twitter: {
+                card: 'summary_large_image',
+                title,
+                description,
+                image: '/og-image.png',
+            },
+        })
         window.scrollTo(0, 0)
     }, [])
 

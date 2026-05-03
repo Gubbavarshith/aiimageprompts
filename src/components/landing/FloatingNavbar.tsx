@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { SignedIn, SignedOut, UserButton, useAuth } from '@clerk/clerk-react';
+import { UserButton, useAuth } from '@clerk/clerk-react';
 import { useTheme } from '@/components/use-theme';
 import { cn } from '@/lib/utils';
 import ThemeSwitch from '@/components/ui/ThemeSwitch';
@@ -286,7 +286,7 @@ export const FloatingNavbar = () => {
                   </motion.div>
 
                   {/* Sign In / Sign Up Button - visible when signed out (desktop/tablet only) */}
-                  <SignedOut>
+                  {(!isLoaded || !isSignedIn) && (
                     <Link to="/auth" className="relative group hidden md:block">
                       <button
                         className="border duration-300 relative cursor-pointer overflow-hidden
@@ -311,10 +311,10 @@ export const FloatingNavbar = () => {
                         </p>
                       </button>
                     </Link>
-                  </SignedOut>
+                  )}
 
                   {/* User avatar (visible for signed-in users only) */}
-                  <SignedIn>
+                  {isLoaded && isSignedIn && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -335,7 +335,7 @@ export const FloatingNavbar = () => {
                         }}
                       />
                     </motion.div>
-                  </SignedIn>
+                  )}
 
                   {/* Mobile Menu Toggle (Visible only when links are hidden on mobile) */}
                   {isMobile && !isMobileMenuOpen && (
@@ -404,7 +404,7 @@ export const FloatingNavbar = () => {
                     ))}
                     
                     {/* Sign In / Sign Up Button in Mobile Menu */}
-                    <SignedOut>
+                    {(!isLoaded || !isSignedIn) && (
                       <motion.div
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
@@ -441,7 +441,7 @@ export const FloatingNavbar = () => {
                           </button>
                         </Link>
                       </motion.div>
-                    </SignedOut>
+                    )}
                   </motion.nav>
                 )}
               </AnimatePresence>

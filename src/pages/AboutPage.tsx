@@ -4,12 +4,31 @@ import { ArrowLeft, Sparkles, Users, Zap, Heart, Globe, ShieldCheck, Lightbulb, 
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
 import { motion } from 'framer-motion'
-import { updateCanonical } from '@/lib/seo'
+import { updateMetaTags } from '@/lib/seo'
 
 export default function AboutPage() {
     useEffect(() => {
-        document.title = 'About | Better Prompts, Better Art'
-        updateCanonical('/about')
+        const title = 'About AI Image Prompts | Better Prompts, Better Art'
+        const description = 'Learn about AI Image Prompts and our mission to build a high-quality AI image prompt library for creators, designers, and marketers.'
+        updateMetaTags({
+            title,
+            description,
+            canonical: '/about',
+            og: {
+                title,
+                description,
+                url: '/about',
+                image: '/og-image.png',
+                type: 'website',
+                siteName: 'AI Image Prompts',
+            },
+            twitter: {
+                card: 'summary_large_image',
+                title,
+                description,
+                image: '/og-image.png',
+            },
+        })
         window.scrollTo(0, 0)
     }, [])
 

@@ -3,12 +3,31 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Eye, Lock, Cookie, Shield, Server, UserCheck, CircleHelp } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
-import { updateCanonical } from '@/lib/seo'
+import { updateMetaTags } from '@/lib/seo'
 
 export default function PrivacyPage() {
   useEffect(() => {
-    document.title = 'Privacy Policy | Better Prompts, Better Art'
-    updateCanonical('/privacy')
+    const title = 'Privacy Policy | AI Image Prompts'
+    const description = 'Review the privacy policy for AI Image Prompts, including data collection, cookies, third-party services, and user rights.'
+    updateMetaTags({
+      title,
+      description,
+      canonical: '/privacy',
+      og: {
+        title,
+        description,
+        url: '/privacy',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        image: '/og-image.png',
+      },
+    })
     window.scrollTo(0, 0)
   }, [])
 

@@ -3,12 +3,31 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, FileText, Shield, Scale, CircleHelp } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
-import { updateCanonical } from '@/lib/seo'
+import { updateMetaTags } from '@/lib/seo'
 
 export default function TermsPage() {
   useEffect(() => {
-    document.title = 'Terms of Use | Better Prompts, Better Art'
-    updateCanonical('/terms')
+    const title = 'Terms of Use | AI Image Prompts'
+    const description = 'Read the terms of use for AI Image Prompts, including platform rules, acceptable use, intellectual property, and disclaimers.'
+    updateMetaTags({
+      title,
+      description,
+      canonical: '/terms',
+      og: {
+        title,
+        description,
+        url: '/terms',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        image: '/og-image.png',
+      },
+    })
     window.scrollTo(0, 0)
   }, [])
 

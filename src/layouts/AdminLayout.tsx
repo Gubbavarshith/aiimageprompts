@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  DocumentTextIcon,
   HomeIcon,
   PhotoIcon,
   Cog6ToothIcon,
@@ -127,7 +126,6 @@ export default function AdminLayout() {
     { name: 'Links', href: '/admin/links', icon: LinkIcon, count: null },
     { name: 'Google Analytics', href: '/admin/google-analytics', icon: ChartBarIcon, count: null },
     { name: 'Explore Hero', href: '/admin/explore-hero', icon: PhotoIcon, count: null },
-    { name: 'Blogs', href: '/admin/blogs', icon: DocumentTextIcon, count: null },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: EnvelopeIcon, count: subscriptionsCount },
     { name: 'Contact', href: '/admin/contact', icon: ChatBubbleLeftRightIcon, count: contactMessagesCount },
     { name: 'Categories', href: '/admin/categories', icon: TagIcon, count: null },
@@ -354,10 +352,7 @@ export default function AdminLayout() {
         </div>
       </main>
 
-      {/* Floating Action Menu - Hidden on Blog Editor page to focus on writing */}
-      {!location.pathname.includes('/admin/blogs/') && (
-        <FloatingActionMenu options={floatingMenuOptions} />
-      )}
+      <FloatingActionMenu options={floatingMenuOptions} />
 
       {/* Global Prompt Form Modal */}
       <PromptFormModal

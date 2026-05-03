@@ -9,6 +9,7 @@ import { getSavedPrompts, unsavePrompt } from '@/lib/services/savedPrompts'
 import type { SavedPromptWithDetails } from '@/lib/services/savedPrompts'
 import { useToast } from '@/contexts/ToastContext'
 import { getAspectRatioClass } from '@/lib/utils'
+import { updateMetaTags } from '@/lib/seo'
 
 interface SavedPromptCardProps {
     savedPrompt: SavedPromptWithDetails;
@@ -165,7 +166,26 @@ export default function SavedPromptsPage() {
     })
 
     useEffect(() => {
-        document.title = 'Saved Prompts | Better Prompts, Better Art'
+        updateMetaTags({
+            title: 'Saved Prompts | AI Image Prompts',
+            description: 'Your saved AI prompts collection.',
+            canonical: '/saved',
+            robots: 'noindex, follow',
+            og: {
+                title: 'Saved Prompts | AI Image Prompts',
+                description: 'Your saved AI prompts collection.',
+                url: '/saved',
+                image: '/og-image.png',
+                type: 'website',
+                siteName: 'AI Image Prompts',
+            },
+            twitter: {
+                card: 'summary_large_image',
+                title: 'Saved Prompts | AI Image Prompts',
+                description: 'Your saved AI prompts collection.',
+                image: '/og-image.png',
+            },
+        })
     }, [])
 
     // Redirect to auth if not signed in

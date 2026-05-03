@@ -37,8 +37,6 @@ const BulkUploadPage = lazy(() => import('./pages/admin/BulkUploadPage'))
 const ReviewPromptsPage = lazy(() => import('./pages/admin/ReviewPromptsPage'))
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'))
 const SubscriptionsPage = lazy(() => import('./pages/admin/SubscriptionsPage'))
-const AdminBlogListPage = lazy(() => import('./pages/admin/AdminBlogListPage'))
-const AdminBlogEditorPage = lazy(() => import('./pages/admin/AdminBlogEditorPage'))
 const ExploreHeroToolsAdminPage = lazy(() => import('./pages/admin/ExploreHeroToolsAdminPage'))
 const CategoriesPage = lazy(() => import('./pages/admin/CategoriesPage'))
 const TagsPage = lazy(() => import('./pages/admin/TagsPage'))
@@ -133,9 +131,6 @@ function App() {
             <Route path="/admin/review" element={<ReviewPromptsPage />} />
             <Route path="/admin/subscriptions" element={<SubscriptionsPage />} />
             <Route path="/admin/settings" element={<SettingsPage />} />
-            <Route path="/admin/blogs" element={<AdminBlogListPage />} />
-            <Route path="/admin/blogs/new" element={<AdminBlogEditorPage />} />
-            <Route path="/admin/blogs/:id" element={<AdminBlogEditorPage />} />
             <Route path="/admin/explore-hero" element={<ExploreHeroToolsAdminPage />} />
             <Route path="/admin/categories" element={<CategoriesPage />} />
             <Route path="/admin/tags" element={<TagsPage />} />

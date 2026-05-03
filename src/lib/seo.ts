@@ -46,6 +46,14 @@ export function updateMetaDescription(description: string): void {
 }
 
 /**
+ * Update robots meta tag
+ */
+export function updateRobots(content: string): void {
+  const meta = getOrCreateMetaTag('name', 'robots');
+  meta.setAttribute('content', content);
+}
+
+/**
  * Update or create a canonical link tag
  */
 export function updateCanonical(url: string): void {
@@ -151,6 +159,7 @@ export function updateMetaTags(options: {
   title: string;
   description?: string;
   canonical?: string;
+  robots?: string;
   og?: {
     title?: string;
     description?: string;
@@ -176,6 +185,10 @@ export function updateMetaTags(options: {
   if (options.canonical) {
     updateCanonical(options.canonical);
   }
+
+  if (options.robots) {
+    updateRobots(options.robots);
+  }
   
   if (options.og) {
     updateOGTags(options.og);
@@ -183,6 +196,32 @@ export function updateMetaTags(options: {
   
   if (options.twitter) {
     updateTwitterTags(options.twitter);
+  }
+}
+
+/**
+ * Upsert a JSON-LD script by stable id.
+ */
+export function upsertJsonLd(scriptId: string, payload: unknown): void {
+  const existing = document.getElementById(scriptId);
+  if (existing) {
+    existing.remove();
+  }
+
+  const script = document.createElement('script');
+  script.id = scriptId;
+  script.type = 'application/ld+json';
+  script.text = JSON.stringify(payload);
+  document.head.appendChild(script);
+}
+
+/**
+ * Remove JSON-LD script if it exists.
+ */
+export function removeJsonLd(scriptId: string): void {
+  const existing = document.getElementById(scriptId);
+  if (existing) {
+    existing.remove();
   }
 }
 

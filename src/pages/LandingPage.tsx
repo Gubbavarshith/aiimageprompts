@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { HeroSection } from '../components/landing/HeroSection';
+import { updateMetaTags, upsertJsonLd, removeJsonLd } from '@/lib/seo';
 
 // Lazy load non-critical components (below the fold)
 const FloatingNavbar = lazy(() => import('../components/landing/FloatingNavbar').then(m => ({ default: m.FloatingNavbar })));
@@ -18,8 +19,57 @@ const BelowFoldPlaceholder = () => (
 
 const LandingPage = () => {
   useEffect(() => {
-    // Set document title - static for fast LCP
-    document.title = 'Better Prompts, Better Art | AI Image Prompts';
+    const title = 'Better Prompts, Better Art | AI Image Prompts';
+    const description = 'AI image prompts library with curated prompt packs for Midjourney, DALL-E, and Stable Diffusion. Explore free prompt ideas and create better AI art.';
+
+    updateMetaTags({
+      title,
+      description,
+      canonical: '/',
+      og: {
+        title,
+        description,
+        url: '/',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        image: '/og-image.png',
+      },
+    });
+
+    const webSiteJsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'AI Image Prompts',
+      url: 'https://aiimageprompts.xyz',
+      inLanguage: 'en',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: 'https://aiimageprompts.xyz/explore?q={search_term_string}',
+        'query-input': 'required name=search_term_string',
+      },
+    };
+
+    const orgJsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'AI Image Prompts',
+      url: 'https://aiimageprompts.xyz',
+      logo: 'https://aiimageprompts.xyz/favicon.svg',
+    };
+
+    upsertJsonLd('website-jsonld', webSiteJsonLd);
+    upsertJsonLd('organization-jsonld', orgJsonLd);
+
+    return () => {
+      removeJsonLd('website-jsonld');
+      removeJsonLd('organization-jsonld');
+    };
   }, []);
 
   return (

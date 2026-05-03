@@ -2,6 +2,9 @@
 
 // Import Supabase client for server-side use
 import { createClient } from '@supabase/supabase-js'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import type { VercelRequest, VercelResponse } from '@vercel/node'
 // Import route configuration to automatically include all static routes
 import { PUBLIC_ROUTES } from '../src/config/routes'
 
@@ -35,6 +38,20 @@ function formatDate(dateString: string): string {
   return new Date(dateString).toISOString().split('T')[0]
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((resolve) => {
+        timeoutHandle = setTimeout(() => resolve(fallback), timeoutMs)
+      }),
+    ])
+  } finally {
+    if (timeoutHandle) clearTimeout(timeoutHandle)
+  }
+}
+
 // Fetch all published prompts from Supabase
 async function fetchPublishedPrompts() {
   try {
@@ -57,37 +74,21 @@ async function fetchPublishedPrompts() {
   }
 }
 
-// Fetch all published blog posts from Supabase
-async function fetchPublishedBlogPosts() {
+type BlogManifestEntry = {
+  slug: string
+  date: string
+  status: 'Published' | 'Draft' | 'Scheduled'
+}
+
+// Fetch all published blog posts from generated manifest
+function fetchPublishedBlogPostsFromManifest(): BlogManifestEntry[] {
   try {
-    const supabase = getSupabaseClient()
-    
-    const { data: supabasePosts, error: supabaseError } = await supabase
-      .from('blog_posts')
-      .select('id, title, slug, date, updated_at, status')
-      .eq('status', 'Published')
-      .order('updated_at', { ascending: false })
-      .limit(1000) // Reasonable limit
-
-    if (supabaseError) {
-      console.error('Error fetching blog posts from Supabase:', supabaseError)
-      return []
-    }
-
-    if (!supabasePosts || supabasePosts.length === 0) {
-      console.log('No published blog posts found in Supabase')
-      return []
-    }
-
-    console.log(`Fetched ${supabasePosts.length} blog posts from Supabase`)
-    return supabasePosts.map((post: any) => ({
-      slug: post.slug,
-      title: post.title,
-      date: post.updated_at || post.date,
-    }))
+    const manifestPath = join(process.cwd(), 'public', 'blog-manifest.json')
+    const raw = readFileSync(manifestPath, 'utf-8')
+    const parsed = JSON.parse(raw) as { posts?: BlogManifestEntry[] }
+    return (parsed.posts || []).filter((post) => post.status === 'Published')
   } catch (error) {
-    console.error('Failed to fetch blog posts:', error)
-    // Return empty array on error to allow sitemap to still be generated
+    console.error('Failed to read blog manifest for sitemap:', error)
     return []
   }
 }
@@ -112,7 +113,16 @@ ${urls}
 </urlset>`
 }
 
-export default async function handler(_req: any, res: any) {
+function dedupeAndSortUrls(urls: Array<{ url: string; lastmod: string; changefreq: string; priority: string }>) {
+  const byUrl = new Map<string, { url: string; lastmod: string; changefreq: string; priority: string }>()
+  urls.forEach((entry) => {
+    if (!entry?.url) return
+    byUrl.set(entry.url, entry)
+  })
+  return [...byUrl.values()].sort((a, b) => a.url.localeCompare(b.url))
+}
+
+export default async function handler(_req: VercelRequest, res: VercelResponse) {
   try {
     // Set proper headers for XML content
     res.setHeader('Content-Type', 'application/xml')
@@ -122,15 +132,15 @@ export default async function handler(_req: any, res: any) {
 
     // Automatically generate static URLs from route configuration
     // This ensures all routes defined in routes.ts are automatically included
-    const staticUrls = PUBLIC_ROUTES.map((route) => ({
+    const staticUrls: Array<{ url: string; lastmod: string; changefreq: string; priority: string }> = PUBLIC_ROUTES.map((route) => ({
       url: `${SITE_URL}${route.path}`,
       lastmod: today,
       changefreq: route.changefreq,
       priority: route.priority,
     }))
 
-    // Fetch published prompts
-    const prompts = await fetchPublishedPrompts()
+    // Fetch published prompts with strict timeout to keep sitemap endpoint responsive.
+    const prompts = await withTimeout(fetchPublishedPrompts(), 2500, [])
     prompts.forEach((prompt) => {
       const slug = generateSlug(prompt.title)
       const lastmod = prompt.updated_at ? formatDate(prompt.updated_at) : (prompt.created_at ? formatDate(prompt.created_at) : today)
@@ -142,11 +152,9 @@ export default async function handler(_req: any, res: any) {
       })
     })
 
-    // Fetch published blog posts from Supabase
-    // This automatically includes all blog posts created via admin dashboard
-    const blogPosts = await fetchPublishedBlogPosts()
-    blogPosts.forEach((post: any) => {
-      const slug = post.slug || generateSlug(post.title)
+    const blogPosts = fetchPublishedBlogPostsFromManifest()
+    blogPosts.forEach((post) => {
+      const slug = post.slug
       const lastmod = post.date ? formatDate(post.date) : today
       staticUrls.push({
         url: `${SITE_URL}/blog/${slug}`,
@@ -157,7 +165,7 @@ export default async function handler(_req: any, res: any) {
     })
 
     // Generate and return sitemap XML
-    const sitemap = generateSitemap(staticUrls)
+    const sitemap = generateSitemap(dedupeAndSortUrls(staticUrls))
     return res.status(200).send(sitemap)
   } catch (error) {
     console.error('Sitemap generation error:', error)

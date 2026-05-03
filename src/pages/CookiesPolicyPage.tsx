@@ -3,12 +3,31 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Cookie, Eye, Server, Shield, Settings, Clock, Lock } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
-import { updateCanonical } from '@/lib/seo'
+import { updateMetaTags } from '@/lib/seo'
 
 export default function CookiesPolicyPage() {
   useEffect(() => {
-    document.title = 'Cookies Policy | Better Prompts, Better Art'
-    updateCanonical('/cookies')
+    const title = 'Cookies Policy | AI Image Prompts'
+    const description = 'Learn how AI Image Prompts uses cookies for preferences, analytics, and site functionality, and how to manage cookie settings.'
+    updateMetaTags({
+      title,
+      description,
+      canonical: '/cookies',
+      og: {
+        title,
+        description,
+        url: '/cookies',
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        image: '/og-image.png',
+      },
+    })
     window.scrollTo(0, 0)
   }, [])
 
