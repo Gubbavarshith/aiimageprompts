@@ -35,9 +35,9 @@ const badges: BadgeItem[] = [
     id: 'fazier',
     name: 'Fazier',
     url: 'https://fazier.com/launches/ai-image-prompts',
-    imageUrl: 'https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=featured&theme=light',
+    imageUrl: 'https://fazier.com/api/v1/public/badges/embed_image.svg?launch_id=8998&badge_type=featured&theme=light',
     imageAlt: 'Fazier badge',
-    width: 250
+    width: 270
   }
   // Add more badges here as needed
 ];
