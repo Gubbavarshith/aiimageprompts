@@ -1,9 +1,11 @@
 import { supabase, isSupabaseReady } from '@/lib/supabaseClient'
 
+type JsonValue = string | number | boolean | null | { [key: string]: JsonValue } | JsonValue[]
+
 export type BulkUploadDraft = {
   id: string
-  data: any
-  normalized: any | null
+  data: JsonValue
+  normalized: JsonValue | null
   validation_errors: string[]
   image_ratio: string
   is_detecting_ratio: boolean
@@ -12,8 +14,8 @@ export type BulkUploadDraft = {
 }
 
 export type BulkUploadDraftPayload = {
-  data: any
-  normalized?: any | null
+  data: JsonValue
+  normalized?: JsonValue | null
   validation_errors?: string[]
   image_ratio?: string
   is_detecting_ratio?: boolean

@@ -36,6 +36,10 @@ interface RichTextEditorProps {
     onWordCountChange?: (count: number) => void
 }
 
+type ErrorWithMessage = {
+    message?: string
+}
+
 export default function RichTextEditor({
     content,
     onChange,
@@ -113,9 +117,10 @@ export default function RichTextEditor({
 
             setImageUrl(urlData.publicUrl)
             toast.success('Image uploaded successfully')
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error uploading image:', err)
-            const errorMessage = err?.message || 'Unknown error'
+            const typedError = (typeof err === 'object' && err !== null ? err : {}) as ErrorWithMessage
+            const errorMessage = typedError.message || 'Unknown error'
             
             // Provide helpful error messages for common issues
             if (errorMessage.includes('maximum allowed size') || errorMessage.includes('exceeded')) {

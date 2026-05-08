@@ -49,7 +49,7 @@ export default function FAQPage() {
         upsertJsonLd('faq-jsonld', faqJsonLd)
         window.scrollTo(0, 0)
         return () => removeJsonLd('faq-jsonld')
-    }, [])
+    }, [faqItems])
 
     const [openId, setOpenId] = useState<string | null>(null)
     const [activeCategory, setActiveCategory] = useState<string>('All')

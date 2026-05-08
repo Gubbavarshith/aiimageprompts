@@ -193,6 +193,7 @@ export default function DashboardPage() {
       error,
       supabaseReady,
       analyticsSummary,
+      navigate,
     ],
   )
 
@@ -213,7 +214,8 @@ export default function DashboardPage() {
     navigate('/admin/prompts')
   }
 
-  const handleRecentPromptClick = (_id: string) => {
+  const handleRecentPromptClick = (id: string) => {
+    void id
     navigate(`/admin/prompts`)
   }
 

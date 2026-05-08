@@ -194,9 +194,15 @@ export async function uploadExploreHeroImage(file: File): Promise<string> {
     })
 
   if (uploadError) {
+    const statusCode =
+      typeof uploadError === 'object' &&
+      uploadError !== null &&
+      'statusCode' in uploadError
+        ? (uploadError as { statusCode?: unknown }).statusCode
+        : undefined
     console.error('Error uploading explore hero image:', {
       message: uploadError.message,
-      statusCode: (uploadError as any).statusCode,
+      statusCode,
       name: uploadError.name,
     })
     throw new Error(uploadError.message || 'Failed to upload image')

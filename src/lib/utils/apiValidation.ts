@@ -113,7 +113,7 @@ export function safeJsonParse<T>(json: string, errorMessage = 'Invalid JSON'): V
   try {
     const parsed = JSON.parse(json) as T
     return { success: true, data: parsed }
-  } catch (error) {
+  } catch {
     return { success: false, error: errorMessage }
   }
 }

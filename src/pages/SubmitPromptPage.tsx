@@ -203,14 +203,28 @@ export default function SubmitPromptPage() {
           image_ratio: detectedRatio
         }))
         toast.success('Image uploaded successfully')
-      } catch (err: any) {
-        const errorMessage = err?.message || err?.error || 'Unknown error'
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : typeof err === 'object' && err !== null && 'message' in err
+              ? String((err as { message?: unknown }).message ?? 'Unknown error')
+              : typeof err === 'object' && err !== null && 'error' in err
+                ? String((err as { error?: unknown }).error ?? 'Unknown error')
+                : 'Unknown error'
+
+        const status =
+          typeof err === 'object' && err !== null && 'status' in err
+            ? (err as { status?: unknown }).status
+            : undefined
+        const statusCode = typeof status === 'number' ? status : undefined
+
         const isNetworkError =
           errorMessage.includes('network') ||
           errorMessage.includes('timeout') ||
           errorMessage.includes('fetch') ||
           errorMessage.includes('Failed to fetch') ||
-          (err?.status >= 500 && err?.status < 600)
+          (statusCode !== undefined && statusCode >= 500 && statusCode < 600)
 
         if (isNetworkError && retries > 0) {
           const delay = (3 - retries) * 1000
@@ -223,7 +237,7 @@ export default function SubmitPromptPage() {
 
     try {
       await uploadWithRetry()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error uploading image:', err)
       setError(`Upload failed. Please use a direct URL instead or try again.`)
     } finally {

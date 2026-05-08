@@ -25,6 +25,18 @@ interface PromptAnalyticsChartProps {
     setShowCustomDatePicker?: (show: boolean) => void
 }
 
+type TooltipPayloadEntry = {
+    color?: string
+    name?: string
+    value?: number | string
+}
+
+type CustomTooltipProps = {
+    active?: boolean
+    payload?: TooltipPayloadEntry[]
+    label?: string
+}
+
 export const PromptAnalyticsChart = ({
     data,
     isLoading,
@@ -39,14 +51,14 @@ export const PromptAnalyticsChart = ({
     setShowCustomDatePicker
 }: PromptAnalyticsChartProps) => {
 
-    const CustomTooltip = ({ active, payload, label }: any) => {
+    const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
         if (active && payload && payload.length) {
             return (
                 <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 p-3 rounded-xl shadow-xl">
                     <p className="font-semibold text-sm mb-2 text-zinc-500 dark:text-zinc-400">
                         {label}
                     </p>
-                    {payload.map((entry: any, index: number) => (
+                    {payload.map((entry, index: number) => (
                         <div key={index} className="flex items-center gap-2 text-sm font-medium mb-1 last:mb-0">
                             <span
                                 className="w-2 h-2 rounded-full block"

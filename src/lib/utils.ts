@@ -173,24 +173,45 @@ export function detectImageRatioFromSource(
   })
 }
 
+type BulkPromptInput = Record<string, unknown>
+type BulkPromptNormalized = {
+  title: string
+  prompt: string
+  negative_prompt: string | null
+  category: string
+  tags: string[] | null
+  preview_image_url: string | null
+  status: string
+  views: number
+  user_id: null
+  attribution: string | null
+  attribution_link: string | null
+  image_ratio: string
+}
+
+function getStringField(data: BulkPromptInput, key: string): string {
+  const value = data[key]
+  return typeof value === 'string' ? value : ''
+}
+
 /**
  * Parse CSV text into array of objects
  * Handles semicolon-separated tags and quoted fields
  * @param csvText - CSV file content as string
  * @returns Array of objects with parsed data
  */
-export function parseCSV(csvText: string): any[] {
+export function parseCSV(csvText: string): BulkPromptInput[] {
   const lines = csvText.split('\n').filter(line => line.trim())
   if (lines.length < 2) return [] // Need at least header + one data row
 
   // Parse header
   const headers = parseCSVLine(lines[0])
-  const result: any[] = []
+  const result: BulkPromptInput[] = []
 
   // Parse data rows
   for (let i = 1; i < lines.length; i++) {
     const values = parseCSVLine(lines[i])
-    const row: any = {}
+    const row: BulkPromptInput = {}
 
     headers.forEach((header, index) => {
       let value = values[index] || ''
@@ -254,7 +275,8 @@ function parseCSVLine(line: string): string[] {
  * @param validCategories - Array of valid category names (deprecated - no longer used for validation)
  * @returns Array of validation error messages (empty if valid)
  */
-export function validateBulkPrompt(data: any, _validCategories?: string[]): string[] {
+export function validateBulkPrompt(data: BulkPromptInput, validCategories?: string[]): string[] {
+  void validCategories
   const errors: string[] = []
 
   // Required fields
@@ -293,7 +315,11 @@ export function validateBulkPrompt(data: any, _validCategories?: string[]): stri
   }
 
   // Status validation
-  if (data.status && !['Published', 'Draft', 'Review', 'Pending', 'Rejected', 'draft'].includes(data.status)) {
+  if (
+    typeof data.status === 'string' &&
+    data.status &&
+    !['Published', 'Draft', 'Review', 'Pending', 'Rejected', 'draft'].includes(data.status)
+  ) {
     errors.push('Invalid status value')
   }
 
@@ -306,21 +332,37 @@ export function validateBulkPrompt(data: any, _validCategories?: string[]): stri
  * @param detectedRatio - Auto-detected image ratio
  * @returns Normalized PromptPayload object
  */
-export function normalizeBulkPrompt(data: any, detectedRatio: string = '4:3', status: string = 'Published'): any {
+export function normalizeBulkPrompt(
+  data: BulkPromptInput,
+  detectedRatio: string = '4:3',
+  status: string = 'Published'
+): BulkPromptNormalized {
+  const title = getStringField(data, 'title')
+  const prompt = getStringField(data, 'prompt')
+  const negativePrompt = getStringField(data, 'negative_prompt')
+  const category = getStringField(data, 'category')
+  const attribution = getStringField(data, 'attribution')
+  const attributionLink = getStringField(data, 'attribution_link')
+  const previewImageUrl = getStringField(data, 'preview_image_url')
+  const previewImage = getStringField(data, 'preview_image')
+
   return {
-    title: sanitizeForStorage((data.title || '').trim()),
-    prompt: sanitizeForStorage((data.prompt || '').trim()),
-    negative_prompt: data.negative_prompt ? sanitizeForStorage(data.negative_prompt.trim()) : null,
-    category: sanitizeForStorage((data.category || '').trim()),
+    title: sanitizeForStorage(title.trim()),
+    prompt: sanitizeForStorage(prompt.trim()),
+    negative_prompt: negativePrompt ? sanitizeForStorage(negativePrompt.trim()) : null,
+    category: sanitizeForStorage(category.trim()),
     tags: data.tags && Array.isArray(data.tags) && data.tags.length > 0
-      ? data.tags.map((tag: string) => sanitizeForStorage(tag.trim().toLowerCase())).filter(Boolean)
+      ? data.tags
+        .filter((tag): tag is string => typeof tag === 'string')
+        .map((tag) => sanitizeForStorage(tag.trim().toLowerCase()))
+        .filter(Boolean)
       : null,
-    preview_image_url: data.preview_image_url || data.preview_image || null,
+    preview_image_url: previewImageUrl || previewImage || null,
     status: status, // Use provided status (default: 'Published')
     views: 0,
     user_id: null,
-    attribution: data.attribution ? sanitizeForStorage(data.attribution.trim()) : null,
-    attribution_link: data.attribution_link || null,
+    attribution: attribution ? sanitizeForStorage(attribution.trim()) : null,
+    attribution_link: attributionLink || null,
     image_ratio: detectedRatio,
   }
 }

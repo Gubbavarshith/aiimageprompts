@@ -21,6 +21,12 @@ let globalAddToast: ((message: string, type?: ToastType, duration?: number) => v
 export function useToast() {
   const [state, setState] = useState<ToastState>({ toasts: [] })
 
+  const removeToast = useCallback((id: string) => {
+    setState(prev => ({
+      toasts: prev.toasts.filter(t => t.id !== id)
+    }))
+  }, [])
+
   const addToast = useCallback((message: string, type: ToastType = 'info', duration = 3000) => {
     const id = `toast-${++toastCounter}`
     const newToast: Toast = { id, message, type, duration }
@@ -36,13 +42,7 @@ export function useToast() {
     }
 
     return id
-  }, [])
-
-  const removeToast = useCallback((id: string) => {
-    setState(prev => ({
-      toasts: prev.toasts.filter(t => t.id !== id)
-    }))
-  }, [])
+  }, [removeToast])
 
   // Register the global addToast function
   globalAddToast = addToast

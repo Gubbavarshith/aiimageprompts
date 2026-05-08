@@ -5,7 +5,11 @@
  * and Open Graph/Twitter card tags in a client-side rendered React app.
  */
 
-const PRODUCTION_DOMAIN = 'https://aiimageprompts.xyz';
+import { getPublicSiteOrigin } from '@/config/site'
+
+function siteOrigin(): string {
+  return getPublicSiteOrigin()
+}
 
 /**
  * Get or create a meta tag element
@@ -58,7 +62,7 @@ export function updateRobots(content: string): void {
  */
 export function updateCanonical(url: string): void {
   // Ensure absolute URL
-  const absoluteUrl = url.startsWith('http') ? url : `${PRODUCTION_DOMAIN}${url.startsWith('/') ? url : `/${url}`}`;
+  const absoluteUrl = url.startsWith('http') ? url : `${siteOrigin()}${url.startsWith('/') ? url : `/${url}`}`;
   
   let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
   
@@ -93,13 +97,13 @@ export function updateOGTags(options: {
   }
   
   if (options.url) {
-    const absoluteUrl = options.url.startsWith('http') ? options.url : `${PRODUCTION_DOMAIN}${options.url.startsWith('/') ? options.url : `/${options.url}`}`;
+    const absoluteUrl = options.url.startsWith('http') ? options.url : `${siteOrigin()}${options.url.startsWith('/') ? options.url : `/${options.url}`}`;
     const meta = getOrCreateMetaTag('property', 'og:url');
     meta.setAttribute('content', absoluteUrl);
   }
   
   if (options.image) {
-    const absoluteUrl = options.image.startsWith('http') ? options.image : `${PRODUCTION_DOMAIN}${options.image.startsWith('/') ? options.image : `/${options.image}`}`;
+    const absoluteUrl = options.image.startsWith('http') ? options.image : `${siteOrigin()}${options.image.startsWith('/') ? options.image : `/${options.image}`}`;
     const meta = getOrCreateMetaTag('property', 'og:image');
     meta.setAttribute('content', absoluteUrl);
   }
@@ -141,7 +145,7 @@ export function updateTwitterTags(options: {
   }
   
   if (options.image) {
-    const absoluteUrl = options.image.startsWith('http') ? options.image : `${PRODUCTION_DOMAIN}${options.image.startsWith('/') ? options.image : `/${options.image}`}`;
+    const absoluteUrl = options.image.startsWith('http') ? options.image : `${siteOrigin()}${options.image.startsWith('/') ? options.image : `/${options.image}`}`;
     const meta = getOrCreateMetaTag('name', 'twitter:image');
     meta.setAttribute('content', absoluteUrl);
   }

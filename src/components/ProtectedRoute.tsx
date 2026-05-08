@@ -23,6 +23,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       if (!isMounted) return
 
       if (!isSupabaseReady()) {
+        if (isMounted) {
+          setIsAuthorized(false)
+          setIsChecking(false)
+        }
         console.error('Supabase is not configured. Redirecting to maintenance.')
         navigate('/maintenance', {
           replace: true,
@@ -104,6 +108,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       // If session is lost or user is not admin, redirect immediately
       if (!session?.user?.email || !isAdminEmail(session.user.email)) {
         setIsAuthorized(false)
+        setIsChecking(false)
         navigate('/admin/login', { 
           replace: true,
           state: { error: 'Session expired. Please sign in again.', from: location.pathname }

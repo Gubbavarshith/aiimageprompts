@@ -5,6 +5,45 @@ import { invalidateCategoryCache } from './categories'
 
 const TABLE_NAME = 'prompts'
 const PROMPT_IMAGES_BUCKET = 'prompt-images'
+const SUPABASE_REQUEST_TIMEOUT_MS = 12000
+
+type SupabaseQueryResult<T> = {
+  data: T | null
+  error: { message: string } | null
+}
+
+function isAbortError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const maybeError = error as { name?: string; message?: string }
+  return maybeError.name === 'AbortError' || maybeError.message?.includes('aborted') === true
+}
+
+async function executeWithTimeout<T>(
+  operationName: string,
+  query: PromiseLike<SupabaseQueryResult<T>>,
+): Promise<SupabaseQueryResult<T>> {
+  let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined
+  const timeoutPromise = new Promise<SupabaseQueryResult<T>>((_, reject) => {
+    timeoutId = globalThis.setTimeout(() => {
+      reject(new Error(`${operationName} timed out. Please check your connection and try again.`))
+    }, SUPABASE_REQUEST_TIMEOUT_MS)
+  })
+
+  try {
+    return await Promise.race([Promise.resolve(query), timeoutPromise])
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw new Error(`${operationName} timed out. Please check your connection and try again.`)
+    }
+    throw error instanceof Error
+      ? error
+      : new Error(`${operationName} failed due to an unexpected error.`)
+  } finally {
+    if (timeoutId) {
+      globalThis.clearTimeout(timeoutId)
+    }
+  }
+}
 
 function extractStoragePathFromPublicUrl(url: string | null | undefined): string | null {
   if (!url) return null
@@ -48,14 +87,105 @@ export type SubmitPromptPayload = Omit<PromptPayload, 'status' | 'views'> & {
 
 export type PromptChangePayload = RealtimePostgresChangesPayload<PromptRecord>
 
+const PUBLISHED_BASE_FIELDS = [
+  'id',
+  'title',
+  'category',
+  'tags',
+  'preview_image_url',
+  'status',
+  'views',
+  'user_id',
+  'created_at',
+  'updated_at',
+  'rating_avg',
+  'rating_count',
+  'attribution',
+  'attribution_link',
+  'scheduled_at',
+  'image_ratio',
+] as const
+
+type PublishedBaseRow = Omit<PromptRecord, 'prompt' | 'negative_prompt'> & {
+  prompt?: never
+  negative_prompt?: never
+}
+
+async function fetchPublishedPromptsFallback(limit?: number): Promise<PromptRecord[]> {
+  let query = supabase
+    .from(TABLE_NAME)
+    .select(PUBLISHED_BASE_FIELDS.join(','))
+    .eq('status', 'Published')
+    .order('created_at', { ascending: false })
+
+  if (typeof limit === 'number' && Number.isFinite(limit)) {
+    query = query.limit(limit)
+  }
+
+  const { data: baseRows, error } = await executeWithTimeout<PublishedBaseRow[]>(
+    'Fetching published prompts fallback',
+    query as unknown as PromiseLike<SupabaseQueryResult<PublishedBaseRow[]>>,
+  )
+
+  if (error) {
+    throw new Error(`Failed to fetch prompts: ${error.message}`)
+  }
+
+  const publishedRows = (baseRows || []) as PublishedBaseRow[]
+  const promptIds = publishedRows.map((row) => row.id)
+
+  const promptMap = new Map<string, { prompt: string; negative_prompt: string | null }>()
+  if (promptIds.length > 0) {
+    const { data: freeRows, error: freeError } = await executeWithTimeout<
+      Array<{ id: string; prompt: string; negative_prompt: string | null }>
+    >(
+      'Fetching free prompt text fallback',
+      supabase.from(TABLE_NAME).select('id,prompt,negative_prompt').in('id', promptIds),
+    )
+    if (freeError) {
+      throw new Error(`Failed to fetch prompts: ${freeError.message}`)
+    }
+    for (const row of freeRows || []) {
+      promptMap.set(row.id, {
+        prompt: row.prompt,
+        negative_prompt: row.negative_prompt,
+      })
+    }
+  }
+
+  return publishedRows.map((row) => {
+    const fullPrompt = promptMap.get(row.id)
+    return {
+      ...row,
+      prompt: fullPrompt?.prompt ?? 'Prompt preview unavailable right now.',
+      negative_prompt: fullPrompt?.negative_prompt ?? null,
+    } as PromptRecord
+  })
+}
+
+async function fetchPromptBySlugFallback(slug: string): Promise<PromptRecord | null> {
+  const rows = await fetchPublishedPromptsFallback()
+  const directMatch = rows.find((row) => generateSlug(row.title) === slug)
+  if (directMatch) return directMatch
+
+  const slugParts = slug.split('-')
+  if (slugParts.length <= 1) return null
+  const possibleId = slugParts[slugParts.length - 1]
+  const baseSlug = slugParts.slice(0, -1).join('-')
+  return rows.find((row) => generateSlug(row.title) === baseSlug && row.id === possibleId) ?? null
+}
+
 export async function fetchPrompts() {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
   
   try {
-    const { data, error } = await supabase
-      .from(TABLE_NAME)
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data, error } = await executeWithTimeout<PromptRecord[]>(
+      'Fetching prompts',
+      supabase
+        .from(TABLE_NAME)
+        .select('*')
+        .order('created_at', { ascending: false }),
+    )
 
     if (error) {
       console.error('Error fetching prompts:', error)
@@ -81,18 +211,19 @@ export async function fetchPrompts() {
 /** Published prompts for the landing strip: newest first (not view-based). */
 export async function fetchFeaturedPrompts(limit = 10) {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select('*')
-    .eq('status', 'Published')
-    .order('created_at', { ascending: false })
-    .limit(limit)
-
+  const { data, error } = await executeWithTimeout<PromptRecord[]>(
+    'Fetching featured prompts',
+    supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .eq('status', 'Published')
+      .order('created_at', { ascending: false })
+      .limit(limit),
+  )
   if (error) {
     console.error('Error fetching featured prompts:', error)
     throw new Error(`Failed to fetch featured prompts: ${error.message}`)
   }
-
   return (data || []) as PromptRecord[]
 }
 
@@ -111,6 +242,10 @@ export async function fetchPromptsByStatus(status: 'Published' | 'Pending' | 'Dr
   }
   
   try {
+    if (status === 'Published') {
+      return fetchPublishedPromptsFallback()
+    }
+
     let query = supabase
       .from(TABLE_NAME)
       .select('*')
@@ -120,7 +255,10 @@ export async function fetchPromptsByStatus(status: 'Published' | 'Pending' | 'Dr
       query = query.eq('status', status)
     }
 
-    const { data, error } = await query
+    const { data, error } = await executeWithTimeout<PromptRecord[]>(
+      'Fetching prompts by status',
+      query,
+    )
 
     if (error) {
       console.error('Error fetching prompts by status:', error)
@@ -148,11 +286,14 @@ export async function fetchPromptsByStatus(status: 'Published' | 'Pending' | 'Dr
  */
 export async function fetchPromptsForReview() {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select('*')
-    .neq('status', 'Published')
-    .order('created_at', { ascending: false })
+  const { data, error } = await executeWithTimeout<PromptRecord[]>(
+    'Fetching prompts for review',
+    supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .neq('status', 'Published')
+      .order('created_at', { ascending: false }),
+  )
 
   if (error) {
     console.error('Error fetching prompts for review:', error)
@@ -164,11 +305,14 @@ export async function fetchPromptsForReview() {
 
 export async function createPrompt(payload: PromptPayload) {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .insert([payload])
-    .select('*')
-    .single()
+  const { data, error } = await executeWithTimeout<PromptRecord>(
+    'Creating prompt',
+    supabase
+      .from(TABLE_NAME)
+      .insert([payload])
+      .select('*')
+      .single(),
+  )
 
   if (error) {
     console.error('Error creating prompt:', error)
@@ -189,12 +333,15 @@ export async function createPrompt(payload: PromptPayload) {
 
 export async function updatePrompt(id: string, payload: PromptPayload) {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .update(payload)
-    .eq('id', id)
-    .select('*')
-    .single()
+  const { data, error } = await executeWithTimeout<PromptRecord>(
+    'Updating prompt',
+    supabase
+      .from(TABLE_NAME)
+      .update(payload)
+      .eq('id', id)
+      .select('*')
+      .single(),
+  )
 
   if (error) {
     console.error('Error updating prompt:', error)
@@ -440,47 +587,7 @@ export function generateSlug(title: string): string {
  */
 export async function fetchPromptBySlug(slug: string): Promise<PromptRecord | null> {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
-  
-  // Fetch all published prompts
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select('*')
-    .eq('status', 'Published')
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('Error fetching prompts for slug lookup:', error)
-    throw new Error(`Failed to fetch prompt: ${error.message}`)
-  }
-
-  if (!data || data.length === 0) {
-    return null
-  }
-
-  // Generate slugs and find matching prompt
-  for (const prompt of data) {
-    const promptSlug = generateSlug(prompt.title)
-    if (promptSlug === slug) {
-      return prompt as PromptRecord
-    }
-  }
-
-  // If no exact match, try matching with ID appended (for uniqueness handling)
-  // Format: slug-id
-  const slugParts = slug.split('-')
-  if (slugParts.length > 1) {
-    const possibleId = slugParts[slugParts.length - 1]
-    const baseSlug = slugParts.slice(0, -1).join('-')
-    
-    for (const prompt of data) {
-      const promptSlug = generateSlug(prompt.title)
-      if (promptSlug === baseSlug && prompt.id === possibleId) {
-        return prompt as PromptRecord
-      }
-    }
-  }
-
-  return null
+  return fetchPromptBySlugFallback(slug)
 }
 
 /**
@@ -496,15 +603,18 @@ export async function fetchRelatedPrompts(
 ): Promise<PromptRecord[]> {
   if (!isSupabaseReady()) throw new Error('Supabase not configured')
   
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select('*')
-    .eq('status', 'Published')
-    .eq('category', category)
-    .neq('id', excludeId)
-    .order('views', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(limit)
+  const { data, error } = await executeWithTimeout<PromptRecord[]>(
+    'Fetching related prompts',
+    supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .eq('status', 'Published')
+      .eq('category', category)
+      .neq('id', excludeId)
+      .order('views', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limit),
+  )
 
   if (error) {
     console.error('Error fetching related prompts:', error)

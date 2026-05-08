@@ -17,7 +17,28 @@ import { fetchUniqueCategories } from '@/lib/services/categories'
 
 const STATUS_OPTIONS = ['Published', 'Draft', 'Review']
 
-const EMPTY_FORM_STATE = {
+type PromptFormState = {
+    title: string
+    prompt: string
+    negative_prompt: string
+    category: string
+    tags: string
+    preview_image_url: string
+    status: string
+    views: string
+    attribution: string
+    attribution_link: string
+    scheduled_at: string
+    image_ratio: string
+}
+
+type ErrorWithMessage = {
+    message?: string
+    error?: string
+    status?: number
+}
+
+const EMPTY_FORM_STATE: PromptFormState = {
     title: '',
     prompt: '',
     negative_prompt: '',
@@ -31,8 +52,6 @@ const EMPTY_FORM_STATE = {
     scheduled_at: '',
     image_ratio: '4:3',
 }
-
-type PromptFormState = typeof EMPTY_FORM_STATE
 
 interface PromptFormModalProps {
     isOpen: boolean
@@ -188,14 +207,15 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                 handleFormInputChange('preview_image_url', urlData.publicUrl)
                 handleFormInputChange('image_ratio', detectedRatio)
                 toast.success('Image uploaded successfully')
-            } catch (err: any) {
-                const errorMessage = err?.message || err?.error || 'Unknown error'
+            } catch (err: unknown) {
+                const typedError = (typeof err === 'object' && err !== null ? err : {}) as ErrorWithMessage
+                const errorMessage = typedError.message || typedError.error || 'Unknown error'
                 const isNetworkError =
                     errorMessage.includes('network') ||
                     errorMessage.includes('timeout') ||
                     errorMessage.includes('fetch') ||
                     errorMessage.includes('Failed to fetch') ||
-                    (err?.status >= 500 && err?.status < 600)
+                    (typeof typedError.status === 'number' && typedError.status >= 500 && typedError.status < 600)
 
                 if (isNetworkError && retries > 0) {
                     const delay = (3 - retries) * 1000
@@ -208,9 +228,10 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
 
         try {
             await uploadWithRetry()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error uploading image:', error)
-            const errorMessage = error?.message || error?.error || 'Unknown error'
+            const typedError = (typeof error === 'object' && error !== null ? error : {}) as ErrorWithMessage
+            const errorMessage = typedError.message || typedError.error || 'Unknown error'
             
             // Provide more specific error messages
             if (errorMessage.includes('duplicate') || errorMessage.includes('already exists')) {
@@ -272,8 +293,6 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
             setFormError('Title, prompt, category, and image ratio are required.')
             return
         }
-
-
         // Canonicalize tags: lowercase, trim, remove duplicates
         const tagsArray = formValues.tags
             .split(',')
@@ -294,7 +313,7 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                     return
                 }
                 scheduledAt = localDate.toISOString()
-            } catch (err) {
+            } catch {
                 setFormError('Invalid scheduled date/time. Please check the format.')
                 setIsSaving(false)
                 return

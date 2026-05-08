@@ -11,6 +11,13 @@ export type BulkUploadResult = {
   error?: string
 }
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  return 'Unknown error'
+}
+
 /**
  * Create multiple prompts in bulk
  * @param prompts - Array of PromptPayload objects
@@ -83,12 +90,12 @@ export async function bulkCreatePrompts(prompts: PromptPayload[]): Promise<BulkU
             index: globalIndex,
             title: prompt.title,
           } as BulkUploadResult
-        } catch (err: any) {
+        } catch (err: unknown) {
           return {
             success: false,
             index: globalIndex,
             title: prompt.title,
-            error: err?.message || 'Unknown error',
+            error: getErrorMessage(err),
           } as BulkUploadResult
         }
       })

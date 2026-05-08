@@ -17,8 +17,23 @@ export type ReusableBlock = {
   updatedAt: string
 }
 
+type ReusableBlockRow = {
+  id: string
+  name: string
+  content: string
+  block_type: string | null
+  created_at: string
+  updated_at: string
+}
+
+type ReusableBlockWriteRow = {
+  name?: string
+  content?: string
+  block_type?: string
+}
+
 // Helper function to map database row to ReusableBlock type
-const mapRowToReusableBlock = (row: any): ReusableBlock => ({
+const mapRowToReusableBlock = (row: ReusableBlockRow): ReusableBlock => ({
   id: row.id,
   name: row.name,
   content: row.content,
@@ -28,7 +43,7 @@ const mapRowToReusableBlock = (row: any): ReusableBlock => ({
 })
 
 // Helper function to map ReusableBlock to database row
-const mapReusableBlockToRow = (block: Partial<ReusableBlock>): any => ({
+const mapReusableBlockToRow = (block: Partial<ReusableBlock>): ReusableBlockWriteRow => ({
   name: block.name,
   content: block.content,
   block_type: block.blockType || 'html',
@@ -158,7 +173,7 @@ export async function updateReusableBlock(payload: UpdateReusableBlockPayload): 
       }
     }
 
-    const updateData: any = {}
+    const updateData: ReusableBlockWriteRow = {}
     if (payload.name !== undefined) updateData.name = payload.name
     if (payload.content !== undefined) updateData.content = payload.content
     if (payload.blockType !== undefined) updateData.block_type = payload.blockType

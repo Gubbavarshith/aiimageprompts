@@ -57,7 +57,7 @@ export default function AdminLoginPage() {
     }
 
     checkSession()
-  }, [navigate, from])
+  }, [navigate, from, supabaseReady])
 
   /* New Features Implementation */
   const toast = useToast()

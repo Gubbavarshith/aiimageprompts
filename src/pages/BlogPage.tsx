@@ -134,8 +134,8 @@ const BlogPage = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('All')
 
     useEffect(() => {
-        const title = 'AI Image Prompts Blog | Better Prompts, Better Art'
-        const description = 'Read weekly updates, guides, and prompt engineering insights for AI image generation. Learn better prompting for Midjourney, DALL-E, and Stable Diffusion.'
+        const title = 'AI Image Prompts Blog | Photo Prompts, Guides & Ideas'
+        const description = 'Read AI image prompt guides, AI photo prompts, Midjourney prompt ideas, and practical text-to-image techniques for better generated art.'
         updateMetaTags({
             title,
             description,

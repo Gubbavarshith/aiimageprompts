@@ -88,7 +88,7 @@ export const SEOContentSection = () => {
             WHAT ARE <span className="text-[#FFDE1A]">AI IMAGE PROMPTS?</span>
           </h2>
           <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-            AI Image Prompts are carefully crafted text instructions that guide artificial intelligence image generators to produce specific visual outputs. These prompts serve as the bridge between your creative vision and the AI's interpretation.
+            AI image prompts are carefully crafted text instructions that guide artificial intelligence image generators to produce specific visual outputs, from realistic AI photo prompts to stylized art directions.
           </p>
         </div>
 
@@ -114,7 +114,7 @@ export const SEOContentSection = () => {
             delay={0.1}
           >
             <p>
-              This AI Image Prompts library serves creators across industries and skill levels. Visual designers use our prompts to rapidly prototype concepts and explore visual directions.
+              This AI Image Prompts library serves creators across industries and skill levels. Visual designers use our image prompts to rapidly prototype concepts and explore visual directions.
             </p>
             <p>
               Marketing teams leverage them for campaign imagery. Independent artists and freelancers rely on our collection to expand their creative capabilities without extensive prompt engineering knowledge.
@@ -130,7 +130,7 @@ export const SEOContentSection = () => {
               Our mission is to democratize access to high-quality AI Image Prompts, making professional-grade prompt engineering available to everyone.
             </p>
             <p>
-              Whether you're a seasoned AI artist looking for inspiration or a newcomer exploring AI image generation, our free library provides the foundation you need designed to work across major AI image generation platforms.
+              Whether you're a seasoned AI artist looking for inspiration or a newcomer exploring AI image generation, our free library provides AI photo prompts, Midjourney prompt ideas, and reusable directions designed to work across major AI image generation platforms.
             </p>
           </SEOInfoCard>
 

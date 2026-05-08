@@ -31,7 +31,7 @@ interface CacheEntry<T> {
   ttl: number // Time to live in milliseconds
 }
 
-const cache = new Map<string, CacheEntry<any>>()
+const cache = new Map<string, CacheEntry<unknown>>()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 /**

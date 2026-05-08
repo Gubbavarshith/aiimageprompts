@@ -9,7 +9,8 @@ import { Footer } from '../components/landing/Footer'
 import { formatDate, getPublishedBlogPostBySlug } from '../lib/services/blogs'
 import { useToast } from '../contexts/ToastContext'
 import { cn } from '../lib/utils'
-import { updateMetaTags } from '../lib/seo'
+import { getPublicSiteOrigin } from '@/config/site'
+import { updateMetaTags, upsertJsonLd, removeJsonLd } from '@/lib/seo'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -163,11 +164,10 @@ export default function BlogPostPage() {
 
   useEffect(() => {
     const scriptId = 'blog-article-jsonld'
-    const existing = document.getElementById(scriptId)
-    if (existing) existing.remove()
-
     if (!post) return
 
+    const origin = getPublicSiteOrigin()
+    const canonical = `${origin}/blog/${post.slug}`
     const jsonLd = {
       '@context': 'https://schema.org',
       '@type': 'Article',
@@ -182,17 +182,25 @@ export default function BlogPostPage() {
       keywords: post.tags?.join(', '),
       image: post.imageUrl ? [post.imageUrl] : undefined,
       description: post.metaDescription || post.excerpt,
-      mainEntityOfPage: `https://aiimageprompts.xyz/blog/${post.slug}`,
+      mainEntityOfPage: canonical,
     }
 
-    const script = document.createElement('script')
-    script.id = scriptId
-    script.type = 'application/ld+json'
-    script.text = JSON.stringify(jsonLd)
-    document.head.appendChild(script)
+    upsertJsonLd(scriptId, jsonLd)
+
+    const crumbs = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${origin}/` },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: `${origin}/blog` },
+        { '@type': 'ListItem', position: 3, name: post.title, item: canonical },
+      ],
+    }
+    upsertJsonLd('blog-breadcrumb-jsonld', crumbs)
 
     return () => {
-      script.remove()
+      removeJsonLd(scriptId)
+      removeJsonLd('blog-breadcrumb-jsonld')
     }
   }, [post])
 

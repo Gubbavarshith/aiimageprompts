@@ -67,7 +67,8 @@ export const clearMockSession = () => {
 }
 
 /** @deprecated Use Supabase Auth instead */
-export const checkMockCredentials = (email: string, _password: string) => {
+export const checkMockCredentials = (email: string, password: string) => {
+  void password
   // In a real app, we'd check the password.
   // For this mock "pure frontend" mode, we just check if the email is valid format.
   // We allow any password.

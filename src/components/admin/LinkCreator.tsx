@@ -112,7 +112,7 @@ export default function LinkCreator({ editingLink, onSuccess, onCancel }: LinkCr
       setCustomSlug(slug)
       setGeneratedSlug(slug)
       setSlugStatus('available')
-    } catch (err) {
+    } catch {
       setError('Failed to generate slug')
     }
   }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TrashIcon, XMarkIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import { getTagStats, type TagWithCount } from '@/lib/services/categories'
@@ -63,7 +63,7 @@ export default function TagsPage() {
     setShowMergeModal(true)
   }
 
-  const handleMergePreview = async () => {
+  const handleMergePreview = useCallback(async () => {
     if (!sourceTag || !targetTag || sourceTag.toLowerCase() === targetTag.toLowerCase()) {
       return
     }
@@ -75,7 +75,7 @@ export default function TagsPage() {
     } catch (err) {
       console.error(err)
     }
-  }
+  }, [sourceTag, targetTag, tags])
 
   useEffect(() => {
     if (sourceTag && targetTag && sourceTag.toLowerCase() !== targetTag.toLowerCase()) {
@@ -83,7 +83,7 @@ export default function TagsPage() {
     } else {
       setMergePreview(null)
     }
-  }, [sourceTag, targetTag])
+  }, [sourceTag, targetTag, handleMergePreview])
 
   const handleMergeConfirm = async () => {
     if (!sourceTag || !targetTag || sourceTag.toLowerCase() === targetTag.toLowerCase()) {

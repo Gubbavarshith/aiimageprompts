@@ -116,13 +116,13 @@ function injectHtmlShell(indexHtml, payload) {
     `<meta property="og:title" content="${escapeHtml(payload.title)}">`,
     `<meta property="og:description" content="${escapeHtml(payload.description)}">`,
     `<meta property="og:url" content="${escapeHtml(payload.canonical)}">`,
-    `<meta property="og:image" content="${escapeHtml(payload.image || 'https://aiimageprompts.xyz/og-image.png')}">`,
+    `<meta property="og:image" content="${escapeHtml(payload.image || 'https://www.aiimageprompts.xyz/og-image.png')}">`,
   ].join('')
   const twitterTags = [
     '<meta name="twitter:card" content="summary_large_image">',
     `<meta name="twitter:title" content="${escapeHtml(payload.title)}">`,
     `<meta name="twitter:description" content="${escapeHtml(payload.description)}">`,
-    `<meta name="twitter:image" content="${escapeHtml(payload.image || 'https://aiimageprompts.xyz/og-image.png')}">`,
+    `<meta name="twitter:image" content="${escapeHtml(payload.image || 'https://www.aiimageprompts.xyz/og-image.png')}">`,
   ].join('')
   const jsonLdTag = payload.jsonLd
     ? `<script type="application/ld+json">${JSON.stringify(payload.jsonLd)}</script>`
@@ -189,9 +189,9 @@ async function main() {
   await mkdir(join(distDir, 'blog'), { recursive: true })
 
   const blogListHtml = injectHtmlShell(indexHtml, {
-    title: 'Blog | Better Prompts, Better Art',
-    description: 'Insights, techniques, and weekly updates from AI Image Prompts.',
-    canonical: 'https://aiimageprompts.xyz/blog',
+    title: 'AI Image Prompts Blog | Photo Prompts, Guides & Ideas',
+    description: 'Read AI image prompt guides, AI photo prompts, Midjourney prompt ideas, and practical text-to-image techniques for better generated art.',
+    canonical: 'https://www.aiimageprompts.xyz/blog',
     ogType: 'website',
     body: renderBlogList(posts),
   })
@@ -203,7 +203,7 @@ async function main() {
 
     const seoTitle = post.metaTitle || `${post.title} | Better Prompts, Better Art`
     const seoDescription = post.metaDescription || post.excerpt || stripHtml(post.content).slice(0, 160)
-    const canonical = `https://aiimageprompts.xyz/blog/${post.slug}`
+    const canonical = `https://www.aiimageprompts.xyz/blog/${post.slug}`
 
     const html = injectHtmlShell(indexHtml, {
       title: seoTitle,

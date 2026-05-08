@@ -3,15 +3,16 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Loader2, AlertCircle, Copy, Check, Share2, Bookmark, Heart, ExternalLink, X } from 'lucide-react'
 import { useAuth, useUser } from '@clerk/clerk-react'
+import { getPublicSiteOrigin } from '@/config/site'
 import { FloatingNavbar } from '../components/landing/FloatingNavbar'
 import { Footer } from '../components/landing/Footer'
+import { useToast } from '../contexts/ToastContext'
 import { fetchPromptBySlug, generateSlug, type PromptRecord } from '../lib/services/prompts'
 import { fetchRelatedPromptsWithFallback } from '../lib/services/relatedPrompts'
 import { logDiscoveryEvent } from '../lib/services/discoveryEvents'
-import { useToast } from '../contexts/ToastContext'
 import { savePrompt, unsavePrompt, getSavedPromptIds } from '../lib/services/savedPrompts'
 import { getRatingSettings, upsertPromptRating, removePromptRating, getUserRatings } from '../lib/services/ratings'
-import { updateMetaTags } from '../lib/seo'
+import { updateMetaTags, upsertJsonLd, removeJsonLd } from '../lib/seo'
 import { getAspectRatioClass } from '../lib/utils'
 
 // Social Media Icon Components (from ExplorePage)
@@ -164,6 +165,45 @@ export default function PromptPage() {
     loadPrompt()
   }, [slug, toast])
 
+  useEffect(() => {
+    if (!prompt) {
+      removeJsonLd('prompt-breadcrumb-jsonld')
+      removeJsonLd('prompt-article-jsonld')
+      return
+    }
+    const origin = getPublicSiteOrigin()
+    const promptSlug = generateSlug(prompt.title)
+    const pageUrl = `${origin}/prompt/${promptSlug}`
+    const exploreCat = new URLSearchParams({ category: prompt.category }).toString()
+    const categoryItem = `${origin}/explore?${exploreCat}`
+
+    upsertJsonLd('prompt-article-jsonld', {
+      '@context': 'https://schema.org',
+      '@type': 'CreativeWork',
+      name: prompt.title,
+      description: prompt.prompt.slice(0, 500),
+      image: prompt.preview_image_url ? [prompt.preview_image_url] : undefined,
+      dateModified: prompt.updated_at,
+      url: pageUrl,
+    })
+
+    upsertJsonLd('prompt-breadcrumb-jsonld', {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${origin}/` },
+        { '@type': 'ListItem', position: 2, name: 'Explore', item: `${origin}/explore` },
+        { '@type': 'ListItem', position: 3, name: prompt.category, item: categoryItem },
+        { '@type': 'ListItem', position: 4, name: prompt.title, item: pageUrl },
+      ],
+    })
+
+    return () => {
+      removeJsonLd('prompt-breadcrumb-jsonld')
+      removeJsonLd('prompt-article-jsonld')
+    }
+  }, [prompt])
+
   // Load saved prompts status
   useEffect(() => {
     const loadSavedStatus = async () => {
@@ -238,7 +278,7 @@ export default function PromptPage() {
       setHasCopied(true)
       toast.success('Prompt copied to clipboard.')
       setTimeout(() => setHasCopied(false), 2000)
-    } catch (err) {
+    } catch {
       toast.error('Could not copy the prompt. Please try again.')
     }
   }
@@ -275,6 +315,7 @@ export default function PromptPage() {
       setIsTogglingSave(false)
     }
   }
+
 
   const handleUnsaveConfirm = async () => {
     if (!prompt || !user?.id) return
@@ -346,7 +387,7 @@ export default function PromptPage() {
     try {
       await navigator.clipboard.writeText(shareUrl)
       toast.success('Share link copied to clipboard.')
-    } catch (err) {
+    } catch {
       toast.error('Could not copy the link. Please try again.')
     }
   }

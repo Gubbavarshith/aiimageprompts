@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Copy, ExternalLink, Check } from 'lucide-react';
+import { useToast } from '@/contexts/ToastContext';
 import { fetchFeaturedPrompts, type PromptRecord } from '@/lib/services/prompts';
 import { getAspectRatioClass } from '@/lib/utils';
 
@@ -105,6 +106,7 @@ const PromptCard = ({ prompt, index, onCopy, copiedId }: PromptCardProps) => {
 
 export const FeaturedPrompts = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [prompts, setPrompts] = useState<PromptRecord[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -129,8 +131,10 @@ export const FeaturedPrompts = () => {
       await navigator.clipboard.writeText(prompt.prompt);
       setCopiedId(prompt.id);
       setTimeout(() => setCopiedId(null), 2000);
+      toast.success('Prompt copied to clipboard.');
     } catch (err) {
       console.error('Failed to copy:', err);
+      toast.error('Could not copy the prompt. Please try again.');
     }
   };
 

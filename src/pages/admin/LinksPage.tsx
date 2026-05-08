@@ -26,6 +26,7 @@ export default function LinksPage() {
   }, [])
 
   const handleCreateSuccess = useCallback((_link: TrackedLink) => {
+    void _link
     toast.success(editingLink ? 'Link updated successfully!' : 'Link created successfully!')
     setEditingLink(null)
     setActiveTab('all')

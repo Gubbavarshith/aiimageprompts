@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { HeroSection } from '../components/landing/HeroSection';
+import { getPublicSiteOrigin } from '@/config/site';
 import { updateMetaTags, upsertJsonLd, removeJsonLd } from '@/lib/seo';
 
 // Lazy load non-critical components (below the fold)
@@ -19,8 +20,8 @@ const BelowFoldPlaceholder = () => (
 
 const LandingPage = () => {
   useEffect(() => {
-    const title = 'Better Prompts, Better Art | AI Image Prompts';
-    const description = 'AI image prompts library with curated prompt packs for Midjourney, DALL-E, and Stable Diffusion. Explore free prompt ideas and create better AI art.';
+    const title = 'AI Image Prompts Library | Better Prompts, Better Art';
+    const description = 'Explore AI image prompts, AI photo prompts, and prompt ideas for Midjourney, DALL-E, and Stable Diffusion. Browse free prompts for better generated art.';
 
     updateMetaTags({
       title,
@@ -42,15 +43,16 @@ const LandingPage = () => {
       },
     });
 
+    const origin = getPublicSiteOrigin();
     const webSiteJsonLd = {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: 'AI Image Prompts',
-      url: 'https://aiimageprompts.xyz',
+      url: origin,
       inLanguage: 'en',
       potentialAction: {
         '@type': 'SearchAction',
-        target: 'https://aiimageprompts.xyz/explore?q={search_term_string}',
+        target: `${origin}/explore?q={search_term_string}`,
         'query-input': 'required name=search_term_string',
       },
     };
@@ -59,8 +61,8 @@ const LandingPage = () => {
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: 'AI Image Prompts',
-      url: 'https://aiimageprompts.xyz',
-      logo: 'https://aiimageprompts.xyz/favicon.svg',
+      url: origin,
+      logo: `${origin}/favicon.svg`,
     };
 
     upsertJsonLd('website-jsonld', webSiteJsonLd);

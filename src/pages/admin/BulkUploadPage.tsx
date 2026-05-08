@@ -18,9 +18,50 @@ import { useToast } from '@/contexts/ToastContext'
 import type { PromptPayload } from '@/lib/services/prompts'
 import { supabase, isSupabaseReady } from '@/lib/supabaseClient'
 
+type BulkPromptInput = Record<string, unknown>
+
+type JsonValue = string | number | boolean | null | { [key: string]: JsonValue } | JsonValue[]
+
+function toJsonValue(value: unknown): JsonValue {
+  if (value === null || value === undefined) return null
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+
+  if (Array.isArray(value)) {
+    return value.map(toJsonValue)
+  }
+
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>
+    const out: Record<string, JsonValue> = {}
+    for (const [k, v] of Object.entries(obj)) {
+      out[k] = toJsonValue(v)
+    }
+    return out
+  }
+
+  // Functions, symbols, bigint, etc.
+  return null
+}
+
+type BulkEditFormData = BulkPromptInput & {
+  title?: string
+  prompt?: string
+  negative_prompt?: string | null
+  category?: string
+  tags?: unknown
+  preview_image_url?: string | null
+  preview_image?: string | null
+  image_ratio?: string
+  status?: string
+  views?: number
+  user_id?: null
+  attribution?: string | null
+  attribution_link?: string | null
+}
+
 type BulkPromptData = {
   id: string // Temporary ID for tracking
-  data: any // Raw data from JSON/CSV
+  data: BulkEditFormData // Raw data from JSON/CSV
   normalized: PromptPayload | null // Normalized data ready for database
   validationErrors: string[]
   imageRatio: string
@@ -47,6 +88,20 @@ export default function BulkUploadPage() {
   const hasRestoredRef = useRef(false)
   const toast = useToast()
 
+  const jsonValueToBulkEditFormData = (value: JsonValue): BulkEditFormData => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return value as unknown as BulkEditFormData
+    }
+    return {} as BulkEditFormData
+  }
+
+  const jsonValueToPromptPayloadOrNull = (value: JsonValue | null): PromptPayload | null => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+    const rec = value as Record<string, JsonValue>
+    if (typeof rec.title !== 'string' || typeof rec.prompt !== 'string' || typeof rec.category !== 'string') return null
+    return value as unknown as PromptPayload
+  }
+
   // Load categories and drafts on mount (only once)
   useEffect(() => {
     // Prevent multiple loads
@@ -63,8 +118,8 @@ export default function BulkUploadPage() {
         if (drafts.length > 0) {
           const restoredData: BulkPromptData[] = drafts.map((draft, index) => ({
             id: draft.id || `temp-${Date.now()}-${index}`,
-            data: draft.data,
-            normalized: draft.normalized,
+            data: jsonValueToBulkEditFormData(draft.data),
+            normalized: jsonValueToPromptPayloadOrNull(draft.normalized),
             validationErrors: draft.validation_errors || [],
             imageRatio: draft.image_ratio || '4:3',
             isDetectingRatio: draft.is_detecting_ratio || false,
@@ -95,11 +150,11 @@ export default function BulkUploadPage() {
         try {
           await saveBulkUploadDrafts(
             uploadedData.map(row => ({
-              data: row.data,
-              normalized: row.normalized,
-              validationErrors: row.validationErrors,
-              imageRatio: row.imageRatio,
-              isDetectingRatio: row.isDetectingRatio,
+              data: toJsonValue(row.data),
+              normalized: row.normalized ? toJsonValue(row.normalized) : null,
+              validation_errors: row.validationErrors,
+              image_ratio: row.imageRatio,
+              is_detecting_ratio: row.isDetectingRatio,
             }))
           )
         } catch (err) {
@@ -141,22 +196,24 @@ export default function BulkUploadPage() {
 
     try {
       const text = await file.text()
-      let parsedData: any[] = []
+      let parsedData: BulkEditFormData[] = []
 
       if (fileExtension === '.json' || file.type === 'application/json') {
         try {
-          parsedData = JSON.parse(text)
-          if (!Array.isArray(parsedData)) {
+          const parsed = JSON.parse(text) as unknown
+          if (!Array.isArray(parsed)) {
             throw new Error('JSON must be an array of objects')
           }
-        } catch (err: any) {
-          toast.error(`Invalid JSON format: ${err.message}`)
+          parsedData = parsed as BulkEditFormData[]
+        } catch (err: unknown) {
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+          toast.error(`Invalid JSON format: ${errorMessage}`)
           setIsUploading(false)
           return
         }
       } else {
         // CSV
-        parsedData = parseCSV(text)
+        parsedData = parseCSV(text) as BulkEditFormData[]
         if (parsedData.length === 0) {
           toast.error('CSV file is empty or invalid')
           setIsUploading(false)
@@ -208,9 +265,10 @@ export default function BulkUploadPage() {
 
       setUploadedData(processedData)
       toast.success(`Loaded ${processedData.length} prompt(s)`)
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       console.error('Error processing file:', err)
-      toast.error(`Failed to process file: ${err.message}`)
+      toast.error(`Failed to process file: ${errorMessage}`)
     } finally {
       setIsUploading(false)
     }
@@ -260,7 +318,7 @@ export default function BulkUploadPage() {
     setEditingRow(rowId)
   }
 
-  const handleUpdateRow = (rowId: string, updatedData: any) => {
+  const handleUpdateRow = (rowId: string, updatedData: BulkEditFormData) => {
     setUploadedData(prev => prev.map(row => {
       if (row.id === rowId) {
         // Re-validate and normalize updated data - set status to 'Published'
@@ -301,9 +359,10 @@ export default function BulkUploadPage() {
       setPublishResults(null)
       setShowClearConfirm(false)
       toast.success('All data cleared successfully')
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       console.error('Error clearing data:', err)
-      toast.error(`Failed to clear data: ${err.message}`)
+      toast.error(`Failed to clear data: ${errorMessage}`)
     }
   }
 
@@ -345,12 +404,12 @@ export default function BulkUploadPage() {
         try {
           await saveBulkUploadDrafts(
             updatedData.map(r => ({
-              data: r.data,
-              normalized: r.normalized,
-              validationErrors: r.validationErrors,
-              imageRatio: r.imageRatio,
-              isDetectingRatio: r.isDetectingRatio,
-            }))
+              data: toJsonValue(r.data),
+              normalized: r.normalized ? toJsonValue(r.normalized) : null,
+              validation_errors: r.validationErrors,
+              image_ratio: r.imageRatio,
+              is_detecting_ratio: r.isDetectingRatio,
+            })),
           )
         } catch (err) {
           console.warn('Failed to update drafts after publishing:', err)
@@ -366,9 +425,10 @@ export default function BulkUploadPage() {
       } else {
         toast.error(`Failed to publish: ${result.error || 'Unknown error'}`)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       console.error('Error publishing prompt:', err)
-      toast.error(`Failed to publish prompt: ${err.message}`)
+      toast.error(`Failed to publish prompt: ${errorMessage}`)
     } finally {
       setIsPublishingSingle(false)
     }
@@ -403,11 +463,11 @@ export default function BulkUploadPage() {
       try {
         await saveBulkUploadDrafts(
           updatedData.map(r => ({
-            data: r.data,
-            normalized: r.normalized,
-            validationErrors: r.validationErrors,
-            imageRatio: r.imageRatio,
-            isDetectingRatio: r.isDetectingRatio,
+            data: toJsonValue(r.data),
+            normalized: r.normalized ? toJsonValue(r.normalized) : null,
+            validation_errors: r.validationErrors,
+            image_ratio: r.imageRatio,
+            is_detecting_ratio: r.isDetectingRatio,
           }))
         )
       } catch (err) {
@@ -415,9 +475,10 @@ export default function BulkUploadPage() {
       }
 
       toast.success(`Deleted "${row.data.title || 'prompt'}"`)
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       console.error('Error deleting prompt:', err)
-      toast.error(`Failed to delete prompt: ${err.message}`)
+      toast.error(`Failed to delete prompt: ${errorMessage}`)
     } finally {
       setIsDeletingSingle(false)
     }
@@ -458,11 +519,11 @@ export default function BulkUploadPage() {
         try {
           await saveBulkUploadDrafts(
             updatedData.map(r => ({
-              data: r.data,
-              normalized: r.normalized,
-              validationErrors: r.validationErrors,
-              imageRatio: r.imageRatio,
-              isDetectingRatio: r.isDetectingRatio,
+              data: toJsonValue(r.data),
+              normalized: r.normalized ? toJsonValue(r.normalized) : null,
+              validation_errors: r.validationErrors,
+              image_ratio: r.imageRatio,
+              is_detecting_ratio: r.isDetectingRatio,
             }))
           )
         } catch (err) {
@@ -479,9 +540,10 @@ export default function BulkUploadPage() {
       } else {
         toast.error(`Failed to send to review: ${result.error || 'Unknown error'}`)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       console.error('Error sending to review:', err)
-      toast.error(`Failed to send to review: ${err.message}`)
+      toast.error(`Failed to send to review: ${errorMessage}`)
     } finally {
       setIsReviewingSingle(false)
     }
@@ -555,11 +617,11 @@ export default function BulkUploadPage() {
         try {
           await saveBulkUploadDrafts(
             updatedData.map(row => ({
-              data: row.data,
-              normalized: row.normalized,
-              validationErrors: row.validationErrors,
-              imageRatio: row.imageRatio,
-              isDetectingRatio: row.isDetectingRatio,
+              data: toJsonValue(row.data),
+              normalized: row.normalized ? toJsonValue(row.normalized) : null,
+              validation_errors: row.validationErrors,
+              image_ratio: row.imageRatio,
+              is_detecting_ratio: row.isDetectingRatio,
             }))
           )
         } catch (err) {
@@ -576,9 +638,10 @@ export default function BulkUploadPage() {
           console.warn('Failed to refresh categories:', err)
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       console.error('Error publishing prompts:', err)
-      toast.error(`Failed to publish prompts: ${err.message}`)
+      toast.error(`Failed to publish prompts: ${errorMessage}`)
     } finally {
       setIsPublishing(false)
     }
@@ -757,34 +820,38 @@ export default function BulkUploadPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-medium text-zinc-900 dark:text-white">
-                            {row.data.title || <span className="text-zinc-400 italic">No title</span>}
+                            {typeof row.data.title === 'string' && row.data.title.trim()
+                              ? row.data.title
+                              : <span className="text-zinc-400 italic">No title</span>}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
-                          {row.data.category || '-'}
+                          {typeof row.data.category === 'string' && row.data.category.trim() ? row.data.category : '-'}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
                             {row.data.tags && Array.isArray(row.data.tags) && row.data.tags.length > 0 ? (
-                              row.data.tags.slice(0, 3).map((tag: string, idx: number) => (
+                              row.data.tags.slice(0, 3).map((tag, idx: number) => (
                                 <span
                                   key={idx}
                                   className="px-2 py-0.5 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded"
                                 >
-                                  {tag}
+                                  {String(tag)}
                                 </span>
                               ))
                             ) : (
                               <span className="text-zinc-400 text-xs">-</span>
                             )}
-                            {row.data.tags && Array.isArray(row.data.tags) && row.data.tags.length > 3 && (
-                              <span className="text-zinc-400 text-xs">+{row.data.tags.length - 3}</span>
-                            )}
+                            {Array.isArray(row.data.tags) && row.data.tags.length > 3
+                              ? <span className="text-zinc-400 text-xs">+{row.data.tags.length - 3}</span>
+                              : null}
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <span className="px-2 py-1 text-xs font-medium rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                            {row.data.status === 'draft' ? 'Draft' : (row.data.status || 'Draft')}
+                            {row.data.status === 'draft'
+                              ? 'Draft'
+                              : (typeof row.data.status === 'string' && row.data.status ? row.data.status : 'Draft')}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -1130,11 +1197,11 @@ interface BulkEditModalProps {
   onClose: () => void
   rowData: BulkPromptData | undefined
   validCategories: string[]
-  onSave: (data: any) => void
+  onSave: (data: BulkEditFormData) => void
 }
 
 function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: BulkEditModalProps) {
-  const [formData, setFormData] = useState<any>(null)
+  const [formData, setFormData] = useState<BulkEditFormData | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [isDraggingImage, setIsDraggingImage] = useState(false)
@@ -1333,14 +1400,18 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
     try {
       const { publicUrl, detectedRatio } = await uploadWithRetry()
       
-      setFormData((prev: any) => ({
-        ...prev,
-        preview_image_url: publicUrl,
-        preview_image: publicUrl,
-        image_ratio: detectedRatio,
-      }))
+      setFormData(prev =>
+        prev
+          ? {
+              ...prev,
+              preview_image_url: publicUrl,
+              preview_image: publicUrl,
+              image_ratio: detectedRatio,
+            }
+          : prev,
+      )
       toast.success('Image uploaded successfully')
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage = getUploadErrorMessage(err)
       const lowerError = errorMessage.toLowerCase()
       const canFallbackToInline =
@@ -1360,12 +1431,16 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
             'Image ratio detection timed out. Using default ratio.'
           ).catch(() => '4:3')
 
-          setFormData((prev: any) => ({
-            ...prev,
-            preview_image_url: inlineDataUrl,
-            preview_image: inlineDataUrl,
-            image_ratio: detectedRatio,
-          }))
+          setFormData(prev =>
+            prev
+              ? {
+                  ...prev,
+                  preview_image_url: inlineDataUrl,
+                  preview_image: inlineDataUrl,
+                  image_ratio: detectedRatio,
+                }
+              : prev,
+          )
 
           setImageError('Supabase upload failed. Using inline image fallback for this prompt.')
           toast.success('Image accepted using fallback mode')
@@ -1439,8 +1514,8 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
 
       onSave(formData)
       toast.success('Row updated successfully')
-    } catch (err: any) {
-      toast.error(`Failed to update: ${err.message}`)
+    } catch (err: unknown) {
+      toast.error(`Failed to update: ${getUploadErrorMessage(err)}`)
     } finally {
       setIsSaving(false)
     }
@@ -1514,7 +1589,13 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
             <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Tags (comma separated)</label>
             <input
               type="text"
-              value={Array.isArray(formData.tags) ? formData.tags.join(', ') : (formData.tags || '')}
+              value={
+                Array.isArray(formData.tags)
+                  ? formData.tags.map(String).join(', ')
+                  : typeof formData.tags === 'string'
+                    ? formData.tags
+                    : ''
+              }
               onChange={(e) => {
                 const tags = e.target.value.split(',').map(t => t.trim()).filter(Boolean)
                 setFormData({ ...formData, tags })
@@ -1539,10 +1620,20 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
                   : 'border-zinc-300 dark:border-zinc-700 hover:border-[#FFDE1A] bg-zinc-50/50 dark:bg-zinc-900/30'
               } ${isUploadingImage ? 'opacity-50 pointer-events-none' : ''}`}
             >
-              {formData.preview_image_url || formData.preview_image ? (
+              {(() => {
+                const previewSrc =
+                  typeof formData.preview_image_url === 'string' && formData.preview_image_url
+                    ? formData.preview_image_url
+                    : typeof formData.preview_image === 'string' && formData.preview_image
+                      ? formData.preview_image
+                      : undefined
+
+                if (!previewSrc) return null
+
+                return (
                 <div className="relative w-full aspect-video bg-black/5 overflow-hidden border border-zinc-200 dark:border-zinc-800 rounded-md group">
                   <img
-                    src={formData.preview_image_url || formData.preview_image}
+                    src={previewSrc}
                     alt="Preview"
                     className="w-full h-full object-contain"
                     onError={(e) => {
@@ -1567,7 +1658,8 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
                     </div>
                   </div>
                 </div>
-              ) : (
+                )
+              })() ?? (
                 <div className="flex flex-col items-center justify-center text-center gap-4">
                   <div className={`w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center transition-transform ${
                     isDraggingImage ? 'scale-110' : 'group-hover:scale-110'
@@ -1638,12 +1730,16 @@ function BulkEditModal({ isOpen, onClose, rowData, validCategories, onSave }: Bu
                 ).catch(() => null)
 
                 if (detectedRatio) {
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    image_ratio: detectedRatio,
-                    preview_image_url: normalizedUrl,
-                    preview_image: normalizedUrl,
-                  }))
+                  setFormData(prev =>
+                    prev
+                      ? {
+                          ...prev,
+                          image_ratio: detectedRatio,
+                          preview_image_url: normalizedUrl,
+                          preview_image: normalizedUrl,
+                        }
+                      : prev,
+                  )
                 }
               }}
               placeholder="Paste direct image URL..."

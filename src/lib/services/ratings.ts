@@ -104,7 +104,12 @@ export async function upsertPromptRating({
     }
   } else {
     // Insert new rating
-    const insertPayload: any = {
+    const insertPayload: {
+      prompt_id: string
+      rating: number
+      user_id?: string
+      ip_hash?: string
+    } = {
       prompt_id: promptId,
       rating,
     }

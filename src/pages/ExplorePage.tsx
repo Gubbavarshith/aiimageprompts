@@ -13,7 +13,8 @@ import { savePrompt, unsavePrompt, getSavedPromptIds } from '@/lib/services/save
 import { logDiscoveryEvent } from '@/lib/services/discoveryEvents'
 import { useToast } from '@/contexts/ToastContext'
 import { getRatingSettings, upsertPromptRating, removePromptRating, getUserRatings } from '@/lib/services/ratings'
-import { updateMetaTags } from '@/lib/seo'
+import { getPublicSiteOrigin } from '@/config/site'
+import { updateMetaTags, upsertJsonLd, removeJsonLd } from '@/lib/seo'
 import { fetchUniqueCategories, fetchPopularTags } from '@/lib/services/categories'
 import { getAspectRatioClass } from '@/lib/utils'
 
@@ -42,6 +43,72 @@ const TelegramIcon = ({ className }: { className?: string }) => (
     <path d="M54 121l116-45c5.3-2 9.9 1.3 8.2 8.5l-19.7 92.7c-1.5 6.8-5.6 8.5-11.3 5.3l-31.3-23-15.1 14.6c-1.7 1.7-3.2 3.2-6.5 3.2l2.3-33 60.1-54c2.6-2.3-.6-3.6-4-1.3l-74.4 47.1-32-10c-7-2.2-7.2-7-1.5-9.5z" fill="#fff" />
   </svg>
 )
+
+function titleCaseFilterLabel(value: string): string {
+  return value
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
+function buildExploreSeoState(options: {
+  categoryFilter: string
+  tagFilter: string | null
+  urlSearchQuery: string
+}): {
+  title: string
+  description: string
+  canonicalPath: string
+  robots: string
+  filterLabel: string
+} {
+  const { categoryFilter, tagFilter, urlSearchQuery } = options
+  const trimmedSearch = urlSearchQuery.trim()
+  const params = new URLSearchParams()
+
+  if (categoryFilter && categoryFilter !== 'All') {
+    params.set('category', categoryFilter)
+    const label = titleCaseFilterLabel(categoryFilter)
+    return {
+      title: `${label} AI Image Prompts | Better Prompts, Better Art`,
+      description: `Browse curated ${label.toLowerCase()} AI image prompts, prompt ideas, and reusable creative directions for Midjourney, DALL-E, and Stable Diffusion.`,
+      canonicalPath: `/explore?${params.toString()}`,
+      robots: 'index,follow',
+      filterLabel: label,
+    }
+  }
+
+  if (tagFilter) {
+    params.set('tag', tagFilter)
+    const label = titleCaseFilterLabel(tagFilter)
+    return {
+      title: `${label} AI Prompts | Better Prompts, Better Art`,
+      description: `Explore ${label.toLowerCase()} AI image prompts and copy-ready prompt examples for better text-to-image results.`,
+      canonicalPath: `/explore?${params.toString()}`,
+      robots: 'index,follow',
+      filterLabel: `#${tagFilter}`,
+    }
+  }
+
+  if (trimmedSearch) {
+    return {
+      title: `Search AI Image Prompts | Better Prompts, Better Art`,
+      description: `Search the AI Image Prompts library for prompt ideas, styles, tags, and reusable text-to-image prompt examples.`,
+      canonicalPath: '/explore',
+      robots: 'noindex,follow',
+      filterLabel: 'Search results',
+    }
+  }
+
+  return {
+    title: 'Explore AI Image Prompts Library | Better Prompts, Better Art',
+    description: 'Browse curated AI image prompts by style, category, and tags. Discover AI photo prompts, image prompts, and prompt ideas for Midjourney, DALL-E, and Stable Diffusion.',
+    canonicalPath: '/explore',
+    robots: 'index,follow',
+    filterLabel: 'All prompts',
+  }
+}
 
 interface PromptCardProps {
   prompt: PromptRecord;
@@ -100,13 +167,15 @@ const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
       {/* Visual Component - The Image */}
       <div
         className={`relative ${getAspectRatioClass(prompt.image_ratio)} overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10 cursor-pointer`}
-        onClick={() => prompt.preview_image_url && onView(prompt)}
+        onClick={() => {
+          if (prompt.preview_image_url) onView(prompt)
+        }}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
-            prompt.preview_image_url && onView(prompt)
+            if (prompt.preview_image_url) onView(prompt)
           }
         }}
         aria-label={prompt.preview_image_url ? `View full image for ${prompt.title}` : 'No image available'}
@@ -332,28 +401,6 @@ export default function ExplorePage() {
   const ITEMS_PER_PAGE = 20
 
   useEffect(() => {
-    const title = 'Explore AI Image Prompts Library | Better Prompts, Better Art'
-    const description = 'Browse curated AI image prompts by style, category, and tags. Discover prompt ideas for Midjourney, DALL-E, and Stable Diffusion.'
-    updateMetaTags({
-      title,
-      description,
-      canonical: '/explore',
-      og: {
-        title,
-        description,
-        url: '/explore',
-        image: '/og-image.png',
-        type: 'website',
-        siteName: 'AI Image Prompts',
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title,
-        description,
-        image: '/og-image.png',
-      },
-    })
-
     const loadPrompts = async () => {
       // Check if Supabase is configured before attempting to fetch
       if (!isSupabaseReady()) {
@@ -507,6 +554,66 @@ export default function ExplorePage() {
       return matchesSearch && matchesCategory && matchesTag
     })
   }, [prompts, localSearchQuery, categoryFilter, selectedTag, tagFilter])
+
+  useEffect(() => {
+    const origin = getPublicSiteOrigin()
+    const seo = buildExploreSeoState({ categoryFilter, tagFilter, urlSearchQuery })
+    const params = new URLSearchParams()
+    if (urlSearchQuery.trim()) params.set('q', urlSearchQuery.trim())
+    if (categoryFilter && categoryFilter !== 'All') params.set('category', categoryFilter)
+    if (tagFilter) params.set('tag', tagFilter)
+    const qs = params.toString()
+    const pageUrl = `${origin}/explore${qs ? `?${qs}` : ''}`
+
+    updateMetaTags({
+      title: seo.title,
+      description: seo.description,
+      canonical: seo.canonicalPath,
+      robots: seo.robots,
+      og: {
+        title: seo.title,
+        description: seo.description,
+        url: seo.canonicalPath,
+        image: '/og-image.png',
+        type: 'website',
+        siteName: 'AI Image Prompts',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: seo.title,
+        description: seo.description,
+        image: '/og-image.png',
+      },
+    })
+
+    upsertJsonLd('explore-collection-jsonld', {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `Explore AI prompts - ${seo.filterLabel}`,
+      description: seo.description,
+      url: pageUrl,
+      numberOfItems: filteredPrompts.length,
+    })
+
+    const itemList: Array<{ '@type': 'ListItem'; position: number; name: string; item: string }> = [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${origin}/` },
+      { '@type': 'ListItem', position: 2, name: 'Explore', item: `${origin}/explore` },
+    ]
+    if (qs) {
+      itemList.push({ '@type': 'ListItem', position: 3, name: seo.filterLabel, item: pageUrl })
+    }
+
+    upsertJsonLd('explore-breadcrumb-jsonld', {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: itemList,
+    })
+
+    return () => {
+      removeJsonLd('explore-collection-jsonld')
+      removeJsonLd('explore-breadcrumb-jsonld')
+    }
+  }, [filteredPrompts.length, categoryFilter, tagFilter, urlSearchQuery])
 
   // Reset displayed count when filters change
   useEffect(() => {
