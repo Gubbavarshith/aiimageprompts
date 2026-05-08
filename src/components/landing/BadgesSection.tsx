@@ -34,7 +34,7 @@ const badges: BadgeItem[] = [
   {
     id: 'fazier',
     name: 'Fazier',
-    url: 'https://fazier.com/launches/www.aiimageprompt.xyz',
+    url: 'https://fazier.com/launches/ai-image-prompts',
     imageUrl: 'https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=featured&theme=light',
     imageAlt: 'Fazier badge',
     width: 250
