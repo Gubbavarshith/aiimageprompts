@@ -9,7 +9,7 @@ import {
   todayIsoDate,
   type SitemapUrlEntry,
   type XmlResponse,
-} from './lib/sitemapApi.ts'
+} from './lib/sitemapApi'
 
 export default async function handler(_req: unknown, res: XmlResponse) {
   setXmlHeaders(res)
