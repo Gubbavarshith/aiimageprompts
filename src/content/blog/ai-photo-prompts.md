@@ -5,7 +5,7 @@ date: "2026-05-08"
 status: "Published"
 author: "AI Image Prompts Editorial"
 category: "Resources"
-imageUrl: "/og-image.png"
+imageUrl: "/blog-feature image/ai-photo-prompts.png"
 excerpt: "Use these AI photo prompts to create realistic portraits, product shots, lifestyle images, cinematic scenes, and social media visuals with stronger direction."
 tags: ["AI Photo Prompts", "Photo Prompt", "Image Prompts", "Prompt Ideas"]
 metaTitle: "AI Photo Prompts: 35 Ideas for Realistic Images"
