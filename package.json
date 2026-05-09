@@ -4,10 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build && node scripts/prerender-blog.mjs",
+    "dev": "node scripts/generate-sitemaps.mjs && vite",
+    "build": "tsc && vite build && node scripts/prerender-blog.mjs && node scripts/generate-sitemaps.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
+    "sitemap": "node scripts/generate-sitemaps.mjs",
     "new:blog": "node scripts/new-blog.mjs"
   },
   "dependencies": {

@@ -23,26 +23,6 @@
       "destination": "https://hfncjkqzflreyfxvobxx.supabase.co/functions/v1/track-link/:slug"
     },
     {
-      "source": "/sitemap.xml",
-      "destination": "/api/sitemap.xml"
-    },
-    {
-      "source": "/sitemap-pages.xml",
-      "destination": "/api/sitemap-pages.xml"
-    },
-    {
-      "source": "/sitemap-prompts.xml",
-      "destination": "/api/sitemap-prompts.xml"
-    },
-    {
-      "source": "/sitemap-blog.xml",
-      "destination": "/api/sitemap-blog.xml"
-    },
-    {
-      "source": "/sitemap-categories.xml",
-      "destination": "/api/sitemap-categories.xml"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -84,7 +64,7 @@
       ]
     },
     {
-      "source": "/sitemap-(pages|prompts|blog|categories)\\.xml",
+      "source": "/sitemap-(pages|blog)\\.xml",
       "headers": [
         {
           "key": "Cache-Control",
@@ -97,24 +77,11 @@
       ]
     },
     {
-      "source": "/api/sitemap\\.xml",
+      "source": "/api/sitemap-(prompts|categories)\\.xml",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, s-maxage=3600, stale-while-revalidate=86400"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/xml; charset=utf-8"
-        }
-      ]
-    },
-    {
-      "source": "/api/sitemap-(pages|prompts|blog|categories)\\.xml",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, s-maxage=3600, stale-while-revalidate=86400"
+          "value": "public, s-maxage=300, stale-while-revalidate=86400"
         },
         {
           "key": "Content-Type",

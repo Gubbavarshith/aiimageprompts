@@ -1,46 +1,43 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
-
 import {
-  dedupeAndSortUrls,
-  fetchDistinctCategories,
+  fallbackExploreEntry,
+  fetchPublishedPrompts,
   generateUrlset,
   setXmlHeaders,
   siteBase,
-  withTimeout,
+  todayIsoDate,
   type SitemapUrlEntry,
-} from './lib/sitemapShared'
+  type XmlResponse,
+} from './lib/sitemapApi'
 
-export default async function handler(_req: VercelRequest, res: VercelResponse) {
+export default async function handler(_req: unknown, res: XmlResponse) {
+  setXmlHeaders(res)
+
   try {
-    setXmlHeaders(res)
     const base = siteBase()
-    const today = new Date().toISOString().split('T')[0]
-    const entries: SitemapUrlEntry[] = []
+    const today = todayIsoDate()
+    const prompts = await fetchPublishedPrompts()
+    const categories = new Set<string>()
 
-    const categories = await withTimeout(fetchDistinctCategories(), 8000, [])
-    categories.forEach((category) => {
-      const q = new URLSearchParams({ category })
-      entries.push({
-        url: `${base}/explore?${q.toString()}`,
-        lastmod: today,
-        changefreq: 'weekly',
-        priority: '0.65',
-      })
+    prompts.forEach((prompt) => {
+      const category = prompt.category?.trim()
+      if (category) categories.add(category)
     })
 
-    return res.status(200).send(generateUrlset(dedupeAndSortUrls(entries)))
+    const entries: SitemapUrlEntry[] = [...categories]
+      .sort((a, b) => a.localeCompare(b))
+      .map((category) => {
+        const query = new URLSearchParams({ category })
+        return {
+          url: `${base}/explore?${query.toString()}`,
+          lastmod: today,
+          changefreq: 'weekly',
+          priority: '0.65',
+        }
+      })
+
+    return res.status(200).send(generateUrlset(entries))
   } catch (error) {
-    console.error('Sitemap categories error:', error)
-    setXmlHeaders(res)
-    return res.status(200).send(
-      generateUrlset([
-        {
-          url: `${siteBase()}/explore`,
-          lastmod: new Date().toISOString().split('T')[0],
-          changefreq: 'daily',
-          priority: '0.9',
-        },
-      ]),
-    )
+    console.error('Dynamic category sitemap error:', error)
+    return res.status(200).send(generateUrlset([fallbackExploreEntry()]))
   }
 }

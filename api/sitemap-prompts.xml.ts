@@ -1,53 +1,37 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
-
 import {
-  dedupeAndSortUrls,
+  fallbackExploreEntry,
   fetchPublishedPrompts,
   formatDate,
   generateSlug,
   generateUrlset,
   setXmlHeaders,
   siteBase,
-  withTimeout,
+  todayIsoDate,
   type SitemapUrlEntry,
-} from './lib/sitemapShared'
+  type XmlResponse,
+} from './lib/sitemapApi'
 
-export default async function handler(_req: VercelRequest, res: VercelResponse) {
+export default async function handler(_req: unknown, res: XmlResponse) {
+  setXmlHeaders(res)
+
   try {
-    setXmlHeaders(res)
     const base = siteBase()
-    const today = new Date().toISOString().split('T')[0]
-    const entries: SitemapUrlEntry[] = []
-
-    const prompts = await withTimeout(fetchPublishedPrompts(), 8000, [])
-    prompts.forEach((prompt) => {
-      const slug = generateSlug(prompt.title)
-      const lastmod = prompt.updated_at
-        ? formatDate(prompt.updated_at)
-        : prompt.created_at
-          ? formatDate(prompt.created_at)
-          : today
-      entries.push({
-        url: `${base}/prompt/${slug}`,
-        lastmod,
+    const today = todayIsoDate()
+    const prompts = await fetchPublishedPrompts()
+    const entries: SitemapUrlEntry[] = prompts.flatMap((prompt) => {
+      const title = prompt.title?.trim()
+      if (!title) return []
+      return [{
+        url: `${base}/prompt/${generateSlug(title)}`,
+        lastmod: formatDate(prompt.updated_at || prompt.created_at, today),
         changefreq: 'weekly',
         priority: '0.8',
-      })
+      }]
     })
 
-    return res.status(200).send(generateUrlset(dedupeAndSortUrls(entries)))
+    return res.status(200).send(generateUrlset(entries))
   } catch (error) {
-    console.error('Sitemap prompts error:', error)
-    setXmlHeaders(res)
-    return res.status(200).send(
-      generateUrlset([
-        {
-          url: `${siteBase()}/explore`,
-          lastmod: new Date().toISOString().split('T')[0],
-          changefreq: 'daily',
-          priority: '0.9',
-        },
-      ]),
-    )
+    console.error('Dynamic prompt sitemap error:', error)
+    return res.status(200).send(generateUrlset([fallbackExploreEntry()]))
   }
 }
