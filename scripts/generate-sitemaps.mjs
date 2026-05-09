@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js'
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -140,6 +141,43 @@ function buildStaticPageEntries(routes, today) {
   }))
 }
 
+async function fetchPublishedPrompts() {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey =
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.warn('[sitemap] Supabase env vars not found; generated prompt/category sitemaps will be empty.')
+    return []
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey)
+  const pageSize = 1000
+  const rows = []
+
+  for (let from = 0; ; from += pageSize) {
+    const to = from + pageSize - 1
+    const { data, error } = await supabase
+      .from('prompts')
+      .select('id, title, category, updated_at, created_at')
+      .eq('status', 'Published')
+      .order('updated_at', { ascending: false })
+      .range(from, to)
+
+    if (error) {
+      console.warn(`[sitemap] Could not fetch prompts: ${error.message}`)
+      return rows
+    }
+
+    rows.push(...(data || []))
+    if (!data || data.length < pageSize) break
+  }
+
+  return rows
+}
+
 async function readPublishedBlogPosts() {
   const files = await readdir(blogDir)
   const posts = []
@@ -169,6 +207,41 @@ function buildBlogEntries(posts, today) {
   }))
 }
 
+function buildPromptEntries(prompts, today) {
+  const base = siteBase()
+  return prompts.flatMap(prompt => {
+    const title = typeof prompt.title === 'string' ? prompt.title.trim() : ''
+    if (!title) return []
+    return [{
+      url: `${base}/prompt/${normalizeSlug(title)}`,
+      lastmod: formatDate(prompt.updated_at || prompt.created_at, today),
+      changefreq: 'weekly',
+      priority: '0.8',
+    }]
+  })
+}
+
+function buildCategoryEntries(prompts, today) {
+  const base = siteBase()
+  const categories = new Set()
+
+  for (const prompt of prompts) {
+    if (typeof prompt.category !== 'string') continue
+    const category = prompt.category.trim()
+    if (category) categories.add(category)
+  }
+
+  return [...categories].sort((a, b) => a.localeCompare(b)).map(category => {
+    const query = new URLSearchParams({ category })
+    return {
+      url: `${base}/explore?${query.toString()}`,
+      lastmod: today,
+      changefreq: 'weekly',
+      priority: '0.65',
+    }
+  })
+}
+
 async function writeSitemapFile(fileName, content) {
   const targets = [publicDir]
   if (existsSync(distDir)) targets.push(distDir)
@@ -185,9 +258,10 @@ async function main() {
 
   const base = siteBase()
   const today = new Date().toISOString().split('T')[0]
-  const [staticRoutes, blogPosts] = await Promise.all([
+  const [staticRoutes, blogPosts, prompts] = await Promise.all([
     readStaticPageRoutes(),
     readPublishedBlogPosts(),
+    fetchPublishedPrompts(),
   ])
 
   const sitemapFiles = [
@@ -199,16 +273,22 @@ async function main() {
       name: 'sitemap-blog.xml',
       content: generateUrlset(buildBlogEntries(blogPosts, today)),
     },
+    {
+      name: 'sitemap-prompts.xml',
+      content: generateUrlset(buildPromptEntries(prompts, today)),
+    },
+    {
+      name: 'sitemap-categories.xml',
+      content: generateUrlset(buildCategoryEntries(prompts, today)),
+    },
   ]
 
-  const index = generateSitemapIndex([
-    ...sitemapFiles.map(file => ({
+  const index = generateSitemapIndex(
+    sitemapFiles.map(file => ({
       loc: `${base}/${file.name}`,
       lastmod: today,
-    })),
-    { loc: `${base}/api/sitemap-prompts.xml`, lastmod: today },
-    { loc: `${base}/api/sitemap-categories.xml`, lastmod: today },
-  ])
+    }))
+  )
 
   await Promise.all([
     writeSitemapFile('sitemap.xml', index),
@@ -216,7 +296,7 @@ async function main() {
   ])
 
   console.log(`[sitemap] Generated ${sitemapFiles.length + 1} static sitemap files.`)
-  console.log(`[sitemap] Blog posts: ${blogPosts.length}. Prompt and category sitemaps are dynamic API endpoints.`)
+  console.log(`[sitemap] Prompts: ${prompts.length}, blog posts: ${blogPosts.length}.`)
 }
 
 main().catch(error => {
