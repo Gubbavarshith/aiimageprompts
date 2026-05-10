@@ -327,6 +327,124 @@
   color: #1e293b;
 }
 
+/* ---------------------------------------------------------------------------
+   Blog prompt cards (```text``` fences) — copy control + contained code block
+   --------------------------------------------------------------------------- */
+
+.blog-content .blog-prompt-block {
+  margin: 1.45rem 0;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: linear-gradient(180deg, rgba(255, 251, 235, 0.65) 0%, rgba(248, 250, 252, 0.98) 42%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 12px 32px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.blog-content .blog-prompt-block__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.blog-content .blog-prompt-block__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #715505;
+}
+
+.blog-content .blog-prompt-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(122, 92, 0, 0.35);
+  background: rgba(255, 222, 26, 0.18);
+  color: #5e4700;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.blog-content .blog-prompt-copy-btn:hover {
+  background: rgba(255, 222, 26, 0.32);
+  border-color: rgba(122, 92, 0, 0.55);
+  color: #3f3000;
+}
+
+.blog-content .blog-prompt-copy-btn:focus-visible {
+  outline: 2px solid #c9a100;
+  outline-offset: 2px;
+}
+
+.blog-content .blog-prompt-copy-btn:active {
+  transform: scale(0.98);
+}
+
+.blog-content .blog-prompt-copy-btn__icon {
+  flex-shrink: 0;
+}
+
+.blog-content .blog-prompt-copy-btn__icon--check {
+  display: none;
+  color: #137a5a;
+}
+
+.blog-content .blog-prompt-copy-btn--done .blog-prompt-copy-btn__icon--copy {
+  display: none;
+}
+
+.blog-content .blog-prompt-copy-btn--done .blog-prompt-copy-btn__icon--check {
+  display: block;
+}
+
+.blog-content .blog-prompt-copy-btn--done {
+  background: rgba(55, 211, 166, 0.14);
+  border-color: rgba(19, 122, 90, 0.35);
+  color: #136049;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-content .blog-prompt-copy-btn,
+  .blog-content .blog-prompt-copy-btn:active {
+    transition: none;
+    transform: none;
+  }
+}
+
+.blog-content .blog-prompt-block__body pre {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  padding: 1rem 1rem 1.05rem;
+  box-shadow: none;
+  background: #f8fafc;
+}
+
+.blog-content .blog-prompt-block__body pre code {
+  color: #1e293b;
+}
+
 .blog-content img {
   margin: 1.1rem 0;
   max-width: 100%;
@@ -397,6 +515,14 @@
   content: "";
   display: table;
   clear: both;
+}
+
+/* Prompt cards: global div clearfix adds a ::after flex item and breaks toolbar alignment */
+.blog-content .blog-prompt-block::after,
+.blog-content .blog-prompt-block div::after {
+  content: none;
+  display: none;
+  clear: none;
 }
 
 .blog-content a {
@@ -529,6 +655,57 @@
 }
 
 .dark .blog-content pre code {
+  color: #dae2f1;
+}
+
+.dark .blog-content .blog-prompt-block {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(255, 222, 26, 0.08) 0%, rgba(13, 17, 26, 0.92) 38%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 16px 40px rgba(5, 7, 14, 0.45);
+}
+
+.dark .blog-content .blog-prompt-block__toolbar {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: rgba(10, 13, 20, 0.78);
+}
+
+.dark .blog-content .blog-prompt-block__label {
+  color: #e8c84a;
+}
+
+.dark .blog-content .blog-prompt-copy-btn {
+  border-color: rgba(255, 222, 26, 0.35);
+  background: rgba(255, 222, 26, 0.12);
+  color: #ffe896;
+}
+
+.dark .blog-content .blog-prompt-copy-btn:hover {
+  background: rgba(255, 222, 26, 0.22);
+  border-color: rgba(255, 222, 26, 0.5);
+  color: #fff8df;
+}
+
+.dark .blog-content .blog-prompt-copy-btn:focus-visible {
+  outline-color: #ffde1a;
+}
+
+.dark .blog-content .blog-prompt-copy-btn--done {
+  background: rgba(55, 211, 166, 0.12);
+  border-color: rgba(55, 211, 166, 0.35);
+  color: #8cf5d3;
+}
+
+.dark .blog-content .blog-prompt-copy-btn--done .blog-prompt-copy-btn__icon--check {
+  color: #37d3a6;
+}
+
+.dark .blog-content .blog-prompt-block__body pre {
+  background: #0d111a;
+}
+
+.dark .blog-content .blog-prompt-block__body pre code {
   color: #dae2f1;
 }
 

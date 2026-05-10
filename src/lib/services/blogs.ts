@@ -1,4 +1,4 @@
-import { marked } from 'marked'
+import { markdownToBlogHtml } from '@/lib/blogMarkdown'
 
 export type BlogPostStatus = 'Published' | 'Draft' | 'Scheduled'
 
@@ -146,14 +146,15 @@ function parseBlogFile(path: string, raw: string): BlogPost | null {
   const slugFromFile = path.split('/').pop()?.replace(/\.md$/, '') || ''
   const slug = normalizeSlug(slugFromFrontmatter || slugFromFile)
   const date = asString(frontmatter.date)
+  const category = asString(frontmatter.category, 'News')
 
   if (!title || !slug || !date) {
     console.error(`Skipping invalid blog markdown file: ${path}`)
     return null
   }
 
-  const rawHtml = marked.parse(content, { async: false })
-  const htmlContent = typeof rawHtml === 'string' ? rawHtml : ''
+  const wrapPromptBlocks = category !== 'News'
+  const htmlContent = markdownToBlogHtml(content, { wrapPromptBlocks })
   const contentWithAnchors = addAnchorIdsToContent(htmlContent)
 
   const status = isValidStatus(frontmatter.status) ? frontmatter.status : 'Published'
@@ -166,7 +167,7 @@ function parseBlogFile(path: string, raw: string): BlogPost | null {
     author: asString(frontmatter.author, 'Editorial'),
     date,
     readTime: calculateReadTime(contentWithAnchors),
-    category: asString(frontmatter.category, 'News'),
+    category,
     imageUrl: asString(frontmatter.imageUrl),
     tags: asStringArray(frontmatter.tags),
     status,

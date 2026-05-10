@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import matter from 'gray-matter'
-import { marked } from 'marked'
+import { marked, Renderer } from 'marked'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -41,6 +41,36 @@ function addAnchorIdsToContent(html) {
   })
 }
 
+/** Mirrors src/lib/blogMarkdown.ts — keep markup in sync when changing prompt cards. */
+function wrapPromptBlock(preHtml) {
+  return `<div class="blog-prompt-block">
+  <div class="blog-prompt-block__toolbar" role="group" aria-label="Prompt actions">
+    <span class="blog-prompt-block__label">Image prompt</span>
+    <button type="button" class="blog-prompt-copy-btn" aria-label="Copy image prompt to clipboard">
+      <svg class="blog-prompt-copy-btn__icon blog-prompt-copy-btn__icon--copy" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2"></path></svg>
+      <svg class="blog-prompt-copy-btn__icon blog-prompt-copy-btn__icon--check" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+      <span class="blog-prompt-copy-btn__text">Copy</span>
+    </button>
+  </div>
+  <div class="blog-prompt-block__body">${preHtml}</div>
+</div>`
+}
+
+function markdownToBlogHtml(content, { wrapPromptBlocks }) {
+  const renderer = new Renderer()
+  const defaultCode = Renderer.prototype.code
+  renderer.code = function (token) {
+    const innerHtml = defaultCode.call(this, token)
+    const lang = (token.lang || '').trim().toLowerCase()
+    if (wrapPromptBlocks && lang === 'text') {
+      return wrapPromptBlock(innerHtml)
+    }
+    return innerHtml
+  }
+  const raw = marked.parse(content, { async: false, renderer })
+  return typeof raw === 'string' ? raw : ''
+}
+
 function stripHtml(html) {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
 }
@@ -71,7 +101,9 @@ async function readPosts() {
 
     if (!title || !slug || !date) continue
 
-    const html = addAnchorIdsToContent(marked.parse(content, { async: false }))
+    const category = String(data.category || 'News')
+    const wrapPromptBlocks = category !== 'News'
+    const html = addAnchorIdsToContent(markdownToBlogHtml(content, { wrapPromptBlocks }))
     const excerpt = String(data.excerpt || '').trim()
     const post = {
       id: slug,
@@ -82,7 +114,7 @@ async function readPosts() {
       excerpt,
       content: html,
       author: String(data.author || 'Editorial'),
-      category: String(data.category || 'News'),
+      category,
       imageUrl: String(data.imageUrl || ''),
       tags: Array.isArray(data.tags) ? data.tags.filter((tag) => typeof tag === 'string') : [],
       metaTitle: String(data.metaTitle || '').trim(),

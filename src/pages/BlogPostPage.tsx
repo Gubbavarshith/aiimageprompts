@@ -206,6 +206,56 @@ export default function BlogPostPage() {
 
   useEffect(() => {
     if (!post) return
+    const root = pageRef.current
+    if (!root) return
+
+    let resetTimer: ReturnType<typeof setTimeout> | undefined
+    let lastCopiedBtn: HTMLButtonElement | null = null
+
+    const onPromptCopyClick = (e: MouseEvent) => {
+      const el = e.target as HTMLElement
+      const btn = el.closest<HTMLButtonElement>('.blog-prompt-copy-btn')
+      if (!btn || !root.contains(btn)) return
+      e.preventDefault()
+      const block = btn.closest('.blog-prompt-block')
+      const codeEl = block?.querySelector('pre code')
+      const text = codeEl?.textContent ?? ''
+      if (!text.trim()) return
+
+      if (lastCopiedBtn && lastCopiedBtn !== btn) {
+        lastCopiedBtn.classList.remove('blog-prompt-copy-btn--done')
+        const prevLabel = lastCopiedBtn.querySelector('.blog-prompt-copy-btn__text')
+        if (prevLabel) prevLabel.textContent = 'Copy'
+      }
+
+      void navigator.clipboard.writeText(text).then(
+        () => {
+          toast.success('Prompt copied')
+          btn.classList.add('blog-prompt-copy-btn--done')
+          const label = btn.querySelector('.blog-prompt-copy-btn__text')
+          if (label) label.textContent = 'Copied'
+          lastCopiedBtn = btn
+          if (resetTimer) clearTimeout(resetTimer)
+          resetTimer = setTimeout(() => {
+            btn.classList.remove('blog-prompt-copy-btn--done')
+            if (label) label.textContent = 'Copy'
+            if (lastCopiedBtn === btn) lastCopiedBtn = null
+            resetTimer = undefined
+          }, 2000)
+        },
+        () => toast.error('Could not copy'),
+      )
+    }
+
+    root.addEventListener('click', onPromptCopyClick)
+    return () => {
+      root.removeEventListener('click', onPromptCopyClick)
+      if (resetTimer) clearTimeout(resetTimer)
+    }
+  }, [post, toast])
+
+  useEffect(() => {
+    if (!post) return
 
     const timer = setTimeout(() => {
       const headings = document.querySelectorAll('.blog-content h2[id], .blog-content h3[id], .blog-content h4[id]')
