@@ -93,62 +93,50 @@ function JustGotFoundBadge() {
   );
 }
 
-type TinyStartupsBadgeProps = { segmentId: string };
 
-function TinyStartupsBadge({ segmentId }: TinyStartupsBadgeProps) {
-  const gid = `tsg-${segmentId}`;
+
+function TinyStartupsBadge() {
   return (
-    <a
-      href="https://www.tinystartups.com/startup/aiimageprompts"
-      target="_blank"
-      rel="noopener noreferrer"
-      className={badgeLinkClass}
-      aria-label="Visit Tiny Startups"
-    >
-      <div className="relative rounded-lg border-2 border-transparent bg-white p-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 group-hover/badge:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:bg-zinc-900 dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,1)] dark:group-hover/badge:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '10px 14px 10px 12px',
-            borderRadius: '12px',
-            textDecoration: 'none',
-            fontFamily: "'Atkinson Hyperlegible', sans-serif",
-            background: 'linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#3525E6,#D81FE0,#22B8F0) border-box',
-            border: '2px solid transparent',
-            color: '#0E0B1F'
-          }}
-        >
-          <svg width="42" height="42" viewBox="0 0 100 100" aria-hidden="true">
-            <defs>
-              <linearGradient id={gid} x1=".1" y1="0" x2=".9" y2="1">
-                <stop offset="0%" stopColor="#3525E6" />
-                <stop offset="55%" stopColor="#D81FE0" />
-                <stop offset="100%" stopColor="#22B8F0" />
-              </linearGradient>
-            </defs>
-            <path d="M50 6C52 32 68 48 94 50C68 52 52 68 50 94C48 68 32 52 6 50C32 48 48 32 50 6Z" fill={`url(#${gid})`} />
-          </svg>
-          <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.12 }}>
-            <span
-              style={{
-                fontFamily: 'IBM Plex Mono, monospace',
-                fontSize: '8px',
-                fontWeight: 600,
-                letterSpacing: '0.16em',
-                textTransform: 'uppercase',
-                color: '#6A6585'
-              }}
-            >
-              Launched on
-            </span>
-            <span style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '-0.02em' }}>Tiny Startups</span>
-            <span style={{ fontSize: '10px', color: '#6A6585', marginTop: '3px' }}>tinystartups.com</span>
+    <div className={badgeLinkClass}>
+      <a
+        href="https://www.tinystartups.com/startup/aiimageprompts"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '14px',
+          padding: '16px 24px 16px 20px',
+          borderRadius: '14px',
+          textDecoration: 'none',
+          fontFamily: "'Inter', system-ui, sans-serif",
+          background: 'linear-gradient(135deg, #3525E6, #D81FE0, #22B8F0)',
+          color: '#fff'
+        }}
+      >
+        <svg width="56" height="56" viewBox="0 0 100 100">
+          <path d="M50 6C52 32 68 48 94 50C68 52 52 68 50 94C48 68 32 52 6 50C32 48 48 32 50 6Z" fill="#ffffff" />
+        </svg>
+        <span style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.15' }}>
+          <span
+            style={{
+              fontFamily: 'monospace',
+              fontSize: '9px',
+              fontWeight: 600,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.75)'
+            }}
+          >
+            Launched on
           </span>
-        </div>
-      </div>
-    </a>
+          <span style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.025em', color: '#fff' }}>
+            Tiny Startups
+          </span>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>tinystartups.com</span>
+        </span>
+      </a>
+    </div>
   );
 }
 
@@ -205,7 +193,7 @@ function MarqueeSegment({ segmentIndex }: { segmentIndex: number }) {
           <ImageBadge key={`${suffix}-${badge.id}`} badge={badge} />
         )
       )}
-      <TinyStartupsBadge segmentId={`${suffix}-${segmentIndex}`} />
+      <TinyStartupsBadge key={`${suffix}-tiny-startups`} />
     </Fragment>
   );
 }

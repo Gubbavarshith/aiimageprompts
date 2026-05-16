@@ -21,3 +21,6 @@ Allow: /
 # Sitemap
 Sitemap: https://www.aiimageprompts.xyz/sitemap.xml
 
+# AI Search Context
+# https://llmstxt.org
+llms.txt: https://www.aiimageprompts.xyz/llms.txt

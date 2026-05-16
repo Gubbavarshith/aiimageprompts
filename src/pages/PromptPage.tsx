@@ -51,32 +51,34 @@ const RelatedPromptCard = ({ prompt, onNavigate }: RelatedPromptCardProps) => {
   const slug = generateSlug(prompt.title)
   
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.3 }}
-      onClick={() => onNavigate(slug, prompt.id)}
-      className="group cursor-pointer"
-    >
-      <div className={`relative ${getAspectRatioClass(prompt.image_ratio)} overflow-hidden border-2 border-black dark:border-white rounded-xl bg-gray-100 dark:bg-zinc-800 mb-3`}>
-        <img
-          src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
-          alt={prompt.title}
-          loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute top-2 left-2">
-          <span className="bg-[#FFDE1A] border-2 border-black text-black text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            {prompt.category}
-          </span>
+    <article>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.3 }}
+        onClick={() => onNavigate(slug, prompt.id)}
+        className="group cursor-pointer"
+      >
+        <div className={`relative ${getAspectRatioClass(prompt.image_ratio)} overflow-hidden border-2 border-black dark:border-white rounded-xl bg-gray-100 dark:bg-zinc-800 mb-3`}>
+          <img
+            src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
+            alt={`AI ${prompt.category} Prompt: ${prompt.title}`}
+            loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute top-2 left-2">
+            <span className="bg-[#FFDE1A] border-2 border-black text-black text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              {prompt.category}
+            </span>
+          </div>
         </div>
-      </div>
-      <h3 className="font-display font-bold text-sm leading-tight text-black dark:text-white group-hover:text-[#F8BE00] transition-colors line-clamp-2">
-        {prompt.title}
-      </h3>
-    </motion.div>
+        <h3 className="font-display font-bold text-sm leading-tight text-black dark:text-white group-hover:text-[#F8BE00] transition-colors line-clamp-2">
+          {prompt.title}
+        </h3>
+      </motion.div>
+    </article>
   )
 }
 
@@ -182,9 +184,39 @@ export default function PromptPage() {
       '@type': 'CreativeWork',
       name: prompt.title,
       description: prompt.prompt.slice(0, 500),
-      image: prompt.preview_image_url ? [prompt.preview_image_url] : undefined,
+      image: prompt.preview_image_url ? {
+        '@type': 'ImageObject',
+        url: prompt.preview_image_url,
+        name: `AI ${prompt.category} Prompt: ${prompt.title}`,
+        description: `AI-generated image preview for the prompt: ${prompt.title}`,
+      } : undefined,
+      datePublished: prompt.created_at,
       dateModified: prompt.updated_at,
       url: pageUrl,
+      genre: prompt.category,
+      keywords: prompt.tags?.join(', ') || prompt.category,
+      author: {
+        '@type': 'Organization',
+        name: 'AI Image Prompts',
+        url: origin,
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'AI Image Prompts',
+        url: origin,
+        logo: {
+          '@type': 'ImageObject',
+          url: `${origin}/favicon.svg`,
+        },
+      },
+      ...(typeof prompt.rating_avg === 'number' && prompt.rating_avg !== null && (prompt.rating_count ?? 0) > 0 ? {
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: prompt.rating_avg.toFixed(1),
+          bestRating: '5',
+          ratingCount: prompt.rating_count ?? 0,
+        },
+      } : {}),
     })
 
     upsertJsonLd('prompt-breadcrumb-jsonld', {
@@ -592,9 +624,9 @@ export default function PromptPage() {
                 <div className="mb-8 rounded-2xl overflow-hidden border-2 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
                   <img
                     src={prompt.preview_image_url}
-                    alt={prompt.title}
+                    alt={`AI ${prompt.category} Prompt: ${prompt.title}`}
                     className="w-full h-auto object-cover"
-                    loading="lazy"
+                    loading="eager"
                   />
                 </div>
               )}

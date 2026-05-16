@@ -33,7 +33,7 @@ const PromptCard = ({ prompt, index, onCopy, copiedId }: PromptCardProps) => {
       <div className={`relative ${getAspectRatioClass(prompt.image_ratio)} overflow-hidden border-2 border-black dark:border-white rounded-t-xl bg-gray-100 dark:bg-zinc-800 z-10`}>
         <img
           src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
-          alt={prompt.title}
+          alt={`AI ${prompt.category} Prompt: ${prompt.title}`}
           loading="lazy"
           width="400"
           height="300"

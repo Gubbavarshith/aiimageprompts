@@ -1,0 +1,43 @@
+# AI Image Prompts — llms.txt
+# https://www.aiimageprompts.xyz
+
+> AI Image Prompts is a curated library of high-quality AI image generation prompts for tools like Midjourney, DALL-E, Stable Diffusion, and more. Better Prompts, Better Art.
+
+## About
+
+AI Image Prompts helps creators discover, copy, and remix thousands of pro-level prompts across categories including portraits, anime, logos, UI/UX design, cinematic scenes, photography, and more. Each prompt includes preview images, tags, category labels, and aspect ratio metadata.
+
+## Explore Prompts
+
+Browse all prompts: https://www.aiimageprompts.xyz/explore
+
+## Categories
+
+- Portraits: https://www.aiimageprompts.xyz/explore?category=Portraits
+- Anime: https://www.aiimageprompts.xyz/explore?category=Anime
+- Logos: https://www.aiimageprompts.xyz/explore?category=Logos
+- Cinematic: https://www.aiimageprompts.xyz/explore?category=Cinematic
+- Photography: https://www.aiimageprompts.xyz/explore?category=Photography
+- UI/UX: https://www.aiimageprompts.xyz/explore?category=UI%2FUX
+- Abstract: https://www.aiimageprompts.xyz/explore?category=Abstract
+- Nature: https://www.aiimageprompts.xyz/explore?category=Nature
+- Fashion: https://www.aiimageprompts.xyz/explore?category=Fashion
+- Architecture: https://www.aiimageprompts.xyz/explore?category=Architecture
+
+## Blog
+
+Weekly articles on AI art techniques, prompt engineering tips, and creative workflows:
+https://www.aiimageprompts.xyz/blog
+
+## Submit Prompts
+
+Share your own prompts with the community:
+https://www.aiimageprompts.xyz/submit
+
+## Contact
+
+Get in touch: https://www.aiimageprompts.xyz/contact
+
+## Sitemap
+
+Full sitemap: https://www.aiimageprompts.xyz/sitemap.xml

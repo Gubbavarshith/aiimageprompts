@@ -182,7 +182,7 @@ const PromptCard = forwardRef<HTMLDivElement, PromptCardProps>(({
       >
         <img
           src={prompt.preview_image_url || 'https://placehold.co/400x400/1a1a1a/F8BE00?text=AI+Prompt'}
-          alt={prompt.title}
+          alt={`AI ${prompt.category} Prompt: ${prompt.title}`}
           loading="lazy"
           width="400"
           height="300"
