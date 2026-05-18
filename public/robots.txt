@@ -1,10 +1,30 @@
 User-agent: *
 Allow: /
-Allow: /contact
-Allow: /refund
+Disallow: /api/
 Disallow: /admin/
 Disallow: /auth/
 Disallow: /saved
+
+Crawl-delay: 1
+
+# Allow all major bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: facebot
+Allow: /
 
 User-agent: GPTBot
 Allow: /
@@ -20,6 +40,10 @@ Allow: /
 
 # Sitemap
 Sitemap: https://www.aiimageprompts.xyz/sitemap.xml
+Sitemap: https://www.aiimageprompts.xyz/sitemap-pages.xml
+Sitemap: https://www.aiimageprompts.xyz/sitemap-blog.xml
+Sitemap: https://www.aiimageprompts.xyz/sitemap-prompts.xml
+Sitemap: https://www.aiimageprompts.xyz/sitemap-categories.xml
 
 # AI Search Context
 # https://llmstxt.org
