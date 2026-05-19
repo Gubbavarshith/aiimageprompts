@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Portrait",
+    "slug": "portrait",
+    "description": "Browse curated portrait AI image prompts for cinematic headshots, editorial fashion, and character photography. Copy-paste templates for Midjourney, DALL·E, and Stable Diffusion."
+  },
+  {
+    "name": "Photography",
+    "slug": "photography",
+    "description": "Explore AI photography prompts for realistic, camera-inspired images. Includes street photography, landscape, macro, and documentary style prompts."
+  },
+  {
+    "name": "Fantasy Art",
+    "slug": "fantasy-art",
+    "description": "Discover fantasy AI image prompts for epic landscapes, mythical characters, magical environments, and concept art. Works great with Midjourney and Stable Diffusion."
+  },
+  {
+    "name": "Product Photography",
+    "slug": "product-photography",
+    "description": "Professional AI product photography prompts for e-commerce, lifestyle shots, and studio-style product images. Clean, commercial-quality output."
+  },
+  {
+    "name": "Product Marketing",
+    "slug": "product-marketing",
+    "description": "AI image prompts for product marketing visuals, ad campaigns, hero shots, and brand imagery. Optimized for commercial and advertising use."
+  },
+  {
+    "name": "Lifestyle",
+    "slug": "lifestyle",
+    "description": "Lifestyle AI image prompts for editorial, wellness, travel, food, and everyday storytelling. Warm, aspirational, and editorial in tone."
+  },
+  {
+    "name": "Fashion portrait",
+    "slug": "fashion-portrait",
+    "description": "Fashion portrait AI image prompts for editorial looks, runway-inspired shots, and high-fashion magazine aesthetics. Works across Midjourney and DALL·E."
+  },
+  {
+    "name": "Interior Design",
+    "slug": "interior-design",
+    "description": "AI image prompts for interior design concepts, room visualizations, and architectural photography. From minimalist to maximalist styles."
+  },
+  {
+    "name": "Poster",
+    "slug": "poster",
+    "description": "AI poster design prompts for typographic layouts, event visuals, movie posters, and campaign key art. Bold, structured, and print-ready."
+  },
+  {
+    "name": "3D Graphics",
+    "slug": "3d-graphics",
+    "description": "AI image prompts for 3D renders, CGI characters, abstract sculptures, and digital art with depth and dimensionality. Works with Midjourney and Flux."
+  },
+  {
+    "name": "Gaming",
+    "slug": "gaming",
+    "description": "Gaming AI image prompts for character design, game environments, UI art, and concept art across fantasy, sci-fi, and retro game genres."
+  },
+  {
+    "name": "Pixel Art",
+    "slug": "pixel-art",
+    "description": "Pixel art AI image prompts for retro game sprites, characters, environments, and 8-bit and 16-bit style artwork. Great for indie game developers."
+  },
+  {
+    "name": "Conceptual Portrait",
+    "slug": "conceptual-portrait",
+    "description": "Conceptual portrait AI image prompts blending surrealism, fine art, and storytelling. Ideal for creative projects and editorial work."
+  },
+  {
+    "name": "Chibi",
+    "slug": "chibi",
+    "description": "Chibi-style AI image prompts for cute, stylized character art inspired by Japanese manga and anime. Perfect for stickers, avatars, and character designs."
+  },
+  {
+    "name": "Coloring Page",
+    "slug": "coloring-page",
+    "description": "AI prompts for generating coloring page line art. Clean black-and-white illustrations suitable for printing and digital coloring."
+  },
+  {
+    "name": "Graphics",
+    "slug": "graphics",
+    "description": "AI image prompts for graphic design elements, abstract compositions, texture backgrounds, and digital illustrations for branding and design work."
+  },
+  {
+    "name": "Home Decor",
+    "slug": "home-decor",
+    "description": "Home decor AI image prompts for wall art, decorative objects, room styling, and aesthetic lifestyle imagery. Great for interior and e-commerce brands."
+  },
+  {
+    "name": "Animals portrait",
+    "slug": "animals-portrait",
+    "description": "Animal portrait AI image prompts for photorealistic wildlife, pet photography, and stylized creature art. From macro close-ups to epic nature scenes."
+  },
+  {
+    "name": "Ad",
+    "slug": "ad",
+    "description": "AI image prompts for advertising visuals, social media ads, banner designs, and commercial campaigns. Conversion-focused and brand-ready."
+  },
+  {
+    "name": "Crafts",
+    "slug": "crafts",
+    "description": "AI image prompts for handmade crafts, DIY aesthetics, textile art, paper crafts, and artisan product photography."
+  },
+  {
+    "name": "Capsule",
+    "slug": "capsule",
+    "description": "Capsule wardrobe and fashion AI image prompts for minimal, versatile, and editorial clothing photography and lookbook imagery."
+  },
+  {
+    "name": "Accidental Selfie",
+    "slug": "accidental-selfie",
+    "description": "Candid and accidental selfie AI image prompts for authentic, unposed photography with a raw, documentary feel."
+  },
+  {
+    "name": "UI/UX Design",
+    "slug": "uiux-design",
+    "description": "AI image prompts for UI/UX design mockups, app interface concepts, dashboard visuals, and digital product design inspiration."
+  },
+  {
+    "name": "Web Development",
+    "slug": "web-development",
+    "description": "AI image prompts for web development-themed visuals, coding aesthetic photography, tech product shots, and developer workspace imagery."
+  }
+]

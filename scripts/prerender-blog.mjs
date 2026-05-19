@@ -71,6 +71,62 @@ function markdownToBlogHtml(content, { wrapPromptBlocks }) {
   return typeof raw === 'string' ? raw : ''
 }
 
+function renderSiteNav() {
+  return `<header style="background:#fff;border-bottom:1px solid #e4e4e7;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;font-family:sans-serif;">
+  <a href="/" style="font-weight:900;font-size:18px;color:#111827;text-decoration:none;letter-spacing:-0.5px;">AI Image Prompts</a>
+  <nav style="display:flex;gap:20px;align-items:center;">
+    <a href="/explore" style="color:#52525b;text-decoration:none;font-size:14px;font-weight:500;">Explore</a>
+    <a href="/blog" style="color:#52525b;text-decoration:none;font-size:14px;font-weight:500;">Blog</a>
+    <a href="/submit" style="color:#52525b;text-decoration:none;font-size:14px;font-weight:500;">Submit a Prompt</a>
+    <a href="/about" style="color:#52525b;text-decoration:none;font-size:14px;font-weight:500;">About</a>
+  </nav>
+</header>`
+}
+
+function renderSiteFooter() {
+  return `<footer style="background:#111827;color:#9ca3af;padding:40px 24px;font-family:sans-serif;font-size:14px;margin-top:80px;">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div style="display:flex;flex-wrap:wrap;gap:40px;margin-bottom:32px;">
+      <div style="min-width:200px;">
+        <p style="color:#fff;font-weight:900;font-size:16px;margin:0 0 10px;">AI Image Prompts</p>
+        <p style="margin:0;max-width:260px;line-height:1.6;">A curated library of AI image prompts for Midjourney, DALL·E, Stable Diffusion, and Flux.</p>
+      </div>
+      <div>
+        <p style="color:#fff;font-weight:600;margin:0 0 10px;">Explore</p>
+        <ul style="list-style:none;padding:0;margin:0;line-height:2.2;">
+          <li><a href="/explore" style="color:#9ca3af;text-decoration:none;">Browse All Prompts</a></li>
+          <li><a href="/categories/portrait" style="color:#9ca3af;text-decoration:none;">Portrait Prompts</a></li>
+          <li><a href="/categories/photography" style="color:#9ca3af;text-decoration:none;">Photography Prompts</a></li>
+          <li><a href="/categories/fantasy-art" style="color:#9ca3af;text-decoration:none;">Fantasy Art Prompts</a></li>
+          <li><a href="/submit" style="color:#9ca3af;text-decoration:none;">Submit a Prompt</a></li>
+        </ul>
+      </div>
+      <div>
+        <p style="color:#fff;font-weight:600;margin:0 0 10px;">Blog</p>
+        <ul style="list-style:none;padding:0;margin:0;line-height:2.2;">
+          <li><a href="/blog" style="color:#9ca3af;text-decoration:none;">All Posts</a></li>
+          <li><a href="/blog/best-midjourney-prompts" style="color:#9ca3af;text-decoration:none;">Best Midjourney Prompts</a></li>
+          <li><a href="/blog/ai-photo-prompts" style="color:#9ca3af;text-decoration:none;">AI Photo Prompts</a></li>
+          <li><a href="/blog/text-to-image-prompt-formulas" style="color:#9ca3af;text-decoration:none;">Prompt Formulas</a></li>
+          <li><a href="/blog/image-prompts-guide" style="color:#9ca3af;text-decoration:none;">Image Prompts Guide</a></li>
+        </ul>
+      </div>
+      <div>
+        <p style="color:#fff;font-weight:600;margin:0 0 10px;">Company</p>
+        <ul style="list-style:none;padding:0;margin:0;line-height:2.2;">
+          <li><a href="/about" style="color:#9ca3af;text-decoration:none;">About</a></li>
+          <li><a href="/faq" style="color:#9ca3af;text-decoration:none;">FAQ</a></li>
+          <li><a href="/contact" style="color:#9ca3af;text-decoration:none;">Contact</a></li>
+          <li><a href="/terms" style="color:#9ca3af;text-decoration:none;">Terms</a></li>
+          <li><a href="/privacy" style="color:#9ca3af;text-decoration:none;">Privacy</a></li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin:0;border-top:1px solid #374151;padding-top:24px;">© ${new Date().getFullYear()} AI Image Prompts · <a href="/terms" style="color:#9ca3af;text-decoration:none;">Terms</a> · <a href="/privacy" style="color:#9ca3af;text-decoration:none;">Privacy</a></p>
+  </div>
+</footer>`
+}
+
 function stripHtml(html) {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
 }
@@ -172,22 +228,23 @@ function injectHtmlShell(indexHtml, payload) {
     output = output.replace('</head>', `${canonicalTag}${ogTags}${twitterTags}${jsonLdTag}</head>`)
   }
 
-  output = output.replace('<div id="root"></div>', `<div id="root">${payload.body}</div>`)
+  output = output.replace('<div id="root"></div>', `<div id="root">${renderSiteNav()}${payload.body}${renderSiteFooter()}</div>`)
   return output
 }
 
 function renderBlogList(posts) {
   const cards = posts.map((post) => `
-    <article style="border:1px solid #e4e4e7;border-radius:16px;padding:20px;margin-bottom:20px;background:#fff;">
+    <article style="border:1px solid #e4e4e7;border-radius:16px;padding:24px;margin-bottom:20px;background:#fff;">
       <p style="margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;">${escapeHtml(post.category)} • ${escapeHtml(post.date)}</p>
-      <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;"><a href="/blog/${escapeHtml(post.slug)}" style="color:#111827;text-decoration:none;">${escapeHtml(post.title)}</a></h2>
+      <h2 style="margin:0 0 12px;font-size:24px;line-height:1.2;font-weight:700;"><a href="/blog/${escapeHtml(post.slug)}" style="color:#111827;text-decoration:none;">${escapeHtml(post.title)}</a></h2>
       <p style="margin:0;color:#52525b;line-height:1.6;">${escapeHtml(post.excerpt)}</p>
     </article>
   `).join('')
 
   return `
-    <main style="max-width:840px;margin:0 auto;padding:64px 24px;background:#fdfdfd;">
-      <h1 style="font-size:48px;line-height:1.05;margin:0 0 24px;">Insights & Techniques</h1>
+    <main style="max-width:840px;margin:0 auto;padding:64px 24px;font-family:sans-serif;">
+      <h1 style="font-size:48px;line-height:1.05;margin:0 0 8px;font-weight:900;font-family:sans-serif;">AI Image Prompts Blog</h1>
+      <p style="font-size:18px;color:#52525b;margin:0 0 40px;line-height:1.6;">Guides, techniques, and prompt formulas for Midjourney, DALL·E, Stable Diffusion, and Flux.</p>
       ${cards}
     </main>
   `
@@ -195,12 +252,20 @@ function renderBlogList(posts) {
 
 function renderBlogPost(post) {
   return `
-    <main style="max-width:840px;margin:0 auto;padding:64px 24px;background:#fdfdfd;">
+    <main style="max-width:840px;margin:0 auto;padding:64px 24px;font-family:sans-serif;">
       <p style="margin:0 0 12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;">${escapeHtml(post.category)} • ${escapeHtml(post.date)}</p>
-      <h1 style="font-size:52px;line-height:1.05;margin:0 0 12px;">${escapeHtml(post.title)}</h1>
-      <p style="margin:0 0 32px;color:#52525b;">By ${escapeHtml(post.author)} • ${escapeHtml(post.readTime)}</p>
-      ${post.excerpt ? `<p style="font-size:22px;line-height:1.5;color:#18181b;border-left:4px solid #FFDE1A;padding-left:16px;margin:0 0 32px;">${escapeHtml(post.excerpt)}</p>` : ''}
-      <article style="font-size:18px;line-height:1.8;color:#3f3f46;">${post.content}</article>
+      <h1 style="font-size:48px;line-height:1.05;margin:0 0 12px;font-weight:900;">${escapeHtml(post.title)}</h1>
+      <p style="margin:0 0 32px;color:#52525b;font-size:15px;">By ${escapeHtml(post.author)} · ${escapeHtml(post.readTime)}</p>
+      ${post.excerpt ? `<p style="font-size:20px;line-height:1.6;color:#18181b;border-left:4px solid #FFDE1A;padding-left:20px;margin:0 0 40px;">${escapeHtml(post.excerpt)}</p>` : ''}
+      <article style="font-size:17px;line-height:1.8;color:#3f3f46;">${post.content}</article>
+      <div style="margin-top:48px;padding:24px;background:#f4f4f5;border-radius:12px;">
+        <p style="margin:0 0 8px;font-weight:700;font-size:15px;">Explore more AI image prompts</p>
+        <ul style="margin:0;padding-left:20px;line-height:2;">
+          <li><a href="/explore" style="color:#2563eb;">Browse 1,000+ prompts by category</a></li>
+          <li><a href="/blog" style="color:#2563eb;">Read more guides and tutorials</a></li>
+          <li><a href="/submit" style="color:#2563eb;">Submit your own prompts</a></li>
+        </ul>
+      </div>
     </main>
   `
 }

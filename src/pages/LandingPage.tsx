@@ -10,6 +10,7 @@ const SEOContentSection = lazy(() => import('../components/landing/SEOContentSec
 const SubmitPromptSection = lazy(() => import('../components/landing/SubmitPromptSection').then(m => ({ default: m.SubmitPromptSection })));
 const TestimonialsSection = lazy(() => import('../components/landing/TestimonialsSection').then(m => ({ default: m.TestimonialsSection })));
 const BadgesSection = lazy(() => import('../components/landing/BadgesSection').then(m => ({ default: m.BadgesSection })));
+const InternalLinksSection = lazy(() => import('../components/landing/InternalLinksSection').then(m => ({ default: m.InternalLinksSection })));
 
 const Footer = lazy(() => import('../components/landing/Footer').then(m => ({ default: m.Footer })));
 
@@ -89,6 +90,7 @@ const LandingPage = () => {
         <FeaturedPrompts />
         <SEOContentSection />
         <SubmitPromptSection />
+        <InternalLinksSection />
         <TestimonialsSection />
         <BadgesSection />
 

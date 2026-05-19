@@ -30,6 +30,7 @@ const AuthPage = lazy(() => import('./pages/AuthPage'))
 const BlogPage = lazy(() => import('./pages/BlogPage'))
 const BlogPostPage = lazy(() => import('./pages/BlogPostPage'))
 const PromptPage = lazy(() => import('./pages/PromptPage'))
+const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
 const PromptsPage = lazy(() => import('./pages/admin/PromptsPage'))
@@ -106,6 +107,7 @@ function App() {
           <Route path="/blog" element={<ErrorBoundary><BlogPage /></ErrorBoundary>} />
           <Route path="/blog/:slug" element={<ErrorBoundary><BlogPostPage /></ErrorBoundary>} />
           <Route path="/prompt/:slug" element={<ErrorBoundary><PromptPage /></ErrorBoundary>} />
+          <Route path="/categories/:slug" element={<ErrorBoundary><CategoryPage /></ErrorBoundary>} />
 
           {/* Unified Auth Route - wildcard to catch Clerk sub-routes like /auth/verify-email-address */}
           <Route path="/auth/*" element={<AuthPage />} />

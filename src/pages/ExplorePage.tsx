@@ -17,6 +17,7 @@ import { getPublicSiteOrigin } from '@/config/site'
 import { updateMetaTags, upsertJsonLd, removeJsonLd } from '@/lib/seo'
 import { fetchUniqueCategories, fetchPopularTags } from '@/lib/services/categories'
 import { getAspectRatioClass } from '@/lib/utils'
+import { ExplorePageSEOFooter } from '@/components/explore/ExplorePageSEOFooter'
 
 // Social Media Icon Components
 const XIcon = ({ className }: { className?: string }) => (
@@ -1307,6 +1308,9 @@ export default function ExplorePage() {
               )}
             </div>
           </div>
+
+          {/* SEO Authority Content — Intro, Categories, FAQ */}
+          <ExplorePageSEOFooter />
 
         </div>
       </main>

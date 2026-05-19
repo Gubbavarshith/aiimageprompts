@@ -232,12 +232,12 @@ function buildCategoryEntries(prompts, today) {
   }
 
   return [...categories].sort((a, b) => a.localeCompare(b)).map(category => {
-    const query = new URLSearchParams({ category })
+    const slug = normalizeSlug(category)
     return {
-      url: `${base}/explore?${query.toString()}`,
+      url: `${base}/categories/${slug}`,
       lastmod: today,
       changefreq: 'weekly',
-      priority: '0.65',
+      priority: '0.7',
     }
   })
 }
