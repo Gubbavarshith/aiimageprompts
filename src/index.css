@@ -5,6 +5,15 @@
 @tailwind utilities;
 
 @layer base {
+  /* Global safety net: decorative blur/glow elements are intentionally wider
+     than the viewport. `overflow-x: clip` stops them from creating horizontal
+     scroll on mobile WITHOUT breaking position: sticky (unlike overflow-x:hidden). */
+  html,
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
   :root {
     --brand-yellow: #FFDE1A;
     --brand-yellow-hover: #F8BE00;

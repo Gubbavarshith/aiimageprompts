@@ -125,11 +125,27 @@ cost** (the bill that explodes when you go viral).
 - A7.3 — DB backups confirmed + a staging/preview Supabase branch for migrations.
 - A7.4 — Rate limiting on writes (ratings, contact, submissions) to stop abuse at scale.
 
-### A8. Core Web Vitals performance pass — ⏳ TODO
-- A8.1 — Audit LCP on landing + explore (hero/3D/Framer/GSAP are heavy — lazy/defer).
-- A8.2 — Reduce main bundle (the 3D `@react-three` libs are large; code-split or drop on mobile).
-- A8.3 — Image `width/height` + `loading`/`fetchpriority` correctness to protect CLS/LCP.
-- A8.4 — Target field CWV: LCP < 2.5s, INP < 200ms, CLS < 0.1.
+### A8. Core Web Vitals performance pass — ⚙️ IN PROGRESS (safe wins done 2026-06-18)
+- ✅ A8.1 — Audited LCP path: landing already defers the canvas hero animation
+  until after LCP and lazy-loads all below-the-fold sections; LCP element is plain
+  text (no blocking image). Good baseline.
+- ✅ A8.3 — Added `width/height` + `decoding=async` to hero avatars (CLS), and
+  preconnect/dns-prefetch to the Supabase domain (first API call + all prompt
+  images) and `api.dicebear.com`. Pure speed/stability wins, no visual change.
+- 🔵 A8.2 — `@react-three`/three.js are in package.json but **not actually imported**
+  anywhere, so they're not in the bundle. The 620 KB entry chunk is React + Router
+  + Clerk + framer-motion. Splitting it further needs manual chunking, which
+  CLAUDE.md flags as previously breaking — **deferred** (not safe to touch pre-promo).
+  Optional cleanup later: remove unused 3D deps from package.json.
+- ⏳ A8.4 — Measure real field CWV (LCP < 2.5s, INP < 200ms, CLS < 0.1) via
+  PageSpeed Insights / Search Console once promo traffic arrives.
+- ✅ A8.5 — **Mobile responsive fix (2026-06-18).** Verified every public page with
+  a headless browser at 390px and 360px widths. Found the home page overflowed
+  horizontally (495px on a 390px screen) — caused by decorative blur/glow divs
+  (e.g. `w-[600px]`) that weren't clipped, which made content look shifted/cut off.
+  Fixed globally with `html, body { overflow-x: clip; max-width: 100% }` in
+  `src/index.css` (clip is sticky-safe). Re-verified: **0 overflow on all pages at
+  both widths.** (Playwright added as a devDependency for ongoing visual QA.)
 
 ### A9. Security advisors cleanup — ⚙️ PARTIAL
 - ✅ SECURITY DEFINER function locked down (A1).
