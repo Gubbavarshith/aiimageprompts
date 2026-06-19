@@ -78,15 +78,16 @@ we send it traffic. Several A-items are already done from the debugging session.
 - ✅ Added error + Retry UI on Explore.
 - ✅ Revoked public EXECUTE on `set_updated_at` SECURITY DEFINER function.
 
-### A2. Database indexes for the hot paths — ⏳ TODO (do this first, 5 min)
-**Why:** `prompts` currently has indexes only on `id` and `user_id`. Every public
-query runs `WHERE status='Published' ORDER BY created_at` as a **full table scan +
-sort**. Invisible at 131 rows, a real bottleneck at 10k+ under traffic.
-- A2.1 — btree index on `(status, created_at DESC)` (the main Explore/feed query).
-- A2.2 — btree index on `(status, category, created_at DESC)` (category pages).
-- A2.3 — **GIN index on `tags`** (array containment for tag filtering).
-- A2.4 — consider `pg_trgm` GIN index on `title`/`prompt` for search (see A4).
-- A2.5 — index `prompt_ratings(prompt_id)`, `prompt_discovery_events` hot columns.
+### A2. Database indexes for the hot paths — ✅ DONE (2026-06-18)
+**Why:** `prompts` previously had indexes only on `id` and `user_id`. Every public
+query ran `WHERE status='Published' ORDER BY created_at` as a **full table scan +
+sort** — invisible at 131 rows, a real bottleneck at 10k+ under traffic.
+Applied via migration `add_prompts_hot_path_indexes`:
+- ✅ A2.1 — btree `idx_prompts_status_created` on `(status, created_at DESC)` (main Explore/feed query).
+- ✅ A2.2 — btree `idx_prompts_status_category_created` on `(status, category, created_at DESC)` (category pages).
+- ✅ A2.3 — GIN `idx_prompts_tags_gin` on `tags` (array containment for tag filtering).
+- 🔵 A2.4 — `pg_trgm` GIN index on `title`/`prompt` for search → **deferred to A4** (build with the search feature).
+- ✅ A2.5 — Not needed: `prompt_ratings` already covered by its composite `(prompt_id, …)` unique indexes, and `prompt_discovery_events` already has `prompt_id`/`created_at`/`source`/`from_prompt_id` indexes.
 
 ### A3. Server-side pagination & filtering on Explore — ⏳ TODO (highest scaling value)
 **Why:** the page downloads ALL prompts to the browser and filters in JS. Fine at

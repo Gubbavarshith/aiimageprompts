@@ -47,8 +47,12 @@
     <!-- Performance: Preconnect to external domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
+    <!-- Supabase: API + prompt images all come from here; warm the connection early -->
+    <link rel="preconnect" href="https://hfncjkqzflreyfxvobxx.supabase.co" crossorigin />
+
     <!-- DNS Prefetch for external resources -->
+    <link rel="dns-prefetch" href="https://hfncjkqzflreyfxvobxx.supabase.co" />
+    <link rel="dns-prefetch" href="https://api.dicebear.com" />
     <link rel="dns-prefetch" href="https://img.buymeacoffee.com" />
     
     <!-- Critical fonts preload - only what's needed for LCP -->

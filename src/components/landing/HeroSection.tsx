@@ -223,6 +223,9 @@ export const HeroSection = () => {
                   <img
                     src={`https://api.dicebear.com/9.x/micah/svg?seed=${i + 15}`}
                     alt={`Community Member ${i}`}
+                    width="32"
+                    height="32"
+                    decoding="async"
                     className="w-full h-full object-cover scale-110"
                   />
                 </div>
