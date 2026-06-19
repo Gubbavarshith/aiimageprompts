@@ -205,9 +205,13 @@ mass content so new pages are born optimized.
 - B3.6 — Pretty URLs: migrate `/explore?category=x` → `/category/x` for cleaner SEO
   (with redirects).
 
-### B4. Internal linking architecture (hub-and-spoke) — ⏳ TODO
+### B4. Internal linking architecture (hub-and-spoke) — ⚙️ IN PROGRESS
 - B4.1 — Pillar pages link to all cluster pages and vice-versa.
-- B4.2 — Prompt pages link to their category + related prompts + relevant blog posts.
+- ✅ B4.2 — Prompt pages now link to their **category (clean `/categories/:slug` URL)**,
+  **6 related prompts in the same category** (grid with thumbnails), and relevant blog
+  posts (2026-06-18). Also added a visible **breadcrumb** (Home › Explore › Category ›
+  Prompt) + **BreadcrumbList JSON-LD** schema. This ends the prompt-page dead-ends so
+  crawlers and link equity flow between prompts. See `scripts/ssg/renderers/prompts.mjs`.
 - B4.3 — Blog posts link to relevant prompts/categories (content → product).
 - B4.4 — Automated "related" modules to spread link equity and crawl depth.
 

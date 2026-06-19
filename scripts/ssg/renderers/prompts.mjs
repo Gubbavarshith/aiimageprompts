@@ -3,8 +3,9 @@ import { join } from 'node:path'
 import { esc, generateSlug, injectIntoShell, SITE } from '../core/html.mjs'
 import { writeBatch } from '../core/engine.mjs'
 
-function renderPromptBody(prompt) {
-  const catParam = encodeURIComponent(prompt.category || '')
+function renderPromptBody(prompt, related = []) {
+  const catSlug = prompt.category ? generateSlug(prompt.category) : ''
+  const catUrl = prompt.category ? `/categories/${catSlug}` : '/explore'
   const tags = Array.isArray(prompt.tags) ? prompt.tags : []
   const tagHtml = tags.length
     ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;">
@@ -19,10 +20,11 @@ function renderPromptBody(prompt) {
     : ''
 
   return `<main style="max-width:900px;margin:0 auto;padding:40px 24px 64px;font-family:sans-serif;">
-  <p style="margin:0 0 12px;font-size:13px;">
-    <a href="/explore" style="color:#2563eb;text-decoration:none;">Explore</a>
-    ${prompt.category ? ` › <a href="/explore?category=${catParam}" style="color:#2563eb;text-decoration:none;">${esc(prompt.category)}</a>` : ''}
-  </p>
+  <nav aria-label="Breadcrumb" style="margin:0 0 12px;font-size:13px;">
+    <a href="/" style="color:#2563eb;text-decoration:none;">Home</a>
+    › <a href="/explore" style="color:#2563eb;text-decoration:none;">Explore</a>
+    ${prompt.category ? ` › <a href="${catUrl}" style="color:#2563eb;text-decoration:none;">${esc(prompt.category)}</a>` : ''}
+  </nav>
 
   <h1 style="font-size:36px;font-weight:900;margin:0 0 16px;line-height:1.15;letter-spacing:-0.5px;">${esc(prompt.title)}</h1>
 
@@ -47,10 +49,22 @@ function renderPromptBody(prompt) {
     </ol>
   </section>
 
+  ${related.length ? `<section style="margin-bottom:40px;">
+    <h2 style="font-size:20px;font-weight:700;margin:0 0 16px;">Related ${esc(prompt.category || 'AI image')} prompts</h2>
+    <ul style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">
+      ${related.map((r) => `<li style="border:1px solid #e4e4e7;border-radius:10px;overflow:hidden;">
+        <a href="/prompt/${generateSlug(r.title)}" style="display:block;text-decoration:none;color:#111;">
+          ${r.preview_image_url ? `<img src="${esc(r.preview_image_url)}" alt="${esc(r.title)} — AI image prompt" loading="lazy" style="width:100%;height:140px;object-fit:cover;display:block;background:#f4f4f5;" />` : ''}
+          <span style="display:block;padding:10px 12px;font-size:14px;font-weight:600;line-height:1.35;">${esc(r.title)}</span>
+        </a>
+      </li>`).join('\n      ')}
+    </ul>
+  </section>` : ''}
+
   <div style="padding:24px;background:#f4f4f5;border-radius:12px;margin-bottom:40px;">
     <p style="font-size:16px;font-weight:700;margin:0 0 8px;">Explore more ${esc(prompt.category || 'AI image')} prompts</p>
     <ul style="margin:0;padding-left:20px;line-height:2;font-size:15px;">
-      <li><a href="/explore${prompt.category ? `?category=${catParam}` : ''}" style="color:#2563eb;">Browse all ${esc(prompt.category || '')} prompts</a></li>
+      <li><a href="${catUrl}" style="color:#2563eb;">Browse all ${esc(prompt.category || 'AI image')} prompts</a></li>
       <li><a href="/blog/best-midjourney-prompts" style="color:#2563eb;">Best Midjourney prompt templates</a></li>
       <li><a href="/blog/text-to-image-prompt-formulas" style="color:#2563eb;">Text-to-image prompt formulas</a></li>
       <li><a href="/submit" style="color:#2563eb;">Submit your own prompt</a></li>
@@ -76,6 +90,14 @@ export async function renderPrompts({ distDir, indexHtml, prompts }) {
     return true
   })
 
+  // Group prompts by category so each page can link to related prompts.
+  const byCategory = new Map()
+  for (const p of validPrompts) {
+    const key = p.category || ''
+    if (!byCategory.has(key)) byCategory.set(key, [])
+    byCategory.get(key).push(p)
+  }
+
   let count = 0
 
   await writeBatch(validPrompts, 20, async (p) => {
@@ -85,7 +107,14 @@ export async function renderPrompts({ distDir, indexHtml, prompts }) {
     const promptSnippet = String(p.prompt).slice(0, 155)
     const description = `${promptSnippet}${p.prompt.length > 155 ? '…' : ''}`
 
-    const jsonLd = {
+    // Up to 6 other prompts in the same category, for internal linking.
+    const related = (byCategory.get(p.category || '') || [])
+      .filter((r) => r.title !== p.title)
+      .slice(0, 6)
+
+    const catSlug = p.category ? generateSlug(p.category) : ''
+
+    const creativeWork = {
       '@context': 'https://schema.org',
       '@type': 'CreativeWork',
       name: p.title,
@@ -98,14 +127,27 @@ export async function renderPrompts({ distDir, indexHtml, prompts }) {
       provider: { '@type': 'Organization', name: 'AI Image Prompts', url: SITE },
     }
 
+    const breadcrumb = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: SITE },
+        { '@type': 'ListItem', position: 2, name: 'Explore', item: `${SITE}/explore` },
+        ...(p.category
+          ? [{ '@type': 'ListItem', position: 3, name: p.category, item: `${SITE}/categories/${catSlug}` }]
+          : []),
+        { '@type': 'ListItem', position: p.category ? 4 : 3, name: p.title, item: canonical },
+      ],
+    }
+
     const html = injectIntoShell(indexHtml, {
       title,
       description,
       canonical,
       ogType: 'article',
       image: p.preview_image_url || undefined,
-      jsonLd,
-      body: renderPromptBody(p),
+      jsonLd: [creativeWork, breadcrumb],
+      body: renderPromptBody(p, related),
     })
 
     const outDir = join(distDir, 'prompt', slug)
