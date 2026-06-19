@@ -98,15 +98,23 @@ export function injectIntoShell(indexHtml, { title, description, canonical, ogTy
     : ''
 
   let out = indexHtml
+
+  // Strip the base template's SEO tags so we never end up with duplicates
+  // (e.g. two <link rel="canonical">, or homepage og:title on a prompt page).
+  // The base index.html owns the homepage values; per-page values replace them.
+  out = out
+    .replace(/<link\s+rel="canonical"[^>]*>/gi, '')
+    .replace(/<meta\s+property="og:[^"]*"[^>]*>/gi, '')
+    .replace(/<meta\s+name="twitter:[^"]*"[^>]*>/gi, '')
+    .replace(/<meta\s+name="description"[^>]*>/gi, '')
+
+  // Replace the <title>, then inject one clean set of per-page SEO tags.
   out = out.replace(/<title>[\s\S]*?<\/title>/i, titleTag)
-  if (/<meta name="description"[^>]*>/i.test(out)) {
-    out = out.replace(/<meta name="description"[^>]*>/i, descTag)
-  } else {
-    out = out.replace('</head>', `${descTag}${canonTag}${ogTags}${twitterTags}${jsonLdTag}</head>`)
-  }
-  if (!out.includes(canonTag)) {
-    out = out.replace('</head>', `${canonTag}${ogTags}${twitterTags}${jsonLdTag}</head>`)
-  }
+  out = out.replace(
+    '</head>',
+    `${descTag}${canonTag}${ogTags}${twitterTags}${jsonLdTag}</head>`,
+  )
+
   out = out.replace('<div id="root"></div>', `<div id="root">${nav()}${body}${footer()}</div>`)
   return out
 }

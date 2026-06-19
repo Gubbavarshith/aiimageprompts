@@ -167,9 +167,19 @@ mass content so new pages are born optimized.
 - B1.1 — Dynamic, always-fresh sitemaps (prompts, categories, tags, blog) — already
   generated at build; ensure they regenerate on new content + ping IndexNow.
 - B1.2 — Wire up **IndexNow** fully (key exists) so new/updated URLs are submitted instantly.
-- B1.3 — `robots.txt` + canonical audit: one canonical per page, no duplicate/param bloat
-  (the `?category=`, `?tag=`, `?q=` URLs need correct canonical/noindex rules — partly
-  done in `buildExploreSeoState`, verify at scale).
+- ✅ B1.3a — **Canonical/OG duplication fixed (2026-06-18).** The SSG was *appending*
+  per-page canonical + OG/Twitter tags without removing the base template's homepage
+  ones, so **all 188 prerendered pages had two `<link rel="canonical">` (homepage +
+  correct) and duplicate `og:title`/`og:description`**. Risk: Google picks the homepage
+  canonical → prompt/category/blog pages never get indexed individually (would have
+  sabotaged the whole programmatic-SEO plan); social shares could show the homepage
+  title. Fixed `injectIntoShell` in `scripts/ssg/core/html.mjs` to strip the template's
+  SEO tags before injecting a single clean set. Verified: 0/188 pages with a wrong
+  canonical count; OG titles are page-specific.
+- B1.3b — Remaining: confirm `?category=`/`?tag=`/`?q=` URL canonical/noindex rules at
+  scale (partly handled in `buildExploreSeoState`).
+- B1.3 — robots.txt verified: crawlable, sensible disallows (admin/auth/saved/api), all 5
+  sitemaps referenced. ✅
 - B1.4 — Google Search Console + Bing Webmaster set up, sitemaps submitted, coverage monitored.
 
 ### B2. Structured data / schema at scale — ⏳ TODO
