@@ -20,6 +20,7 @@ import { readBlogPosts, renderBlog, writeBlogManifest } from './renderers/blog.m
 import { renderStaticPages } from './renderers/static.mjs'
 import { renderPrompts } from './renderers/prompts.mjs'
 import { renderCategories } from './renderers/categories.mjs'
+import { generateLlmsTxt } from './renderers/llms.mjs'
 import { generateSitemaps } from './sitemap.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -91,6 +92,9 @@ async function main() {
     prompts: allPrompts,
     blogPosts,
   })
+
+  // 8. Generate llms.txt from live data (canonical category/blog URLs, always fresh)
+  await generateLlmsTxt({ publicDir, distDir, prompts: allPrompts, blogPosts })
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
   console.log(`\n[ssg] Build complete in ${elapsed}s.`)

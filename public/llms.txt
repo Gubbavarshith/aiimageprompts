@@ -1,11 +1,11 @@
 # AI Image Prompts — llms.txt
 # https://www.aiimageprompts.xyz
 
-> AI Image Prompts is a curated library of high-quality AI image generation prompts for tools like Midjourney, DALL-E, Stable Diffusion, and more. Better Prompts, Better Art.
+> AI Image Prompts is a curated library of high-quality AI image generation prompts for tools like Midjourney, DALL-E, Stable Diffusion, and Flux. Better Prompts, Better Art.
 
 ## About
 
-AI Image Prompts helps creators discover, copy, and remix thousands of pro-level prompts across categories including portraits, anime, logos, UI/UX design, cinematic scenes, photography, and more. Each prompt includes preview images, tags, category labels, and aspect ratio metadata.
+AI Image Prompts helps creators discover, copy, and remix 131+ pro-level prompts across 24 categories. Each prompt includes a preview image, tags, a category label, and aspect-ratio metadata.
 
 ## Explore Prompts
 
@@ -13,26 +13,59 @@ Browse all prompts: https://www.aiimageprompts.xyz/explore
 
 ## Categories
 
-- Portraits: https://www.aiimageprompts.xyz/explore?category=Portraits
-- Anime: https://www.aiimageprompts.xyz/explore?category=Anime
-- Logos: https://www.aiimageprompts.xyz/explore?category=Logos
-- Cinematic: https://www.aiimageprompts.xyz/explore?category=Cinematic
-- Photography: https://www.aiimageprompts.xyz/explore?category=Photography
-- UI/UX: https://www.aiimageprompts.xyz/explore?category=UI%2FUX
-- Abstract: https://www.aiimageprompts.xyz/explore?category=Abstract
-- Nature: https://www.aiimageprompts.xyz/explore?category=Nature
-- Fashion: https://www.aiimageprompts.xyz/explore?category=Fashion
-- Architecture: https://www.aiimageprompts.xyz/explore?category=Architecture
+- Portrait (29 prompts): https://www.aiimageprompts.xyz/categories/portrait
+- Photography (25 prompts): https://www.aiimageprompts.xyz/categories/photography
+- Product Marketing (18 prompts): https://www.aiimageprompts.xyz/categories/product-marketing
+- Fantasy Art (11 prompts): https://www.aiimageprompts.xyz/categories/fantasy-art
+- Poster (11 prompts): https://www.aiimageprompts.xyz/categories/poster
+- Product Photography (9 prompts): https://www.aiimageprompts.xyz/categories/product-photography
+- Fashion portrait (8 prompts): https://www.aiimageprompts.xyz/categories/fashion-portrait
+- Pixel Art (3 prompts): https://www.aiimageprompts.xyz/categories/pixel-art
+- Chibi (2 prompts): https://www.aiimageprompts.xyz/categories/chibi
+- 3D Graphics (1 prompts): https://www.aiimageprompts.xyz/categories/3d-graphics
+- Accidental Selfie (1 prompts): https://www.aiimageprompts.xyz/categories/accidental-selfie
+- Ad (1 prompts): https://www.aiimageprompts.xyz/categories/ad
+- Animals portrait (1 prompts): https://www.aiimageprompts.xyz/categories/animals-portrait
+- Capsule (1 prompts): https://www.aiimageprompts.xyz/categories/capsule
+- Coloring Page (1 prompts): https://www.aiimageprompts.xyz/categories/coloring-page
+- Conceptual Portrait (1 prompts): https://www.aiimageprompts.xyz/categories/conceptual-portrait
+- Crafts (1 prompts): https://www.aiimageprompts.xyz/categories/crafts
+- Gaming (1 prompts): https://www.aiimageprompts.xyz/categories/gaming
+- Graphics (1 prompts): https://www.aiimageprompts.xyz/categories/graphics
+- Home Decor (1 prompts): https://www.aiimageprompts.xyz/categories/home-decor
+- Interior Design (1 prompts): https://www.aiimageprompts.xyz/categories/interior-design
+- Lifestyle (1 prompts): https://www.aiimageprompts.xyz/categories/lifestyle
+- UI/UX Design (1 prompts): https://www.aiimageprompts.xyz/categories/uiux-design
+- Web Development (1 prompts): https://www.aiimageprompts.xyz/categories/web-development
 
 ## Blog
 
-Weekly articles on AI art techniques, prompt engineering tips, and creative workflows:
-https://www.aiimageprompts.xyz/blog
+Guides on AI art techniques, prompt engineering, and creative workflows: https://www.aiimageprompts.xyz/blog
+
+- 50+ Best AI Photo Prompts for Ultra-Realistic Results (2026 Guide): https://www.aiimageprompts.xyz/blog/ai-photo-prompt-realistic-guide-2026
+- Weekly AI Visual News: Grok Imagine API, Deepfake Headlines, and Creator Tools (May 3–10, 2026): https://www.aiimageprompts.xyz/blog/weekly-ai-visual-news-may-3-10-2026
+- AI Image Generation Tools: What to Use for Prompt-First Workflows: https://www.aiimageprompts.xyz/blog/ai-image-generation-tools
+- AI Images Prompt Examples for Social, Product, and Portrait Uses: https://www.aiimageprompts.xyz/blog/ai-images-prompt-examples
+- AI Photo Ideas: 100 Prompt Starters by Mood and Style: https://www.aiimageprompts.xyz/blog/ai-photo-ideas
+- AI Prompt Free Library: Best Free Prompts by Category: https://www.aiimageprompts.xyz/blog/ai-prompt-free-library
+- AI Prompt From Image: Convert Reference Photos Into Better Prompts: https://www.aiimageprompts.xyz/blog/ai-prompt-from-image
+- Best Midjourney Prompts for Portraits, Products, and Cinematic Shots: https://www.aiimageprompts.xyz/blog/best-midjourney-prompts
+- Daily AI Image News: Veo 4 Rumors, Vidu Q3 Smart Cuts, Seedance 2, and Prompt Safety: https://www.aiimageprompts.xyz/blog/daily-ai-image-news-may-9-2026
+- Generate Image From Prompt: Why Some Prompts Fail: https://www.aiimageprompts.xyz/blog/generate-image-from-prompt
+- Image Prompts Guide: How to Write Better Text-to-Image Prompts: https://www.aiimageprompts.xyz/blog/image-prompts-guide
+- Image to Prompt AI: Reverse-Engineer Any Image Style: https://www.aiimageprompts.xyz/blog/image-to-prompt-ai
+- Midjourney Illustration Prompts for Editorial and Brand Visuals: https://www.aiimageprompts.xyz/blog/midjourney-illustration-prompts
+- Prompt Image AI: How to Structure Subject, Style, Lighting, and Lens: https://www.aiimageprompts.xyz/blog/prompt-image-ai-structure
+- Prompt Safety Checklist for Commercial Work: IP, Likeness, and Verification: https://www.aiimageprompts.xyz/blog/prompt-safety-checklist-ip-likeness-verification
+- Prompt to Image AI Free: Formats That Work in 2026: https://www.aiimageprompts.xyz/blog/prompt-to-image-ai-free
+- Shot-Direction Prompting in 2026: Lighting, Lens, Motion, and Negatives: https://www.aiimageprompts.xyz/blog/shot-direction-prompting-2026-lighting-lens-motion
+- Text to Image Prompt Formulas With 50 Ready Examples: https://www.aiimageprompts.xyz/blog/text-to-image-prompt-formulas
+- AI Photo Prompts: 35 Copy-Paste Ideas for Realistic Images: https://www.aiimageprompts.xyz/blog/ai-photo-prompts
+- The Ultimate AI Image Prompts Library for 2026: Master Midjourney v6 & DALL-E 3: https://www.aiimageprompts.xyz/blog/ultimate-ai-image-prompts-library-2026
 
 ## Submit Prompts
 
-Share your own prompts with the community:
-https://www.aiimageprompts.xyz/submit
+Share your own prompts with the community: https://www.aiimageprompts.xyz/submit
 
 ## Contact
 
@@ -40,4 +73,4 @@ Get in touch: https://www.aiimageprompts.xyz/contact
 
 ## Sitemap
 
-Full sitemap: https://www.aiimageprompts.xyz/sitemap.xml
+https://www.aiimageprompts.xyz/sitemap.xml

@@ -225,8 +225,13 @@ mass content so new pages are born optimized.
 - B5.2 — Auto-generated OG images per prompt/category (dynamic image endpoint).
 - B5.3 — Twitter/X cards, Pinterest-rich pins (visual platform = big for image prompts).
 
-### B6. GEO / AI-search optimization — ⏳ TODO
-- B6.1 — Keep `llms.txt` current; ensure key pages are AI-crawlable.
+### B6. GEO / AI-search optimization — ⚙️ IN PROGRESS
+- ✅ B6.1 — `llms.txt` is now **generated from live data** during the build
+  (`scripts/ssg/renderers/llms.mjs`, 2026-06-18). Before, it was static and listed
+  **fake categories** (Abstract/Nature/Fashion/Architecture that don't exist) pointing
+  to **non-canonical `/explore?category=` URLs**. Now it lists the 24 real categories
+  with clean `/categories/:slug` URLs + prompt counts, all 20 blog posts, and stays
+  fresh automatically. This gives ChatGPT/Perplexity/AI Overviews accurate info.
 - B6.2 — Structure content in citable passages (clear answers, definitions, lists).
 - B6.3 — Track brand mentions/citations in AI Overviews, ChatGPT, Perplexity (`/seo-geo`).
 
