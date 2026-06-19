@@ -186,7 +186,12 @@ mass content so new pages are born optimized.
 - B2.1 — `ImageObject` + `CreativeWork` schema on every prompt page.
 - B2.2 — `CollectionPage` + `ItemList` on Explore/category pages (partly present).
 - B2.3 — `BreadcrumbList` everywhere (present on Explore — extend site-wide).
-- B2.4 — `Article` + `Author`/`Organization` (E-E-A-T) on blog posts.
+- ✅ B2.4 — `Article` + `Person` author + `datePublished` schema confirmed on blog posts.
+  Also fixed (2026-06-18): blog posts had **two `<h1>`** (template title + a leading
+  markdown `#`) — in-content h1 is now demoted to h2 so each post has one h1; added
+  visible breadcrumb + BreadcrumbList schema (Home › Blog › Post). Verified across all
+  20 posts: 0 with h1≠1, 0 missing breadcrumb. Category pages already have
+  CollectionPage + BreadcrumbList and link to all their prompts (verified, no change needed).
 - B2.5 — `FAQPage` schema on pages with Q&A blocks.
 - B2.6 — Validate with `/seo-schema` and Rich Results Test.
 

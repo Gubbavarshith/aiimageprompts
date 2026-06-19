@@ -59,7 +59,10 @@ function markdownToBlogHtml(content, { wrapPromptBlocks }) {
     return innerHtml
   }
   const raw = marked.parse(content, { async: false, renderer })
-  return typeof raw === 'string' ? raw : ''
+  const html = typeof raw === 'string' ? raw : ''
+  // The post title is rendered as the page's single <h1>. Demote any in-content
+  // <h1> (from a leading "# " in the markdown) to <h2> so each page has one h1.
+  return html.replace(/<h1(\b[^>]*)>([\s\S]*?)<\/h1>/gi, '<h2$1>$2</h2>')
 }
 
 function stripHtml(html) {
@@ -139,6 +142,11 @@ function renderBlogList(posts) {
 function renderBlogPost(post) {
   return `
     <main style="max-width:840px;margin:0 auto;padding:64px 24px;font-family:sans-serif;">
+      <nav aria-label="Breadcrumb" style="margin:0 0 16px;font-size:13px;">
+        <a href="/" style="color:#2563eb;text-decoration:none;">Home</a>
+        › <a href="/blog" style="color:#2563eb;text-decoration:none;">Blog</a>
+        › <span style="color:#71717a;">${esc(post.title)}</span>
+      </nav>
       <p style="margin:0 0 12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;">${esc(post.category)} • ${esc(post.date)}</p>
       <h1 style="font-size:48px;line-height:1.05;margin:0 0 12px;font-weight:900;">${esc(post.title)}</h1>
       <p style="margin:0 0 32px;color:#52525b;font-size:15px;">By ${esc(post.author)} · ${esc(post.readTime)}</p>
@@ -185,19 +193,30 @@ export async function renderBlog({ distDir, indexHtml, posts }) {
       ogType: 'article',
       image: post.imageUrl || `${SITE}/og-image.png`,
       body: renderBlogPost(post),
-      jsonLd: {
-        '@context': 'https://schema.org',
-        '@type': 'Article',
-        headline: post.title,
-        datePublished: post.date,
-        dateModified: post.date,
-        author: { '@type': 'Person', name: post.author },
-        articleSection: post.category,
-        keywords: post.tags.join(', '),
-        image: post.imageUrl ? [post.imageUrl] : undefined,
-        description: seoDescription,
-        mainEntityOfPage: canonical,
-      },
+      jsonLd: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: post.title,
+          datePublished: post.date,
+          dateModified: post.date,
+          author: { '@type': 'Person', name: post.author },
+          articleSection: post.category,
+          keywords: post.tags.join(', '),
+          image: post.imageUrl ? [post.imageUrl] : undefined,
+          description: seoDescription,
+          mainEntityOfPage: canonical,
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: SITE },
+            { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE}/blog` },
+            { '@type': 'ListItem', position: 3, name: post.title, item: canonical },
+          ],
+        },
+      ],
     })
 
     await writeFile(join(outDir, 'index.html'), html, 'utf8')
