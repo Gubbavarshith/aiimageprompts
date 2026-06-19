@@ -132,11 +132,11 @@ cost** (the bill that explodes when you go viral).
 - ✅ A8.3 — Added `width/height` + `decoding=async` to hero avatars (CLS), and
   preconnect/dns-prefetch to the Supabase domain (first API call + all prompt
   images) and `api.dicebear.com`. Pure speed/stability wins, no visual change.
-- 🔵 A8.2 — `@react-three`/three.js are in package.json but **not actually imported**
-  anywhere, so they're not in the bundle. The 620 KB entry chunk is React + Router
-  + Clerk + framer-motion. Splitting it further needs manual chunking, which
-  CLAUDE.md flags as previously breaking — **deferred** (not safe to touch pre-promo).
-  Optional cleanup later: remove unused 3D deps from package.json.
+- ✅ A8.2 — Removed unused 3D deps (`three`, `@react-three/fiber`, `@react-three/drei`)
+  from package.json (2026-06-18). They were imported nowhere; removing them speeds up
+  Vercel installs/deploys and shrinks the dependency/security surface. Build verified
+  green afterward. (Further splitting the 620 KB entry chunk would need manual
+  chunking, which CLAUDE.md flags as previously breaking — left alone.)
 - ⏳ A8.4 — Measure real field CWV (LCP < 2.5s, INP < 200ms, CLS < 0.1) via
   PageSpeed Insights / Search Console once promo traffic arrives.
 - ✅ A8.5 — **Mobile responsive fix (2026-06-18).** Verified every public page with
