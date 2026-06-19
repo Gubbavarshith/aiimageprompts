@@ -72,8 +72,8 @@ function buildExploreSeoState(options: {
     params.set('category', categoryFilter)
     const label = titleCaseFilterLabel(categoryFilter)
     return {
-      title: `${label} AI Image Prompts | Better Prompts, Better Art`,
-      description: `Browse curated ${label.toLowerCase()} AI image prompts, prompt ideas, and reusable creative directions for Midjourney, DALL-E, and Stable Diffusion.`,
+      title: `${label} AI Photo Prompts & Image Prompts | AI Image Prompts`,
+      description: `Browse curated ${label.toLowerCase()} AI photo prompts and image prompts for Midjourney, DALL-E, Stable Diffusion, and Flux. Copy free AI prompts for stunning ${label.toLowerCase()} art.`,
       canonicalPath: `/explore?${params.toString()}`,
       robots: 'index,follow',
       filterLabel: label,
@@ -84,8 +84,8 @@ function buildExploreSeoState(options: {
     params.set('tag', tagFilter)
     const label = titleCaseFilterLabel(tagFilter)
     return {
-      title: `${label} AI Prompts | Better Prompts, Better Art`,
-      description: `Explore ${label.toLowerCase()} AI image prompts and copy-ready prompt examples for better text-to-image results.`,
+      title: `${label} AI Prompts — Free Image Prompts & Photo Prompts`,
+      description: `Explore ${label.toLowerCase()} AI photo prompts and copy-ready image prompt examples for better text-to-image and image-to-image AI results.`,
       canonicalPath: `/explore?${params.toString()}`,
       robots: 'index,follow',
       filterLabel: `#${tagFilter}`,
@@ -94,8 +94,8 @@ function buildExploreSeoState(options: {
 
   if (trimmedSearch) {
     return {
-      title: `Search AI Image Prompts | Better Prompts, Better Art`,
-      description: `Search the AI Image Prompts library for prompt ideas, styles, tags, and reusable text-to-image prompt examples.`,
+      title: `Search Free AI Photo Prompts & Image Prompts | AI Image Prompts`,
+      description: `Search the AI Image Prompts library for free AI photo prompts, image-to-image AI ideas, drawing ideas, painting styles, and reusable text-to-image prompt examples.`,
       canonicalPath: '/explore',
       robots: 'noindex,follow',
       filterLabel: 'Search results',
@@ -103,8 +103,8 @@ function buildExploreSeoState(options: {
   }
 
   return {
-    title: 'Explore AI Image Prompts Library | Better Prompts, Better Art',
-    description: 'Browse curated AI image prompts by style, category, and tags. Discover AI photo prompts, image prompts, and prompt ideas for Midjourney, DALL-E, and Stable Diffusion.',
+    title: 'Explore Free AI Photo Prompts & Image Prompts Library | AI Image Prompts',
+    description: 'Browse curated AI photo prompts by style, category, and tags. Discover free image prompts, drawing ideas, painting styles, and AI art inspiration for Midjourney, DALL-E, Stable Diffusion, and Flux.',
     canonicalPath: '/explore',
     robots: 'index,follow',
     filterLabel: 'All prompts',
@@ -360,6 +360,7 @@ export default function ExplorePage() {
   const navigate = useNavigate()
   const [prompts, setPrompts] = useState<PromptRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [categories, setCategories] = useState<string[]>([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
   const [popularTags, setPopularTags] = useState<Array<{ tag: string; count: number }>>([])
@@ -398,30 +399,35 @@ export default function ExplorePage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [displayedCount, setDisplayedCount] = useState(20) // Number of prompts to display initially
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const isLoadingMoreRef = useRef(false) // Guard against duplicate loads without re-running the observer effect
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const ITEMS_PER_PAGE = 20
 
-  useEffect(() => {
-    const loadPrompts = async () => {
-      // Check if Supabase is configured before attempting to fetch
-      if (!isSupabaseReady()) {
-        console.error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env.local')
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        // Fetch only published prompts
-        const data = await fetchPromptsByStatus('Published')
-        setPrompts(data)
-      } catch (err) {
-        console.error('Failed to load prompts:', err)
-        toast.error('Failed to load prompts. Please refresh the page and try again.')
-      } finally {
-        setIsLoading(false)
-      }
+  const loadPrompts = useCallback(async () => {
+    // Check if Supabase is configured before attempting to fetch
+    if (!isSupabaseReady()) {
+      console.error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY (or the host environment variables).')
+      setLoadError(true)
+      setIsLoading(false)
+      return
     }
 
+    setIsLoading(true)
+    setLoadError(false)
+    try {
+      // Fetch only published prompts
+      const data = await fetchPromptsByStatus('Published')
+      setPrompts(data)
+    } catch (err) {
+      console.error('Failed to load prompts:', err)
+      setLoadError(true)
+      toast.error('Failed to load prompts. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [toast])
+
+  useEffect(() => {
     const loadCategories = async () => {
       try {
         setIsLoadingCategories(true)
@@ -619,7 +625,9 @@ export default function ExplorePage() {
   // Reset displayed count when filters change
   useEffect(() => {
     setDisplayedCount(ITEMS_PER_PAGE)
-  }, [localSearchQuery, categoryFilter])
+    isLoadingMoreRef.current = false
+    setIsLoadingMore(false)
+  }, [localSearchQuery, categoryFilter, selectedTag])
 
   // Displayed prompts (for infinite scroll)
   const displayedPrompts = useMemo(() => {
@@ -628,28 +636,27 @@ export default function ExplorePage() {
 
   const hasMore = displayedCount < filteredPrompts.length
 
-  // Intersection Observer for infinite scroll - optimized with requestAnimationFrame
+  // Intersection Observer for infinite scroll.
+  // NOTE: `isLoadingMore` is intentionally NOT in the dependency array. Putting it
+  // there caused the effect to re-run the moment loading started, and its cleanup
+  // cancelled the pending "load next batch" work — leaving the spinner stuck forever.
+  // We guard against duplicate loads with a ref instead.
   useEffect(() => {
-    if (!hasMore || isLoadingMore) return
+    if (!hasMore) return
 
     let rafId: number | null = null
-    let timeoutId: NodeJS.Timeout | null = null
 
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries
-        if (entry.isIntersecting && !isLoadingMore) {
-          // Use requestAnimationFrame for better performance
+        if (entry.isIntersecting && !isLoadingMoreRef.current) {
+          isLoadingMoreRef.current = true
+          setIsLoadingMore(true)
+          // Advance on the next frame for smooth UX
           rafId = requestAnimationFrame(() => {
-            setIsLoadingMore(true)
-            // Use setTimeout for smooth UX but with smaller delay
-            timeoutId = setTimeout(() => {
-              setDisplayedCount(prev => {
-                const nextCount = Math.min(prev + ITEMS_PER_PAGE, filteredPrompts.length)
-                setIsLoadingMore(false)
-                return nextCount
-              })
-            }, 150) // Reduced delay for better responsiveness
+            setDisplayedCount(prev => Math.min(prev + ITEMS_PER_PAGE, filteredPrompts.length))
+            isLoadingMoreRef.current = false
+            setIsLoadingMore(false)
           })
         }
       },
@@ -672,11 +679,8 @@ export default function ExplorePage() {
       if (rafId !== null) {
         cancelAnimationFrame(rafId)
       }
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId)
-      }
     }
-  }, [hasMore, isLoadingMore, filteredPrompts.length])
+  }, [hasMore, filteredPrompts.length])
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value
@@ -1230,6 +1234,29 @@ export default function ExplorePage() {
                 <div className="flex flex-col items-center justify-center py-32">
                   <div className="w-16 h-16 border-4 border-black dark:border-white border-t-[#FFDE1A] rounded-full animate-spin mb-6" />
                   <p className="text-xl font-mono text-gray-500 animate-pulse">Loading prompts…</p>
+                </div>
+              ) : loadError ? (
+                <div className="text-center py-32 bg-gray-50 dark:bg-zinc-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-700">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-white dark:bg-black border-2 border-black dark:border-white rounded-full mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+                    <X size={32} className="text-black dark:text-white" />
+                  </div>
+                  <h3 className="text-2xl font-black mb-2">We couldn’t load the prompts.</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto font-medium">
+                    Something went wrong while reaching the server. Check your connection and try again.
+                  </p>
+                  <button
+                    onClick={loadPrompts}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        loadPrompts()
+                      }
+                    }}
+                    aria-label="Retry loading prompts"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FFDE1A] text-black border-2 border-black font-bold rounded-lg hover:bg-black hover:text-[#F8BE00] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-[#FFDE1A] focus:ring-offset-2"
+                  >
+                    Retry
+                  </button>
                 </div>
               ) : filteredPrompts.length === 0 ? (
                 <div className="text-center py-32 bg-gray-50 dark:bg-zinc-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-700">

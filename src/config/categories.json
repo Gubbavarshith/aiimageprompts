@@ -2,17 +2,17 @@
   {
     "name": "Portrait",
     "slug": "portrait",
-    "description": "Browse curated portrait AI image prompts for cinematic headshots, editorial fashion, and character photography. Copy-paste templates for Midjourney, DALL·E, and Stable Diffusion."
+    "description": "Browse curated portrait AI photo prompts for cinematic headshots, editorial fashion, and character photography. Get the best AI photo ideas and copy-paste templates for Midjourney, DALL·E, Stable Diffusion, and Flux."
   },
   {
     "name": "Photography",
     "slug": "photography",
-    "description": "Explore AI photography prompts for realistic, camera-inspired images. Includes street photography, landscape, macro, and documentary style prompts."
+    "description": "Explore AI photography prompts for realistic AI art and camera-inspired images. Includes street photography, landscape, macro, and documentary style AI photo prompts for stunning, lifelike results."
   },
   {
     "name": "Fantasy Art",
     "slug": "fantasy-art",
-    "description": "Discover fantasy AI image prompts for epic landscapes, mythical characters, magical environments, and concept art. Works great with Midjourney and Stable Diffusion."
+    "description": "Discover fantasy AI image prompts for epic landscapes, mythical characters, and magical environments. Perfect for drawing ideas, painting ideas, and concept art in Midjourney and Stable Diffusion."
   },
   {
     "name": "Product Photography",
@@ -42,17 +42,17 @@
   {
     "name": "Poster",
     "slug": "poster",
-    "description": "AI poster design prompts for typographic layouts, event visuals, movie posters, and campaign key art. Bold, structured, and print-ready."
+    "description": "AI poster design prompts for typographic layouts, text art AI, event visuals, movie posters, and campaign key art. Bold, structured, and print-ready designs with clean AI-generated typography."
   },
   {
     "name": "3D Graphics",
     "slug": "3d-graphics",
-    "description": "AI image prompts for 3D renders, CGI characters, abstract sculptures, and digital art with depth and dimensionality. Works with Midjourney and Flux."
+    "description": "AI image prompts for 3D renders, CGI characters, abstract sculptures, and digital art with depth. Use image-to-image AI workflows to transform sketches into polished 3D visuals with Midjourney and Flux."
   },
   {
     "name": "Gaming",
     "slug": "gaming",
-    "description": "Gaming AI image prompts for character design, game environments, UI art, and concept art across fantasy, sci-fi, and retro game genres."
+    "description": "Gaming AI image prompts for character design, game environments, UI art, and concept art. Explore drawing ideas and painting ideas across fantasy, sci-fi, and retro game genres."
   },
   {
     "name": "Pixel Art",
@@ -62,7 +62,7 @@
   {
     "name": "Conceptual Portrait",
     "slug": "conceptual-portrait",
-    "description": "Conceptual portrait AI image prompts blending surrealism, fine art, and storytelling. Ideal for creative projects and editorial work."
+    "description": "Conceptual portrait AI image prompts blending surrealism, fine art painting styles, and storytelling. Ideal for creative projects, editorial work, and exploring unique AI photo ideas."
   },
   {
     "name": "Chibi",

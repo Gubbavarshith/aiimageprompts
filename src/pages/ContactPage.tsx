@@ -1,165 +1,210 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Send, MessageSquare, Twitter, Github, CircleCheck } from 'lucide-react'
+import { Mail, Send, MessageSquare, Twitter, Github, CircleCheck, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { FloatingNavbar } from '@/components/landing/FloatingNavbar'
 import { Footer } from '@/components/landing/Footer'
 import { useToast } from '@/contexts/ToastContext'
 import { updateMetaTags } from '@/lib/seo'
-import { createContactMessage } from '@/lib/services/contactMessages'
+import { createContactMessage, isValidEmail } from '@/lib/services/contactMessages'
 import { isSupabaseReady } from '@/lib/supabaseClient'
 import { getUserLocation, type LocationData } from '@/lib/utils/location'
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const SUBJECT_OPTIONS = [
+  { value: '',                        label: 'Select a subject…' },
+  { value: 'General Inquiry',         label: '💬  General Inquiry' },
+  { value: 'Bug Report',              label: '🐛  Bug Report' },
+  { value: 'Feature Request',         label: '✨  Feature Request' },
+  { value: 'Prompt Question',         label: '🖼️  Prompt Question' },
+  { value: 'Partnership',             label: '🤝  Partnership / Collaboration' },
+  { value: 'Other',                   label: '📌  Other' },
+]
+
+const MAX_MESSAGE = 2000
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
+type FormState = {
+  name:     string
+  email:    string
+  subject:  string
+  message:  string
+  honeypot: string   // bot-trap – never shown to users
+}
+
+const EMPTY: FormState = { name: '', email: '', subject: '', message: '', honeypot: '' }
+
 export default function ContactPage() {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '', honeypot: '' })
+  const [form, setForm]           = useState<FormState>(EMPTY)
+  const [touched, setTouched]     = useState<Partial<Record<keyof FormState, boolean>>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
-  const [emailError, setEmailError] = useState<string | null>(null)
-  const [emailTouched, setEmailTouched] = useState(false)
   const toast = useToast()
 
-  // Email validation function
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
+  // ── Derived validation ─────────────────────────────────────────────────────
+  const errors: Partial<Record<keyof FormState, string>> = {}
+  if (touched.name    && !form.name.trim())        errors.name    = 'Name is required.'
+  if (touched.email) {
+    if (!form.email.trim())                         errors.email   = 'Email address is required.'
+    else if (!isValidEmail(form.email))             errors.email   =
+      'Enter a valid email — e.g. you@gmail.com or you@company.co.in'
+  }
+  if (touched.subject && !form.subject)             errors.subject = 'Please select a subject.'
+  if (touched.message && !form.message.trim())      errors.message = 'Message is required.'
+
+  const hasErrors = Object.keys(errors).length > 0
+  const allFilled = !!form.name.trim() && !!form.email.trim() && !!form.subject && !!form.message.trim()
+
+  // ── Real-time email validation ─────────────────────────────────────────────
+  // 4 visual states so the user gets instant feedback as they type:
+  //   idle       → neutral  (empty, not yet interacted)
+  //   incomplete → amber    (has @ but TLD not finished — still typing)
+  //   valid      → green    (regex passes — show checkmark immediately)
+  //   invalid    → red      (blurred and still wrong, OR clearly malformed)
+  type EmailState = 'idle' | 'valid' | 'incomplete' | 'invalid'
+
+  const emailVal     = form.email.trim()
+  const emailBlurred = !!touched.email
+  const emailHasAt   = emailVal.includes('@')
+  const emailIsValid = emailVal.length > 0 && isValidEmail(emailVal)
+
+  const emailState: EmailState = (() => {
+    if (!emailVal)                              return 'idle'
+    if (emailIsValid)                           return 'valid'
+    if (emailHasAt && !emailBlurred)            return 'incomplete'   // still typing after @
+    return 'invalid'
+  })()
+
+  // Contextual hint — shown only in `invalid` state
+  const emailErrorMsg: string | null = (() => {
+    if (emailState !== 'invalid') return null
+    if (!emailVal)       return 'Email address is required.'
+    if (!emailHasAt)     return 'Missing @ — did you mean you@gmail.com?'
+    const [local, domain = ''] = emailVal.split('@')
+    if (!local)          return 'Enter a username before the @ sign.'
+    if (!domain)         return 'Enter a domain after @ (e.g. gmail.com)'
+    if (!domain.includes('.')) return 'Add a domain extension — e.g. .com or .co.in'
+    const tld = domain.split('.').pop() ?? ''
+    if (tld.length < 2)  return 'Domain extension needs at least 2 characters (.com, .in, .io)'
+    return 'Enter a valid email — e.g. you@gmail.com or you@company.co.in'
+  })()
+
+  const emailBorderClass: Record<EmailState, string> = {
+    idle:       'border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-[#FFDE1A]',
+    incomplete: 'border-amber-400  dark:border-amber-500  focus:border-amber-400  focus:ring-amber-400',
+    valid:      'border-green-500  dark:border-green-500  focus:border-green-500  focus:ring-green-500',
+    invalid:    'border-red-500    dark:border-red-500    focus:border-red-500    focus:ring-red-500',
   }
 
-  // Handle email input change with validation
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setFormData({ ...formData, email: value })
-    
-    if (emailTouched) {
-      if (value.trim() === '') {
-        setEmailError(null)
-      } else if (!validateEmail(value)) {
-        setEmailError('Please enter a valid email address')
-      } else {
-        setEmailError(null)
-      }
-    }
-  }
-
-  // Handle email blur to mark as touched
-  const handleEmailBlur = () => {
-    setEmailTouched(true)
-    setFocusedField(null)
-    
-    if (formData.email.trim() === '') {
-      setEmailError(null)
-    } else if (!validateEmail(formData.email)) {
-      setEmailError('Please enter a valid email address')
-    } else {
-      setEmailError(null)
-    }
-  }
-
+  // ── SEO ────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const title = 'Contact AI Image Prompts | Better Prompts, Better Art'
-    const description = 'Contact AI Image Prompts for support, feedback, and collaboration inquiries about AI image prompt workflows and tools.'
+    const title       = 'Contact AI Image Prompts | Better Prompts, Better Art'
+    const description = 'Get in touch with AI Image Prompts for support, feedback, and collaboration.'
     updateMetaTags({
       title,
       description,
       canonical: '/contact',
-      og: {
-        title,
-        description,
-        url: '/contact',
-        image: '/og-image.png',
-        type: 'website',
-        siteName: 'AI Image Prompts',
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title,
-        description,
-        image: '/og-image.png',
-      },
+      og:      { title, description, url: '/contact', image: '/og-image.png', type: 'website', siteName: 'AI Image Prompts' },
+      twitter: { card: 'summary_large_image', title, description, image: '/og-image.png' },
     })
     window.scrollTo(0, 0)
   }, [])
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const set = (field: keyof FormState) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      setForm(prev => ({ ...prev, [field]: e.target.value }))
+
+  const blur = (field: keyof FormState) => () =>
+    setTouched(prev => ({ ...prev, [field]: true }))
+
+  const focus = (field: string) => () => setFocusedField(field)
+  const unfocus = () => setFocusedField(null)
+
+  const fieldClass = (field: keyof FormState, base: string) =>
+    `${base} ${errors[field] ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-[#FFDE1A]'}`
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isSubmitting) return
-    
-    // Validate email before submission
-    setEmailTouched(true)
-    if (!validateEmail(formData.email)) {
-      setEmailError('Please enter a valid email address')
+
+    // Mark all fields touched so errors show
+    setTouched({ name: true, email: true, subject: true, message: true })
+
+    // Client-side gate
+    if (!form.name.trim() || !form.subject || !form.message.trim()) {
+      toast.error('Please fill in all required fields.')
       return
     }
-    
+    if (!isValidEmail(form.email)) {
+      toast.error('Please enter a valid email address.')
+      return
+    }
+
     setIsSubmitting(true)
-    
+
     try {
-      // Check if honeypot is filled (bot detection)
-      if (formData.honeypot) {
+      // Honeypot – silent success for bots
+      if (form.honeypot) {
         setSubmitted(true)
-        setFormData({ name: '', email: '', message: '', honeypot: '' })
-        setEmailError(null)
-        setEmailTouched(false)
-        setIsSubmitting(false)
+        setForm(EMPTY)
         return
       }
 
-      // Use Supabase directly
       if (!isSupabaseReady()) {
-        throw new Error('Database is not configured. Please try again later.')
+        throw new Error('Service is temporarily unavailable. Please email us at team@aiimageprompts.xyz')
       }
 
-      // Fetch user location data (non-blocking)
-      let locationData: LocationData
-      try {
-        locationData = await getUserLocation()
-      } catch (locationError) {
-        console.warn('Failed to fetch location data:', locationError)
-        // Continue without location data
-        locationData = {}
-      }
+      // Fetch geo data non-blocking
+      let locationData: LocationData = {}
+      try { locationData = await getUserLocation() } catch { /* silent */ }
 
       const result = await createContactMessage({
-        name: formData.name,
-        email: formData.email,
-        message: formData.message,
+        name:       form.name,
+        email:      form.email,
+        subject:    form.subject,
+        message:    form.message,
         user_agent: navigator.userAgent,
         ip_address: locationData.ip_address,
-        country: locationData.country,
-        region: locationData.region,
-        city: locationData.city,
-        timezone: locationData.timezone,
+        country:    locationData.country,
+        region:     locationData.region,
+        city:       locationData.city,
+        timezone:   locationData.timezone,
       })
 
       if (result.success) {
         setSubmitted(true)
-        setFormData({ name: '', email: '', message: '', honeypot: '' })
-        setEmailError(null)
-        setEmailTouched(false)
-        toast.success("Message sent. We'll get back to you soon.")
+        setForm(EMPTY)
+        setTouched({})
+        toast.success("Message sent! We'll get back to you soon.")
       } else {
-        throw new Error(result.error || 'Failed to send message')
+        throw new Error(result.error ?? 'Failed to send message.')
       }
     } catch (err) {
-      console.error('Contact form error:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Something went wrong while sending your message. Please try again.'
-      toast.error(errorMessage)
+      console.error('[ContactPage] submit error:', err)
+      toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  // ── Social links ───────────────────────────────────────────────────────────
   const socialLinks = [
-    { icon: Twitter, label: 'Twitter', href: '#' },
-    { icon: Github, label: 'GitHub', href: '#' },
-    { icon: MessageSquare, label: 'Discord', href: '#' },
-    { icon: Mail, label: 'Email', href: 'mailto:team@aiimageprompts.xyz' },
+    { icon: Twitter,      label: 'Twitter',  href: '#' },
+    { icon: Github,       label: 'GitHub',   href: '#' },
+    { icon: MessageSquare,label: 'Discord',  href: '#' },
+    { icon: Mail,         label: 'Email',    href: 'mailto:team@aiimageprompts.xyz' },
   ]
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 font-sans selection:bg-[#FFDE1A] selection:text-black overflow-x-hidden">
       <FloatingNavbar />
 
-      {/* Ambient Spotlight Background */}
+      {/* Background glows */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[#FFDE1A]/10 dark:bg-[#FFDE1A]/5 rounded-[100%] blur-[120px] opacity-60" />
         <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[150px] opacity-40" />
@@ -168,154 +213,249 @@ export default function ContactPage() {
       <main className="relative z-10 pt-32 pb-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
 
-          {/* Header Section */}
+          {/* Header */}
           <div className="text-center mb-16">
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6"
             >
-              Let's talk about your next image. <br />
-              <span className="text-[#FFDE1A]">Or your entire visual system.</span>
+              Let's talk.{' '}
+              <span className="text-[#FFDE1A]">We're listening.</span>
             </motion.h1>
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-lg md:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto"
             >
-              Whether you're exploring prompts for the first time or building a serious visual workflow, we'd love to hear what you're making.
+              Whether you've hit a bug, want a new feature, or just want to say hi — fill in the form and we'll get back to you.
             </motion.p>
           </div>
 
-          <div className="grid md:grid-cols-[1fr_380px] gap-12 items-start">
+          <div className="grid md:grid-cols-[1fr_360px] gap-12 items-start">
 
-            {/* Left: Contact Form */}
+            {/* ── Form card ───────────────────────────────────────────────── */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="bg-white dark:bg-neutral-900/50 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-3xl p-8 shadow-xl dark:shadow-2xl"
             >
               <AnimatePresence mode="popLayout">
+
+                {/* ── Success state ──────────────────────────────────────── */}
                 {submitted ? (
                   <motion.div
                     key="success"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     className="flex flex-col items-center justify-center py-20 text-center"
                   >
                     <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-6">
                       <CircleCheck size={40} />
                     </div>
-                    <h3 className="text-2xl font-bold mb-2">Message sent</h3>
+                    <h3 className="text-2xl font-bold mb-2">Message sent!</h3>
                     <p className="text-neutral-500 dark:text-neutral-400 max-w-sm mb-8">
-                      We've received your message and will get back to you as soon as we can.
+                      We've received your message and will reply as soon as we can.
                     </p>
                     <button
-                      onClick={() => setSubmitted(false)}
+                      onClick={() => { setSubmitted(false); setForm(EMPTY); setTouched({}) }}
                       className="px-6 py-2 rounded-full bg-neutral-100 dark:bg-neutral-800 font-medium hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
                     >
                       Send another message
                     </button>
                   </motion.div>
+
                 ) : (
+
+                  /* ── Form ─────────────────────────────────────────────── */
                   <motion.form
                     key="form"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     onSubmit={handleSubmit}
-                    className="space-y-6"
+                    noValidate
+                    className="space-y-5"
                   >
-                    {/* Honeypot field to deter bots */}
+                    {/* Honeypot – hidden from real users */}
                     <input
                       type="text"
                       name="honeypot"
-                      value={formData.honeypot}
-                      onChange={(e) => setFormData({ ...formData, honeypot: e.target.value })}
+                      value={form.honeypot}
+                      onChange={set('honeypot')}
                       className="hidden"
                       tabIndex={-1}
                       autoComplete="off"
                       aria-hidden="true"
                     />
 
-                    <div className="grid sm:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium ml-1 text-neutral-600 dark:text-neutral-400">Name</label>
-                        <div className={`relative transition-all duration-300 ${focusedField === 'name' ? 'scale-[1.02]' : ''}`}>
+                    {/* Row 1: Name + Email */}
+                    <div className="grid sm:grid-cols-2 gap-5">
+
+                      {/* Name */}
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                          Name <span className="text-[#FFDE1A]">*</span>
+                        </label>
+                        <div className={`transition-transform duration-200 ${focusedField === 'name' ? 'scale-[1.01]' : ''}`}>
                           <input
                             type="text"
                             required
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            onFocus={() => setFocusedField('name')}
-                            onBlur={() => setFocusedField(null)}
-                            className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-1 focus:ring-[#FFDE1A] outline-none transition-all"
-                            placeholder="Your name"
+                            value={form.name}
+                            onChange={set('name')}
+                            onFocus={focus('name')}
+                            onBlur={blur('name')}
+                            placeholder="Your full name"
+                            className={fieldClass('name',
+                              'w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border focus:ring-1 outline-none transition-all text-sm'
+                            )}
                           />
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium ml-1 text-neutral-600 dark:text-neutral-400">Email</label>
-                        <div className={`relative transition-all duration-300 ${focusedField === 'email' ? 'scale-[1.02]' : ''}`}>
-                          <input
-                            type="email"
-                            required
-                            value={formData.email}
-                            onChange={handleEmailChange}
-                            onFocus={() => setFocusedField('email')}
-                            onBlur={handleEmailBlur}
-                            className={`w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border outline-none transition-all ${
-                              emailError 
-                                ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500' 
-                                : 'border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-1 focus:ring-[#FFDE1A]'
-                            }`}
-                            placeholder="you@example.com"
-                            aria-invalid={emailError ? 'true' : 'false'}
-                            aria-describedby={emailError ? 'email-error' : undefined}
-                          />
-                        </div>
-                        {emailError && (
-                          <p id="email-error" className="text-sm text-red-500 ml-1 mt-1" role="alert">
-                            {emailError}
+                        {errors.name && (
+                          <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
+                            <AlertCircle size={12} /> {errors.name}
                           </p>
                         )}
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium ml-1 text-neutral-600 dark:text-neutral-400">Message</label>
-                      <div className={`relative transition-all duration-300 ${focusedField === 'message' ? 'scale-[1.02]' : ''}`}>
-                        <textarea
-                          required
-                          rows={6}
-                          value={formData.message}
-                          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                          onFocus={() => setFocusedField('message')}
-                          onBlur={() => setFocusedField(null)}
-                          className="w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border border-neutral-200 dark:border-neutral-800 focus:border-[#FFDE1A] focus:ring-1 focus:ring-[#FFDE1A] outline-none transition-all resize-none"
-                          placeholder="Tell us what you're working on, what you need, or what's not working."
-                        />
+                      {/* Email — real-time validated */}
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                          Email <span className="text-[#FFDE1A]">*</span>
+                        </label>
+                        <div className={`relative transition-transform duration-200 ${focusedField === 'email' ? 'scale-[1.01]' : ''}`}>
+                          <input
+                            type="email"
+                            required
+                            value={form.email}
+                            onChange={(e) => {
+                              setForm(prev => ({ ...prev, email: e.target.value }))
+                              // Activate real-time validation as soon as @ is typed
+                              if (e.target.value.includes('@')) {
+                                setTouched(prev => ({ ...prev, email: true }))
+                              }
+                            }}
+                            onFocus={focus('email')}
+                            onBlur={() => { blur('email')(); unfocus() }}
+                            placeholder="you@example.com"
+                            autoComplete="email"
+                            aria-invalid={emailState === 'invalid'}
+                            aria-describedby="email-feedback"
+                            className={`w-full pl-4 pr-10 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border focus:ring-1 outline-none transition-all text-sm ${emailBorderClass[emailState]}`}
+                          />
+                          {/* Right-side state icon */}
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            {emailState === 'valid' && (
+                              <CheckCircle2 size={16} className="text-green-500" />
+                            )}
+                            {emailState === 'invalid' && (
+                              <AlertCircle size={16} className="text-red-500" />
+                            )}
+                            {emailState === 'incomplete' && (
+                              <span className="block w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Feedback line — height is reserved so layout doesn't jump */}
+                        <div id="email-feedback" className="min-h-[18px]">
+                          {emailState === 'valid' && (
+                            <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                              <CheckCircle2 size={12} /> Looks good!
+                            </p>
+                          )}
+                          {emailState === 'incomplete' && (
+                            <p className="flex items-center gap-1 text-xs text-amber-500">
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                              Keep going — add a domain like .com or .co.in
+                            </p>
+                          )}
+                          {emailState === 'invalid' && emailErrorMsg && (
+                            <p role="alert" className="flex items-center gap-1 text-xs text-red-500">
+                              <AlertCircle size={12} /> {emailErrorMsg}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
 
+                    {/* Subject */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                        Subject <span className="text-[#FFDE1A]">*</span>
+                      </label>
+                      <div className={`relative transition-transform duration-200 ${focusedField === 'subject' ? 'scale-[1.005]' : ''}`}>
+                        <select
+                          required
+                          value={form.subject}
+                          onChange={set('subject')}
+                          onFocus={focus('subject')}
+                          onBlur={blur('subject')}
+                          className={fieldClass('subject',
+                            'w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border focus:ring-1 outline-none transition-all appearance-none cursor-pointer text-sm'
+                          )}
+                        >
+                          {SUBJECT_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value} className="bg-white dark:bg-neutral-900">
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400 text-xs">▼</span>
+                      </div>
+                      {errors.subject && (
+                        <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
+                          <AlertCircle size={12} /> {errors.subject}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Message */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                          Message <span className="text-[#FFDE1A]">*</span>
+                        </label>
+                        <span className={`text-xs tabular-nums transition-colors ${
+                          form.message.length > MAX_MESSAGE * 0.9
+                            ? 'text-amber-500 font-medium'
+                            : 'text-neutral-400'
+                        }`}>
+                          {form.message.length} / {MAX_MESSAGE}
+                        </span>
+                      </div>
+                      <div className={`transition-transform duration-200 ${focusedField === 'message' ? 'scale-[1.005]' : ''}`}>
+                        <textarea
+                          required
+                          rows={6}
+                          maxLength={MAX_MESSAGE}
+                          value={form.message}
+                          onChange={set('message')}
+                          onFocus={focus('message')}
+                          onBlur={blur('message')}
+                          placeholder="Tell us what you're working on, what you need, or what's not working."
+                          className={fieldClass('message',
+                            'w-full px-4 py-3.5 rounded-xl bg-neutral-50 dark:bg-black/40 border focus:ring-1 outline-none transition-all resize-none text-sm'
+                          )}
+                        />
+                      </div>
+                      {errors.message && (
+                        <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
+                          <AlertCircle size={12} /> {errors.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Submit */}
                     <motion.button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || (Object.keys(touched).length > 0 && (hasErrors || !allFilled))}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
-                      className="w-full py-4 rounded-xl bg-[#FFDE1A] text-black font-bold text-lg shadow-lg shadow-[#FFDE1A]/20 hover:shadow-[#FFDE1A]/40 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                      className="w-full py-4 rounded-xl bg-[#FFDE1A] text-black font-bold text-base shadow-lg shadow-[#FFDE1A]/20 hover:shadow-[#FFDE1A]/40 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? (
-                        <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                       ) : (
-                        <>
-                          Send message
-                          <Send size={20} />
-                        </>
+                        <>Send message <Send size={18} /></>
                       )}
                     </motion.button>
                   </motion.form>
@@ -323,22 +463,19 @@ export default function ContactPage() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Right: Socials & Info */}
+            {/* ── Sidebar ──────────────────────────────────────────────────── */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
               className="space-y-6"
             >
-              {/* Info Card */}
               <div className="bg-neutral-100 dark:bg-neutral-900/50 rounded-3xl p-8 border border-neutral-200 dark:border-neutral-800">
                 <h3 className="text-xl font-bold mb-4">Other ways to connect</h3>
                 <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
-                  Prefer social? Reach out on any of these channels and share what you're building, testing, or imagining.
+                  Prefer social? Reach out on any of these channels.
                 </p>
-
                 <div className="grid grid-cols-2 gap-4">
-                  {socialLinks.map((link) => (
+                  {socialLinks.map(link => (
                     <a
                       key={link.label}
                       href={link.href}
@@ -351,15 +488,15 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* FAQ Mini Section */}
               <div className="bg-[#FFDE1A] rounded-3xl p-8 text-black relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 transition-transform group-hover:scale-150 duration-700" />
                 <h3 className="text-xl font-bold mb-2 relative z-10">Need something quick?</h3>
-                <p className="opacity-80 mb-4 relative z-10">Ask a short, specific question and we'll do our best to unblock you fast.</p>
-                <button 
+                <p className="opacity-80 mb-4 relative z-10 text-sm">
+                  Fill in the form on the left with your question and we'll unblock you fast.
+                </p>
+                <button
                   onClick={() => {
-                    const formElement = document.querySelector('form')
-                    formElement?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    document.querySelector('form')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
                   }}
                   className="px-4 py-2 bg-black text-white rounded-full text-sm font-bold hover:bg-black/80 transition-colors relative z-10"
                 >

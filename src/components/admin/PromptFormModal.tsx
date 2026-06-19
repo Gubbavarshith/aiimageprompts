@@ -64,6 +64,7 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
     const [formValues, setFormValues] = useState<PromptFormState>(EMPTY_FORM_STATE)
     const [categories, setCategories] = useState<string[]>([])
     const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+    const [newCategoryName, setNewCategoryName] = useState('')
     const [formError, setFormError] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
@@ -117,7 +118,8 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
 
     useEffect(() => {
         if (isOpen) {
-            if (initialData) {
+            setNewCategoryName('')
+        if (initialData) {
                 // Format scheduled_at for datetime-local input (YYYY-MM-DDTHH:mm)
                 const formatScheduledAt = (dateString: string | null | undefined): string => {
                     if (!dateString) return ''
@@ -286,11 +288,19 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
 
         const trimmedTitle = formValues.title.trim()
         const trimmedPrompt = formValues.prompt.trim()
-        const trimmedCategory = formValues.category.trim()
+        const isCustomCategory = formValues.category === '__other__'
+        const trimmedCategory = isCustomCategory
+            ? newCategoryName.trim()
+            : formValues.category.trim()
         const trimmedRatio = formValues.image_ratio.trim()
 
-        if (!trimmedTitle || !trimmedPrompt || !trimmedCategory || !trimmedRatio) {
+        if (!trimmedTitle || !trimmedPrompt || !formValues.category || !trimmedRatio) {
             setFormError('Title, prompt, category, and image ratio are required.')
+            return
+        }
+
+        if (isCustomCategory && !trimmedCategory) {
+            setFormError('Please enter a name for the new category.')
             return
         }
         // Canonicalize tags: lowercase, trim, remove duplicates
@@ -407,20 +417,40 @@ export default function PromptFormModal({ isOpen, onClose, initialData, onSucces
                             <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Category *</label>
                             <select
                                 value={formValues.category}
-                                onChange={(e) => handleFormInputChange('category', e.target.value)}
+                                onChange={(e) => {
+                                    handleFormInputChange('category', e.target.value)
+                                    if (e.target.value !== '__other__') setNewCategoryName('')
+                                }}
                                 disabled={isLoadingCategories}
                                 className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 required
                             >
                                 <option value="">
-                                    {isLoadingCategories ? 'Loading categories...' : 'Select a category'}
+                                    {isLoadingCategories ? 'Loading categories…' : 'Select a category'}
                                 </option>
                                 {categories.map((cat) => (
-                                    <option key={cat} value={cat}>
-                                        {cat}
-                                    </option>
+                                    <option key={cat} value={cat}>{cat}</option>
                                 ))}
+                                <option value="__other__">+ Create New Category</option>
                             </select>
+
+                            {/* Inline new-category input */}
+                            {formValues.category === '__other__' && (
+                                <div className="space-y-1">
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={newCategoryName}
+                                        onChange={(e) => setNewCategoryName(e.target.value)}
+                                        placeholder="e.g. Watercolor, Pixel Art, Retro…"
+                                        maxLength={60}
+                                        className="w-full px-3 py-2 rounded-lg border border-[#FFDE1A]/60 bg-[#FFDE1A]/5 dark:bg-[#FFDE1A]/10 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-[#FFDE1A]"
+                                    />
+                                    <p className="text-[11px] text-zinc-400">
+                                        The new category becomes available once a prompt with it is published.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -12,32 +12,33 @@ export const SEOContentSection = () => {
         {/* Long-form SEO Content */}
         <div className="max-w-4xl mx-auto space-y-12 text-zinc-700 dark:text-zinc-300">
           <article className="space-y-6">
-            <h2 className="text-3xl font-black text-black dark:text-white">What Are AI Image Prompts?</h2>
+            <h2 className="text-3xl font-black text-black dark:text-white">What Are AI Photo Prompts & Image Prompts?</h2>
             <p className="text-lg leading-relaxed">
-              AI image prompts are carefully crafted text instructions that guide artificial intelligence image generators to produce specific visual outputs. Whether you're looking for <a href="/explore?category=Photography" className="text-[#F8BE00] hover:underline font-bold">realistic AI photo prompts</a>, cinematic portrait ideas, or stylized art directions, the prompt is your primary tool for communicating with models like Midjourney, DALL-E, and Stable Diffusion.
+              AI photo prompts are carefully crafted text instructions that guide artificial intelligence image generators to produce specific visual outputs. Whether you're looking for <a href="/explore?category=Photography" className="text-[#F8BE00] hover:underline font-bold">realistic AI photo prompts</a>, cinematic portrait ideas, or stylized art directions, the prompt is your primary tool for communicating with models like Midjourney, DALL-E, Stable Diffusion, and Flux. The best AI photo results come from prompts that combine precise subject descriptions with lighting, camera parameters, and artistic style references.
             </p>
             <p className="text-lg leading-relaxed">
-              The difference between generic and exceptional AI-generated images lies in prompt engineering. High-quality AI image prompts reduce the trial-and-error cycle by providing clear, actionable instructions. They help you achieve consistent results, maintain brand identity, and explore creative directions with confidence.
+              The difference between generic and exceptional AI photos lies in prompt engineering. High-quality image prompts reduce the trial-and-error cycle by providing clear, actionable instructions. They help you achieve consistent results, maintain brand identity, and explore creative directions with confidence — whether you're generating free AI photos for personal projects or producing assets for commercial campaigns.
             </p>
           </article>
 
           <article className="space-y-6">
-            <h2 className="text-3xl font-black text-black dark:text-white">How to Write Better Prompts</h2>
+            <h2 className="text-3xl font-black text-black dark:text-white">How to Write Better AI Photo Prompts</h2>
             <p className="text-lg leading-relaxed">
-              Writing effective prompts requires a mix of creativity and structural understanding. Start with a clear subject, then layer in environmental details, lighting, and camera settings.
+              Writing effective AI photo prompts requires a mix of creativity and structural understanding. Start with a clear subject, then layer in environmental details, lighting, and camera settings. You can also use image-to-image AI workflows to refine an existing photo by combining it with a style-transfer prompt.
             </p>
             <ul className="list-disc pl-6 space-y-3 text-lg">
               <li><strong>Be specific:</strong> Instead of "a car," use "a vintage 1969 Mustang parked on a neon-lit cyberpunk street."</li>
               <li><strong>Include lighting:</strong> Terms like <em>cinematic lighting</em>, <em>golden hour</em>, or <em>volumetric fog</em> dramatically improve the <a href="/explore?category=Cinematic" className="text-[#F8BE00] hover:underline font-bold">cinematic quality</a>.</li>
               <li><strong>Specify the medium:</strong> Tell the AI if you want a 3D render, a watercolor painting, or <a href="/explore?category=Illustration" className="text-[#F8BE00] hover:underline font-bold">digital illustration</a>.</li>
+              <li><strong>Use text art AI techniques:</strong> Newer models like Midjourney v6 and DALL-E 3 can render clean typography — put your exact text in double quotes inside the prompt.</li>
               <li><strong>Use negative prompts:</strong> Exclude unwanted elements to keep the composition clean.</li>
             </ul>
           </article>
 
           <article className="space-y-6">
-            <h2 className="text-3xl font-black text-black dark:text-white">Best AI Tools for Image Generation</h2>
+            <h2 className="text-3xl font-black text-black dark:text-white">Best AI Image Generation Tools for Creating Stunning AI Photos</h2>
             <p className="text-lg leading-relaxed">
-              Different tools excel at different styles. Understanding their strengths will help you choose the right platform for your AI prompts:
+              The best AI image generation tools each excel at different styles. Understanding their strengths will help you choose the right platform — and the right free AI prompts — for your creative vision:
             </p>
             <div className="space-y-4">
               <div>

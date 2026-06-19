@@ -87,9 +87,14 @@ export type SubmitPromptPayload = Omit<PromptPayload, 'status' | 'views'> & {
 
 export type PromptChangePayload = RealtimePostgresChangesPayload<PromptRecord>
 
-const PUBLISHED_BASE_FIELDS = [
+// All columns needed by the public UI, including the prompt text. RLS already
+// allows public read of Published rows, so there is no reason to split this into
+// two requests.
+const PUBLISHED_SELECT_FIELDS = [
   'id',
   'title',
+  'prompt',
+  'negative_prompt',
   'category',
   'tags',
   'preview_image_url',
@@ -104,63 +109,48 @@ const PUBLISHED_BASE_FIELDS = [
   'attribution_link',
   'scheduled_at',
   'image_ratio',
-] as const
+].join(',')
 
-type PublishedBaseRow = Omit<PromptRecord, 'prompt' | 'negative_prompt'> & {
-  prompt?: never
-  negative_prompt?: never
-}
+// Supabase returns at most ~1000 rows per request. We page through with
+// `.range()` so the Explore library is never silently truncated, and we avoid
+// the old two-step `.in('id', [...])` pattern that built a giant URL.
+const PUBLISHED_PAGE_SIZE = 1000
 
 async function fetchPublishedPromptsFallback(limit?: number): Promise<PromptRecord[]> {
-  let query = supabase
-    .from(TABLE_NAME)
-    .select(PUBLISHED_BASE_FIELDS.join(','))
-    .eq('status', 'Published')
-    .order('created_at', { ascending: false })
+  const hasLimit = typeof limit === 'number' && Number.isFinite(limit)
+  const all: PromptRecord[] = []
+  let from = 0
 
-  if (typeof limit === 'number' && Number.isFinite(limit)) {
-    query = query.limit(limit)
-  }
+  for (;;) {
+    const remaining = hasLimit ? limit - all.length : PUBLISHED_PAGE_SIZE
+    if (remaining <= 0) break
 
-  const { data: baseRows, error } = await executeWithTimeout<PublishedBaseRow[]>(
-    'Fetching published prompts fallback',
-    query as unknown as PromiseLike<SupabaseQueryResult<PublishedBaseRow[]>>,
-  )
+    const pageSize = Math.min(remaining, PUBLISHED_PAGE_SIZE)
+    const to = from + pageSize - 1
 
-  if (error) {
-    throw new Error(`Failed to fetch prompts: ${error.message}`)
-  }
-
-  const publishedRows = (baseRows || []) as PublishedBaseRow[]
-  const promptIds = publishedRows.map((row) => row.id)
-
-  const promptMap = new Map<string, { prompt: string; negative_prompt: string | null }>()
-  if (promptIds.length > 0) {
-    const { data: freeRows, error: freeError } = await executeWithTimeout<
-      Array<{ id: string; prompt: string; negative_prompt: string | null }>
-    >(
-      'Fetching free prompt text fallback',
-      supabase.from(TABLE_NAME).select('id,prompt,negative_prompt').in('id', promptIds),
+    const { data, error } = await executeWithTimeout<PromptRecord[]>(
+      'Fetching published prompts',
+      supabase
+        .from(TABLE_NAME)
+        .select(PUBLISHED_SELECT_FIELDS)
+        .eq('status', 'Published')
+        .order('created_at', { ascending: false })
+        .range(from, to) as unknown as PromiseLike<SupabaseQueryResult<PromptRecord[]>>,
     )
-    if (freeError) {
-      throw new Error(`Failed to fetch prompts: ${freeError.message}`)
+
+    if (error) {
+      throw new Error(`Failed to fetch prompts: ${error.message}`)
     }
-    for (const row of freeRows || []) {
-      promptMap.set(row.id, {
-        prompt: row.prompt,
-        negative_prompt: row.negative_prompt,
-      })
-    }
+
+    const rows = (data || []) as PromptRecord[]
+    all.push(...rows)
+
+    // Last page reached when fewer rows than requested came back.
+    if (rows.length < pageSize) break
+    from = to + 1
   }
 
-  return publishedRows.map((row) => {
-    const fullPrompt = promptMap.get(row.id)
-    return {
-      ...row,
-      prompt: fullPrompt?.prompt ?? 'Prompt preview unavailable right now.',
-      negative_prompt: fullPrompt?.negative_prompt ?? null,
-    } as PromptRecord
-  })
+  return hasLimit ? all.slice(0, limit) : all
 }
 
 async function fetchPromptBySlugFallback(slug: string): Promise<PromptRecord | null> {

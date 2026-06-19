@@ -36,8 +36,12 @@ if (!isSupabaseConfigured) {
     )
   }
   if (!import.meta.env.DEV) {
-    // In production, fail fast to avoid running with placeholders
-    throw new Error('Supabase is not configured. Check environment variables.')
+    // In production, log loudly but DO NOT throw here. Throwing at module load
+    // white-screens the entire app. Instead, isSupabaseReady() stays false and
+    // each data call surfaces a graceful error/empty state in the UI.
+    logConfigError(
+      'Supabase is not configured in this build. Check the VITE_SUPABASE_* environment variables on the host (e.g. Vercel) and redeploy.'
+    )
   }
 }
 

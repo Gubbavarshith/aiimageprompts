@@ -371,6 +371,11 @@ export default function ContactMessagesPage() {
                           <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${getStatusBadgeColor(message.status)}`}>
                             {getStatusLabel(message.status)}
                           </span>
+                          {message.subject && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 dark:bg-white/10 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-white/10">
+                              {message.subject}
+                            </span>
+                          )}
                         </div>
                         <a
                           href={`mailto:${message.email}`}

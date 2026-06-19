@@ -52,12 +52,13 @@ export default function SubmitPromptPage() {
   })
   const [categories, setCategories] = useState<string[]>([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+  const [customCategory, setCustomCategory] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [showAuthRequiredModal, setShowAuthRequiredModal] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // --- Effects ---
 
@@ -260,11 +261,19 @@ export default function SubmitPromptPage() {
 
     const trimmedTitle = formData.title.trim()
     const trimmedPrompt = formData.prompt.trim()
-    const trimmedCategory = formData.category.trim()
+    const isCustomCategory = formData.category === '__other__'
+    const trimmedCategory = isCustomCategory
+      ? customCategory.trim()
+      : formData.category.trim()
     const trimmedRatio = formData.image_ratio.trim()
 
-    if (!trimmedTitle || !trimmedPrompt || !trimmedCategory || !trimmedRatio) {
+    if (!trimmedTitle || !trimmedPrompt || !formData.category || !trimmedRatio) {
       setError('Title, prompt, category, and image ratio are required.')
+      return
+    }
+
+    if (isCustomCategory && !trimmedCategory) {
+      setError('Please enter a name for your new category.')
       return
     }
 
@@ -309,6 +318,7 @@ export default function SubmitPromptPage() {
           preview_image_url: '',
           image_ratio: '4:3',
         })
+        setCustomCategory('')
         setSuccess(false)
         timeoutRef.current = null
       }, 3000)
@@ -472,20 +482,45 @@ export default function SubmitPromptPage() {
                           id="category"
                           name="category"
                           value={formData.category}
-                          onChange={handleInputChange}
+                          onChange={(e) => {
+                            handleInputChange(e)
+                            if (e.target.value !== '__other__') setCustomCategory('')
+                          }}
                           required
                           disabled={isLoadingCategories}
                           className="w-full h-12 px-3 bg-transparent border-2 border-zinc-200 dark:border-zinc-800 focus:border-black dark:focus:border-white rounded-lg text-base outline-none appearance-none cursor-pointer transition-colors"
                         >
-                          <option value="" disabled>Select Category</option>
+                          <option value="" disabled>
+                            {isLoadingCategories ? 'Loading categories…' : 'Select Category'}
+                          </option>
                           {categories.map((cat) => (
                             <option key={cat} value={cat} className="bg-white dark:bg-black">{cat}</option>
                           ))}
+                          <option value="__other__" className="bg-white dark:bg-black font-semibold">
+                            + Create New Category
+                          </option>
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                           <span className="text-xs">▼</span>
                         </div>
                       </div>
+
+                      {/* Inline new-category input */}
+                      {formData.category === '__other__' && (
+                        <div className="mt-2 space-y-1">
+                          <Input
+                            autoFocus
+                            value={customCategory}
+                            onChange={(e) => setCustomCategory(e.target.value)}
+                            placeholder="e.g. Watercolor, Pixel Art, Retro…"
+                            maxLength={60}
+                            className="bg-transparent border-2 border-[#FFDE1A] focus:border-[#FFDE1A] rounded-lg h-11 text-sm font-medium"
+                          />
+                          <p className="text-[11px] text-zinc-400">
+                            New categories appear publicly after your prompt is reviewed & published.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
